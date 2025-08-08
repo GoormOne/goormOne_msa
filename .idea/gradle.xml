@@ -3,6 +3,14 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/commonLibrary" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/commonLibrary" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/storeService" />
         <option name="modules">
           <set>
