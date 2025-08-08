@@ -1,0 +1,2 @@
+rootProject.name = 'goormOne_msa'
+include ':commonLibrary', ':eurekaService', ':storeService'

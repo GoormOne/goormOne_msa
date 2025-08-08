@@ -18,6 +18,6 @@ public class StoreController {
 
 
 
-        return null;
+        return "hello~~";
     }
 }
