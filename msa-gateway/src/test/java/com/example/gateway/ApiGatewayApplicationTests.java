@@ -1,10 +1,10 @@
-package com.example.msaeureka;
+package com.example.gateway;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MsaEurekaApplicationTests {
+class ApiGatewayApplicationTests {
 
 	@Test
 	void contextLoads() {

@@ -1,4 +1,4 @@
-package com.example.msaeureka;
+package com.example.eureka;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
