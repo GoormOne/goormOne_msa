@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.storeservice.StoreServiceApplicationTests" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-08-11T05:05:17.828Z" hostname="seoyunhoui-MacBookPro.local" time="0.321">
+  <properties/>
+  <testcase name="contextLoads()" classname="com.example.storeservice.StoreServiceApplicationTests" time="0.321"/>
+  <system-out><![CDATA[14:05:17.038 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.example.storeservice.StoreServiceApplicationTests]: StoreServiceApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:05:17.072 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.example.storeservice.StoreServiceApplication for test class com.example.storeservice.StoreServiceApplicationTests
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.2)
+
+2025-08-11T14:05:17.218+09:00  INFO 12510 --- [store-service] [    Test worker] c.e.s.StoreServiceApplicationTests       : Starting StoreServiceApplicationTests using Java 17.0.15 with PID 12510 (started by seoyunho in /Users/seoyunho/IdeaProjects/goormOne_msa/storeService)
+2025-08-11T14:05:17.218+09:00  INFO 12510 --- [store-service] [    Test worker] c.e.s.StoreServiceApplicationTests       : No active profile set, falling back to 1 default profile: "default"
+2025-08-11T14:05:17.515+09:00  INFO 12510 --- [store-service] [    Test worker] o.s.cloud.context.scope.GenericScope     : BeanFactory id=74cf1008-ab51-33eb-8a5c-20e8b42fc39f
+2025-08-11T14:05:17.542+09:00  WARN 12510 --- [store-service] [    Test worker] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig' of type [org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). The currently created BeanPostProcessor [lbRestClientPostProcessor] is declared through a non-static factory method on that class; consider declaring it as static instead.
+2025-08-11T14:05:17.543+09:00  WARN 12510 --- [store-service] [    Test worker] trationDelegate$BeanPostProcessorChecker : Bean 'deferringLoadBalancerInterceptor' of type [org.springframework.cloud.client.loadbalancer.DeferringLoadBalancerInterceptor] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected into a currently created BeanPostProcessor [lbRestClientPostProcessor]? Check the corresponding BeanPostProcessor declaration and its dependencies.
+2025-08-11T14:05:17.772+09:00  INFO 12510 --- [store-service] [    Test worker] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestTemplate.
+2025-08-11T14:05:17.782+09:00  WARN 12510 --- [store-service] [    Test worker] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2025-08-11T14:05:17.784+09:00  INFO 12510 --- [store-service] [    Test worker] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2025-08-11T14:05:17.807+09:00  INFO 12510 --- [store-service] [    Test worker] c.e.s.StoreServiceApplicationTests       : Started StoreServiceApplicationTests in 0.692 seconds (process running for 1.049)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
