@@ -20,3 +20,4 @@ rootProject.name = "goormOne_msa"
 include("apiGateway")
 include("commonLibrary")
 include("storeService")
+include("msa-eureka")
