@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/goormOne_msa.iml" filepath="$PROJECT_DIR$/.idea/goormOne_msa.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/apiGateway/goormOne_msa.apiGateway.main.iml" filepath="$PROJECT_DIR$/.idea/modules/apiGateway/goormOne_msa.apiGateway.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/commonLibrary/goormOne_msa.commonLibrary.main.iml" filepath="$PROJECT_DIR$/.idea/modules/commonLibrary/goormOne_msa.commonLibrary.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/storeService/goormOne_msa.storeService.main.iml" filepath="$PROJECT_DIR$/.idea/modules/storeService/goormOne_msa.storeService.main.iml" />
     </modules>
   </component>
 </project>
