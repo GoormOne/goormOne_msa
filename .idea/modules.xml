@@ -3,6 +3,15 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/goormOne_msa.iml" filepath="$PROJECT_DIR$/.idea/goormOne_msa.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/apiGateway/goormOne_msa.apiGateway.iml" filepath="$PROJECT_DIR$/.idea/modules/apiGateway/goormOne_msa.apiGateway.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/apiGateway/goormOne_msa.apiGateway.main.iml" filepath="$PROJECT_DIR$/.idea/modules/apiGateway/goormOne_msa.apiGateway.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/apiGateway/goormOne_msa.apiGateway.test.iml" filepath="$PROJECT_DIR$/.idea/modules/apiGateway/goormOne_msa.apiGateway.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/commonLibrary/goormOne_msa.commonLibrary.iml" filepath="$PROJECT_DIR$/.idea/modules/commonLibrary/goormOne_msa.commonLibrary.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/commonLibrary/goormOne_msa.commonLibrary.main.iml" filepath="$PROJECT_DIR$/.idea/modules/commonLibrary/goormOne_msa.commonLibrary.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/commonLibrary/goormOne_msa.commonLibrary.test.iml" filepath="$PROJECT_DIR$/.idea/modules/commonLibrary/goormOne_msa.commonLibrary.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/storeService/goormOne_msa.storeService.iml" filepath="$PROJECT_DIR$/.idea/modules/storeService/goormOne_msa.storeService.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/storeService/goormOne_msa.storeService.main.iml" filepath="$PROJECT_DIR$/.idea/modules/storeService/goormOne_msa.storeService.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/storeService/goormOne_msa.storeService.test.iml" filepath="$PROJECT_DIR$/.idea/modules/storeService/goormOne_msa.storeService.test.iml" />
     </modules>
   </component>
 </project>

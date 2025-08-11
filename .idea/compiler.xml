@@ -3,6 +3,42 @@
   <component name="CompilerConfiguration">
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.34/ec547ef414ab1d2c040118fb9c1c265ada63af14/lombok-1.18.34.jar" />
+        </processorPath>
+        <module name="goormOne_msa.commonLibrary.main" />
+        <module name="goormOne_msa.apiGateway.main" />
+        <module name="goormOne_msa.storeService.main" />
+      </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel target="17">
+      <module name="apiGateway" target="17" />
+      <module name="apiGateway.main" target="17" />
+      <module name="apiGateway.test" target="17" />
+      <module name="commonLibrary" target="17" />
+      <module name="commonLibrary.main" target="17" />
+      <module name="commonLibrary.test" target="17" />
+      <module name="storeService" target="17" />
+      <module name="storeService.main" target="17" />
+      <module name="storeService.test" target="17" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="apiGateway" options="-parameters" />
+      <module name="apiGateway.main" options="-parameters" />
+      <module name="apiGateway.test" options="-parameters" />
+      <module name="goormOne_msa.apiGateway" options="-parameters" />
+      <module name="goormOne_msa.apiGateway.main" options="-parameters" />
+      <module name="goormOne_msa.apiGateway.test" options="-parameters" />
+      <module name="goormOne_msa.storeService" options="-parameters" />
+      <module name="goormOne_msa.storeService.main" options="-parameters" />
+      <module name="goormOne_msa.storeService.test" options="-parameters" />
+      <module name="storeService" options="-parameters" />
+      <module name="storeService.main" options="-parameters" />
+      <module name="storeService.test" options="-parameters" />
+    </option>
   </component>
 </project>

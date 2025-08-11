@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module external.linked.project.id=":commonLibrary:main" external.linked.project.path="$MODULE_DIR$/../../../commonLibrary" external.root.project.path="$MODULE_DIR$/../../.." external.system.id="GRADLE" external.system.module.group="com.goormone" external.system.module.type="sourceSet" external.system.module.version="0.0.1-SNAPSHOT" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <output url="file://$MODULE_DIR$/../../../commonLibrary/build/classes/java/main" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../../../commonLibrary/build/generated/sources/annotationProcessor/java/main">
+      <sourceFolder url="file://$MODULE_DIR$/../../../commonLibrary/build/generated/sources/annotationProcessor/java/main" isTestSource="false" generated="true" />
+    </content>
+    <content url="file://$MODULE_DIR$/../../../commonLibrary/src/main">
+      <sourceFolder url="file://$MODULE_DIR$/../../../commonLibrary/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../commonLibrary/src/main/resources" type="java-resource" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="PROVIDED" name="Gradle: org.projectlombok:lombok:1.18.34" level="project" />
+    <orderEntry type="library" name="Gradle: org.springframework:spring-context:6.1.11" level="project" />
+    <orderEntry type="library" name="Gradle: org.springframework:spring-web:6.1.11" level="project" />
+    <orderEntry type="library" name="Gradle: org.springframework:spring-aop:6.1.11" level="project" />
+    <orderEntry type="library" name="Gradle: org.springframework:spring-beans:6.1.11" level="project" />
+    <orderEntry type="library" name="Gradle: org.springframework:spring-expression:6.1.11" level="project" />
+    <orderEntry type="library" name="Gradle: org.springframework:spring-core:6.1.11" level="project" />
+    <orderEntry type="library" name="Gradle: io.micrometer:micrometer-observation:1.13.2" level="project" />
+    <orderEntry type="library" name="Gradle: org.springframework:spring-jcl:6.1.11" level="project" />
+    <orderEntry type="library" name="Gradle: io.micrometer:micrometer-commons:1.13.2" level="project" />
+  </component>
+</module>

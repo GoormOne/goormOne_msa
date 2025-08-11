@@ -1,0 +1,49 @@
+plugins {
+	id "org.springframework.boot" version "3.3.2" apply false
+	id "io.spring.dependency-management" version "1.1.6" apply false
+}
+
+ext {
+	springBootVersion   = "3.3.2"
+	springCloudVersion  = "2023.0.3"
+}
+
+subprojects {
+	group = "com.goormone"
+	version = "0.0.1-SNAPSHOT"
+
+	apply plugin: "java"
+	apply plugin: "io.spring.dependency-management"
+
+	java {
+		toolchain {
+			languageVersion = JavaLanguageVersion.of(17) // SDK: ms-17, 언어수준 17
+		}
+	}
+
+	configurations {
+		compileOnly {
+			extendsFrom annotationProcessor
+		}
+	}
+
+	tasks.withType(JavaCompile).configureEach {
+		options.encoding = "UTF-8"
+	}
+
+	tasks.withType(Test).configureEach {
+		useJUnitPlatform()
+		systemProperty "eureka.client.enabled", "false"
+		systemProperty "eureka.client.register-with-eureka", "false"
+		systemProperty "eureka.client.fetch-registry", "false"
+		systemProperty "spring.cloud.discovery.enabled", "false"
+	}
+
+	// 공통 BOM: 모듈에서는 버전 없이 의존성 선언
+	dependencyManagement {
+		imports {
+			mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
+			mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+		}
+	}
+}
