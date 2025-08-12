@@ -1,6 +1,7 @@
 package com.example.storeservice.dto;
 
 
+import com.example.storeservice.entity.Store;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,5 +43,32 @@ public class StoreDto {
         private String store_latitude;
         private String store_longtitude;
     }
+
+
+    public static StoreDto fromEntity(Store store) {
+        if (store == null) {
+            return null;
+        }
+
+        return StoreDto.builder()
+                .storeId(store.getStoreId().toString())
+                .storeName(store.getStoreName())
+                .description(store.getStoreDescription())
+                .category(store.getStoresCategoryId() != null ? store.getStoresCategoryId().toString() : null) // 카테고리 id를 String으로
+                .address(AddressDto.builder()
+                        .address1(store.getAddress1())
+                        .address2(store.getAddress2())
+                        .build())
+                .zip_cd(store.getZipCd())
+                .store_phone(store.getStorePhone())
+                .openTime(store.getOpenTime())
+                .closeTime(store.getCloseTime())
+                .store_location(StoreLocationDto.builder()
+                        .store_latitude(store.getStoreLatitude() != null ? store.getStoreLatitude().toString() : null)
+                        .store_longtitude(store.getStoreLongitude() != null ? store.getStoreLongitude().toString() : null)
+                        .build())
+                .build();
+    }
+
 }
 
