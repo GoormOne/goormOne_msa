@@ -14,7 +14,7 @@ spring:
         - id: msa-store-service
           uri: lb://MSA-STORE-SERVICE
           predicates:
-            - Path=/stores/**,/menu/**
+            - Path=/stores/**,/menu/**,/review/**
 #          filters:
 #            - StripPrefix=1
     discovery:

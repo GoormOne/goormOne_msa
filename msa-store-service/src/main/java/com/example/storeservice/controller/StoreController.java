@@ -24,12 +24,10 @@ public class StoreController {
     private final StoreService storeService;
     private final StoreAuditService storeAuditService;
 
+
     // 스토어 상세조회 todo - 메뉴카테고리, 메뉴, 리전, 오너까지 반환 추가
     @GetMapping("/{storeId}")
     public ResponseEntity<ApiResponse<?>> getStore(@PathVariable String storeId) {
-
-        log.info("Ezra ::: Get store by id {}", storeId);
-
         Store store = storeService.getStore(UUID.fromString(storeId))
                 .orElse(null);
 
