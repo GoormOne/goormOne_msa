@@ -20,4 +20,5 @@ rootProject.name = "goormOne_msa"
 include("msa-gateway")
 include("msa-common")
 include("msa-store-service")
+include("msa-user-service")
 include("msa-eureka")
