@@ -1,7 +1,10 @@
 package com.example.storeservice.service;
 
 
+import com.example.storeservice.dto.StoreRegisterDto;
 import com.example.storeservice.entity.Store;
+import com.example.storeservice.entity.StoreAudit;
+import com.example.storeservice.repository.StoreAuditRepository;
 import com.example.storeservice.repository.StoreRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,13 @@ public class StoreService {
 
     public Optional<Store> getStore(UUID storeId) {
         return storeRepository.findById(storeId);
+    }
+
+    public Store insertStore(Store store) {
+        return storeRepository.save(store);
+    }
+
+    public void deleteStore(String userId, String storeId) {
     }
 }
 
