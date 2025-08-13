@@ -12,4 +12,10 @@ public interface CartService {
 	CartItemEntity addItem(CartItemAddReq req);
 
 	CartItemsPageRes getMyCartItemsPage(UUID userId, Integer page, Integer size);
+
+	void clearCartItems(UUID userId);
+
+	void deleteCart(UUID userId);
+
+	void deleteCartItem(UUID userId, UUID cartItemId);
 }

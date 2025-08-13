@@ -15,5 +15,9 @@ public interface CartItemRepository extends JpaRepository<CartItemEntity, UUID> 
 
 	boolean existsByCartIdAndMenuId(UUID cartId, UUID menuId);
 
+	Optional<CartItemEntity> findByCartItemId(UUID cartItemId);
+
+	long deleteByCartId(UUID cartId);
+
 	Page<CartItemEntity> findByCartId(UUID cartId, Pageable pageable);
 }

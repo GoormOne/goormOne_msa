@@ -10,7 +10,8 @@ import com.example.msaorderservice.entity.CartEntity;
 public interface CartRepository extends JpaRepository<CartEntity, UUID> {
 
 	Optional<CartEntity> findByUserIdAndStoreId(UUID userId, UUID storeId);
-	boolean existsByUserIdAndStoreId(UUID userId, UUID storeId);
 
 	Optional<CartEntity> findFirstByUserId(UUID userId);
+
+	boolean existsByCartIdAndUserId(UUID cartId, UUID userId);
 }

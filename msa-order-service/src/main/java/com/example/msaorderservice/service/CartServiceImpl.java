@@ -27,6 +27,7 @@ import com.example.msaorderservice.entity.CartItemEntity;
 import com.example.msaorderservice.repository.CartItemRepository;
 import com.example.msaorderservice.repository.CartRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -121,5 +122,40 @@ public class CartServiceImpl implements CartService {
 			.pageTotalPrice(pageTotal)
 			.items(items)
 			.build();
+	}
+
+	@Override
+	@Transactional
+	public void clearCartItems(UUID userId) {
+		CartEntity cart = cartRepository.findFirstByUserId(userId)
+			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + userId));
+
+		cartItemRepository.deleteByCartId(cart.getCartId());
+	}
+
+	@Override
+	@Transactional
+	public void deleteCartItem(UUID userId, UUID cartItemId) {
+		CartEntity cart = cartRepository.findFirstByUserId(userId)
+			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + userId));
+
+		CartItemEntity item = cartItemRepository.findByCartItemId(cartItemId)
+			.orElseThrow(() -> new EntityNotFoundException("CartItem not found: " + cartItemId));
+
+		if (!item.getCartId().equals(cart.getCartId())) {
+			throw new IllegalStateException("CartItem does not belong to user's cart.");
+		}
+
+		cartItemRepository.delete(item);
+	}
+
+	@Override
+	@Transactional
+	public void deleteCart(UUID userId) {
+		CartEntity cart = cartRepository.findFirstByUserId(userId)
+			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + userId));
+
+		cartItemRepository.deleteByCartId(cart.getCartId());
+		cartRepository.delete(cart);
 	}
 }

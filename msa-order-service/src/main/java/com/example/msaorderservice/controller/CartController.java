@@ -4,7 +4,9 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -43,5 +45,30 @@ public class CartController {
 		@RequestParam(required = false) Integer page,
 		@RequestParam(required = false) Integer size) {
 		return cartService.getMyCartItemsPage(userId, page, size);
+	}
+
+	@DeleteMapping("/items")
+	public ResponseEntity<Void> clearMyCartItems(
+		@RequestHeader("X-User-Id") UUID userId
+	) {
+		cartService.clearCartItems(userId);
+		return ResponseEntity.noContent().build();
+	}
+
+	@DeleteMapping("/items/{cartItemId}")
+	public ResponseEntity<Void> deleteMyCartItem(
+		@RequestHeader("X-User-Id") UUID userId,
+		@PathVariable UUID cartItemId
+	) {
+		cartService.deleteCartItem(userId, cartItemId);
+		return ResponseEntity.noContent().build();
+	}
+
+	@DeleteMapping
+	public ResponseEntity<Void> deleteMyCart(
+		@RequestHeader("X-User-Id") UUID userId
+	) {
+		cartService.deleteCart(userId);
+		return ResponseEntity.noContent().build();
 	}
 }
