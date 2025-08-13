@@ -1,8 +1,10 @@
 package com.example.msaorderservice.dto;
 
+import java.util.List;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,9 +13,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CartItemAddReq {
-	private UUID storeId;
-	private UUID userId;
+@Builder
+public class CartItemRes {
 	private UUID menuId;
+	private String menuName;
+	private int menuPrice;
 	private int quantity;
+	private int lineTotal;
 }

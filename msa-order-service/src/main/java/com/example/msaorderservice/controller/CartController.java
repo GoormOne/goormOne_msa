@@ -1,16 +1,22 @@
 package com.example.msaorderservice.controller;
 
+import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.common.ApiResponse;
 
 import com.example.msaorderservice.dto.CartItemAddReq;
 import com.example.msaorderservice.dto.CartItemAddRes;
+import com.example.msaorderservice.dto.CartItemsPageRes;
 import com.example.msaorderservice.entity.CartItemEntity;
 import com.example.msaorderservice.service.CartService;
 
@@ -30,5 +36,12 @@ public class CartController {
 		return ResponseEntity
 			.status(HttpStatus.CREATED)
 			.body(ApiResponse.success(CartItemAddRes.from(saved)));
+	}
+
+	@GetMapping
+	public CartItemsPageRes getMyCartItems(@RequestHeader("X-User-Id") UUID userId,
+		@RequestParam(required = false) Integer page,
+		@RequestParam(required = false) Integer size) {
+		return cartService.getMyCartItemsPage(userId, page, size);
 	}
 }
