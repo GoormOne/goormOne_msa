@@ -24,6 +24,8 @@ import java.util.UUID;
 public class MenuController {
     private final MenuService menuService;
 
+
+
     @GetMapping("/internal/{menuId}")
     public ResponseEntity<ApiResponse<?>> getMenuInternal(@PathVariable String menuId){
 

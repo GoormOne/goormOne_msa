@@ -15,6 +15,10 @@ spring:
           uri: lb://MSA-STORE-SERVICE
           predicates:
             - Path=/stores/**,/menu/**,/review/**
+        - id: msa-common-service
+          uri: lb://MSA-COMMON-SERVICE
+          predicates:
+            - Path=/common/**
 #          filters:
 #            - StripPrefix=1
     discovery:
