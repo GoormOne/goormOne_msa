@@ -31,11 +31,9 @@ public class MenuClient {
 			ParameterizedTypeReference<ApiResponse<MenuLookUp>> typeRef =
 				new ParameterizedTypeReference<>() {
 				};
-			log.info("calling store: {} with menuId={}", url, menuId);
 			ResponseEntity<ApiResponse<MenuLookUp>> resp =
 				restTemplate.exchange(url, HttpMethod.GET, null, typeRef, menuId.toString());
 
-			log.info("store 응답 status={}, body={}", resp.getStatusCode(), resp.getBody());
 			if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
 				throw new IllegalStateException("Store response invalid");
 			}
@@ -47,13 +45,10 @@ public class MenuClient {
 
 			return body.getData();
 		} catch (HttpClientErrorException.NotFound e) {
-			log.warn("메뉴 404. menuId={}", menuId);
 			throw new NoSuchElementException("메뉴를 못 찾았습니다: " + menuId);
 		} catch (ResourceAccessException e) {
-			log.error("Store service unavailable", e);
 			throw new IllegalStateException("Store service unavailable", e);
 		} catch (Exception e) {
-			log.error("store 호출 실패 menuId={}", menuId, e);
 			throw e;
 		}
 	}

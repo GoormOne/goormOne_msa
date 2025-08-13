@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,26 +50,40 @@ public class CartController {
 
 	@DeleteMapping("/items")
 	public ResponseEntity<Void> clearMyCartItems(
-		@RequestHeader("X-User-Id") UUID userId
-	) {
+		@RequestHeader("X-User-Id") UUID userId) {
+
 		cartService.clearCartItems(userId);
 		return ResponseEntity.noContent().build();
 	}
 
 	@DeleteMapping("/items/{cartItemId}")
-	public ResponseEntity<Void> deleteMyCartItem(
-		@RequestHeader("X-User-Id") UUID userId,
-		@PathVariable UUID cartItemId
-	) {
+	public ResponseEntity<Void> deleteMyCartItem(@RequestHeader("X-User-Id") UUID userId,
+		@PathVariable UUID cartItemId) {
+
 		cartService.deleteCartItem(userId, cartItemId);
 		return ResponseEntity.noContent().build();
 	}
 
 	@DeleteMapping
-	public ResponseEntity<Void> deleteMyCart(
-		@RequestHeader("X-User-Id") UUID userId
-	) {
+	public ResponseEntity<Void> deleteMyCart(@RequestHeader("X-User-Id") UUID userId) {
+
 		cartService.deleteCart(userId);
+		return ResponseEntity.noContent().build();
+	}
+
+	@PatchMapping("/items/{menuId}/increase")
+	public ResponseEntity<Void> increaseQuantity(@RequestHeader("X-User-Id") UUID userId,
+		@PathVariable UUID menuId) {
+
+		cartService.increaseQuantity(userId, menuId);
+		return ResponseEntity.noContent().build();
+	}
+
+	@PatchMapping("/items/{menuId}/decrease")
+	public ResponseEntity<Void> decreaseQuantity(@RequestHeader("X-User-Id") UUID userId,
+		@PathVariable UUID menuId) {
+
+		cartService.decreaseQuantity(userId, menuId);
 		return ResponseEntity.noContent().build();
 	}
 }

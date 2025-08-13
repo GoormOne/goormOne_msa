@@ -18,4 +18,8 @@ public interface CartService {
 	void deleteCart(UUID userId);
 
 	void deleteCartItem(UUID userId, UUID cartItemId);
+
+	void increaseQuantity(UUID userId, UUID menuId);
+
+	void decreaseQuantity(UUID userId, UUID menuId);
 }

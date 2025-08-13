@@ -158,4 +158,33 @@ public class CartServiceImpl implements CartService {
 		cartItemRepository.deleteByCartId(cart.getCartId());
 		cartRepository.delete(cart);
 	}
+
+	@Override
+	@Transactional
+	public void increaseQuantity(UUID userId, UUID menuId) {
+		CartEntity cart = cartRepository.findFirstByUserId(userId)
+			.orElseThrow(() -> new IllegalArgumentException("Cart not found for user"));
+
+		CartItemEntity cartItem = cartItemRepository.findByCartIdAndMenuId(cart.getCartId(), menuId)
+			.orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+		cartItem.setQuantity(cartItem.getQuantity() + 1);
+		cartItemRepository.save(cartItem);
+	}
+
+	@Override
+	@Transactional
+	public void decreaseQuantity(UUID userId, UUID menuId) {
+		CartEntity cart = cartRepository.findFirstByUserId(userId)
+			.orElseThrow(() -> new IllegalArgumentException("Cart not found for user"));
+
+		CartItemEntity cartItem = cartItemRepository.findByCartIdAndMenuId(cart.getCartId(), menuId)
+			.orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+
+		if (cartItem.getQuantity() > 1) {
+			cartItem.setQuantity(cartItem.getQuantity() - 1);
+			cartItemRepository.save(cartItem);
+		} else {
+			throw new IllegalArgumentException("Minimum order quantity is 1");
+		}
+	}
 }
