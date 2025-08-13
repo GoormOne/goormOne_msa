@@ -1,76 +1,92 @@
 package com.example.userservice.controller;
 
+import com.example.common.ApiResponse;
+import com.example.userservice.dto.request.SignupRequestDto;
+import com.example.userservice.service.UserAuditService;
+import com.example.userservice.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
-    private final userService;
-    private final userAddressService;
+    private final UserService userService;
+    private final UserAuditService userAuditService;
 
-    // 회원 가입
+    // 고객 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<String>> signup(@RequestBody SignupRequestDto request) {
-        String result = userService.createUser(request);
-        return ResponseEntity.ok(ApiResponse.success(result));
-    }
-    @PostMapping("/register/customer")
-    public ResponseEntity<ApiResponse<AuthResponseDTO.AuthRegisterResponseDTO>> registerCustomer(
-            @Valid @RequestBody AuthRequestDTO.RegisterRequestDto request) {
-
-        AuthResponseDTO.AuthRegisterResponseDTO response = authService.registerCustomer(request);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-    @PostMapping("/register/owner")
-    public ResponseEntity<ApiResponse<AuthResponseDTO.AuthRegisterResponseDTO>> registerOwner(
-            @Valid @RequestBody AuthRequestDTO.RegisterRequestDto request) {
-
-        AuthResponseDTO.AuthRegisterResponseDTO response = authService.registerOwner(request);
-        return ResponseEntity.ok(ApiResponse.success(response));
+    public ResponseEntity<ApiResponse<Map<String, UUID>>> signup(
+            @Valid @RequestBody SignupRequestDto dto
+    ) {
+        UUID userId = userService.signup(dto);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("userId", userId)));
     }
 
-    // 회원 탈퇴
-    @DeleteMapping("/withdraw")
-    public ResponseEntity<ApiResponse<String>> withdraw(Authentication authentication) {
-        String username = authentication.getName();
-        String result = userService.softDeleteUser(username);
-        return ResponseEntity.ok(ApiResponse.success(result));
-    }
-
-    // 회원 정보 조회
-    @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserInfoDto>> getCurrentUser(Authentication authentication) {
-        String username = authentication.getName();
-        UserInfoDto userInfo = userService.getCurrentUser(username);
-        return ResponseEntity.ok(ApiResponse.success(userInfo));
-    }
-
-    // 회원 정보 수정
-    @PatchMapping
-    public ResponseEntity<ApiResponse<?>> patchUser(
-            @Valid @RequestBody UserUpdateRequestDto userUpdateRequestDto) {
-        String currentUserId = "U000000001";;//인증인가에서 가져온 유저 id
-        String updateby="user";//인증인가에서 가져온 업데이트한 사람
-        userService.updateUser(userUpdateRequestDto,currentUserId,updateby);
-        return  new ResponseEntity<>(ApiResponse.success(null), HttpStatus.OK);
-    }
-
-    // 비밀번호 변경
-    @PutMapping("/password")
-    public ResponseEntity<ApiResponse<String>> changePassword(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody AuthRequestDTO.PasswordChangeDto request) {
-
-        authService.changePassword(userDetails.getUsername(), request);
-        return ResponseEntity.ok(ApiResponse.success("비밀번호가 성공적으로 변경되었습니다."));
-    }
+//    // 사장 회원가입
+//    @PostMapping("/signup/owner")
+//    public ResponseEntity<ApiResponse<String>> signupOwner(@Valid @RequestBody SignupRequestDto request) {
+//        String result = userService.createOwner(request);
+//        return ResponseEntity.ok(ApiResponse.success(result));
+//    }
 }
+
+// 기존 코드 주석처리
+/*
+import com.example.userservice.dto.request.AuthRequestDTO;
+import com.example.userservice.dto.response.AuthResponseDTO;
+import com.example.userservice.entity.Role;
+import com.example.userservice.service.AuthService;
+import com.example.userservice.service.UserAddressService;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import java.util.List;
+
+private final UserAddressService userAddressService;
+private final AuthService authService;
+
+// 회원 가입
+@PostMapping("/signup/{role:customer|owner}")
+public ResponseEntity<ApiResponse<AuthResponseDTO.AuthRegisterResponseDTO>> signup(
+        @PathVariable String role,
+        @Valid @RequestBody AuthRequestDTO.RegisterRequestDto request) {
+    Role r = "owner".equalsIgnoreCase(role) ? Role.OWNER : Role.CUSTOMER;
+    AuthResponseDTO.AuthRegisterResponseDTO res = userService.createUser(request, r);
+}
+
+@PostMapping("/signup/customer")
+public ResponseEntity<ApiResponse<String>> signup(@RequestBody SignupRequestDto request) {
+    String result = userService.createUser(request);
+    return ResponseEntity.ok(ApiResponse.success(result));
+}
+@PostMapping("/register/customer")
+public ResponseEntity<ApiResponse<AuthResponseDTO.AuthRegisterResponseDTO>> registerCustomer(
+        @Valid @RequestBody AuthRequestDTO.RegisterRequestDto request) {
+
+    AuthResponseDTO.AuthRegisterResponseDTO response = authService.registerCustomer(request);
+    return ResponseEntity.ok(ApiResponse.success(response));
+}
+@PostMapping("/register/owner")
+public ResponseEntity<ApiResponse<AuthResponseDTO.AuthRegisterResponseDTO>> registerOwner(
+        @Valid @RequestBody AuthRequestDTO.RegisterRequestDto request) {
+
+    AuthResponseDTO.AuthRegisterResponseDTO response = authService.registerOwner(request);
+    return ResponseEntity.ok(ApiResponse.success(response));
+}
+
+// 회원 탈퇴
+@DeleteMapping("/withdraw")
+public ResponseEntity<ApiResponse<String>> withdraw(Authentication authentication) {
+    String username = authentication.getName();
+    String result = userService.softDeleteUser(username);
+    return ResponseEntity.ok(ApiResponse.success(result));
+}
+*/

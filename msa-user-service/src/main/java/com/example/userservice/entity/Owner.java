@@ -20,7 +20,7 @@ public class Owner {
     @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
     @MapsId // owner_id == audit.audit_id
     @JoinColumn(name = "owner_id", referencedColumnName = "audit_id")
-    private Audit audit;
+    private UserAudit userAudit;
 
     @Column(name = "username", nullable = false, unique = true, length = 10)
     private String username;

@@ -1,6 +1,6 @@
 package com.example.userservice.dto.request;
 
-import com.profect.delivery.global.entity.UserAddress;
+import com.example.userservice.entity.CustomerAddress;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -21,19 +21,19 @@ public class UserAddressesRequestDto {
     private BigDecimal user_longitude;
     private boolean is_default;
 
-    public UserAddress toEntity(String userid){
-        return UserAddress.builder()
-                .addressCd(UUID.randomUUID())
-                .userId(userid)
-                .addressName(address_name)
-                .address1(address1)
-                .address2(address2)
-                .zipCd(zip_cd)
-                .userLatitude(user_latitude)
-                .userLongitude(user_longitude)
-                .isDefault(is_default)
-                .createdAt(Timestamp.valueOf(LocalDateTime.now()))
-                .build();
-    }
+//    public CustomerAddress toEntity(String userid){
+//        return CustomerAddress.builder()
+//                .id(UUID.randomUUID())
+//                .user(userid)
+//                .addressName(address_name)
+//                .address1(address1)
+//                .address2(address2)
+//                .zipCd(zip_cd)
+//                .userLatitude(user_latitude)
+//                .userLongitude(user_longitude)
+//                .isDefault(is_default)
+//                .createdAt(Timestamp.valueOf(LocalDateTime.now()))
+//                .build();
+//    }
 
 }

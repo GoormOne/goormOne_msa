@@ -1,6 +1,6 @@
 package com.example.userservice.dto.response;
 
-import com.profect.delivery.global.entity.UserAddress;
+import com.example.userservice.entity.CustomerAddress;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,12 +16,12 @@ public class UserAddressesResponseDto {
 
 
 
-    public static UserAddressesResponseDto fromEntity(UserAddress address) {
+    public static UserAddressesResponseDto fromEntity(CustomerAddress address) {
         UserAddressesResponseDto dto = new UserAddressesResponseDto();
         dto.address_name = address.getAddressName();
         dto.address1 = address.getAddress1();
         dto.address2 = address.getAddress2();
-        dto.zip_cd = address.getZipCd();
+        dto.zip_cd = address.getZipCode();
         return dto;
     }
 

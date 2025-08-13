@@ -20,7 +20,7 @@ public class CustomerAddress {
     @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
     @MapsId // address_id == audit.audit_id
     @JoinColumn(name = "address_id", referencedColumnName = "audit_id")
-    private Audit audit;
+    private UserAudit userAudit;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)

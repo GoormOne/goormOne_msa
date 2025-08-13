@@ -2,6 +2,7 @@ package com.example.userservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -13,14 +14,18 @@ import java.util.UUID;
 @Builder
 public class User {
 
+    /* DB가 gen_random_uuid()로 생성하더라도, JPA가 자신이 ID를 넣어야 하나 오해하면 INSERT 안됨.
+    -> JPA에도 UUID 자동 생성 전략을 명시 */
     @Id
-    @Column(name = "user_id", nullable = false)
-    private UUID id; // = p_audit.audit_id (공유 PK)
+    @GeneratedValue
+    @UuidGenerator
+    @Column(name = "user_id", updatable = false, nullable = false)
+    private UUID userId;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
-    @MapsId // user_id == audit.audit_id
-    @JoinColumn(name = "user_id", referencedColumnName = "audit_id")
-    private Audit audit;
+//    @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
+//    @MapsId // user_id == p_user_audit.audit_id
+//    @JoinColumn(name = "user_id", referencedColumnName = "audit_id")
+//    private UserAudit userAudit;
 
     @Column(name = "username", nullable = false, unique = true, length = 10)
     private String username;

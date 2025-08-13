@@ -1,6 +1,6 @@
 package com.example.userservice.dto.request;
 
-import com.profect.delivery.global.entity.Role;
+import com.example.userservice.entity.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
