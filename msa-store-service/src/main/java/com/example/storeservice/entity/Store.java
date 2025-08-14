@@ -74,4 +74,8 @@ public class Store {
     @Builder.Default
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Menu> menus = new ArrayList<>();
+
+    public Store (UUID storeId) {
+        this.storeId = storeId;
+    }
 }

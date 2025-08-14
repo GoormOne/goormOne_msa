@@ -41,7 +41,6 @@ public class StoreController {
 
         return ResponseEntity.ok(ApiResponse.success(storeDto));
 
-
     }
 
     @PostMapping()

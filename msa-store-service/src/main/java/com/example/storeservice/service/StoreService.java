@@ -37,7 +37,6 @@ public class StoreService {
                         () -> new EntityNotFoundException
                                 ("없는 상점입니다 : " + storeId));
 
-        // 부분 업데이트(PATCH) 스타일: null 체크 후만 반영
         if (dto.getStoreName() != null) store.setStoreName(dto.getStoreName());
         if (dto.getStoreDescription() != null) store.setStoreDescription(dto.getStoreDescription());
         if (dto.getCategory() != null) store.setStoresCategoryId(UUID.fromString(dto.getCategory()));
