@@ -8,18 +8,18 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "p_users")
+@Table(name = "p_customers")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
-public class User {
+public class Customer {
 
     /* DB가 gen_random_uuid()로 생성하더라도, JPA가 자신이 ID를 넣어야 하나 오해하면 INSERT 안됨.
     -> JPA에도 UUID 자동 생성 전략을 명시 */
     @Id
     @GeneratedValue
     @UuidGenerator
-    @Column(name = "user_id", updatable = false, nullable = false)
+    @Column(name = "customer_id", updatable = false, nullable = false)
     private UUID userId;
 
 //    @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)

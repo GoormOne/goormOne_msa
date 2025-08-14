@@ -1,6 +1,6 @@
 package com.example.userservice.dto.request;
 
-import com.example.userservice.entity.User;
+import com.example.userservice.entity.Customer;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,7 +8,6 @@ import jakarta.validation.constraints.Past;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Data
 @Getter @Setter
@@ -22,8 +21,8 @@ public class SignupRequestDto {
     @NotNull @Past private LocalDate birth;
     @NotBlank @Email private String email;
 
-    public User toEntity() {
-        return User.builder()
+    public Customer toEntity() {
+        return Customer.builder()
                 // id는 넣지 않음 (JPA/DB가 생성)
                 .username(this.username)
                 .password(this.password) // pw encoding은 Service에서

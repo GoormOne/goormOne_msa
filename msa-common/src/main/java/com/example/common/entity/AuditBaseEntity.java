@@ -1,9 +1,6 @@
 package com.example.common.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -39,4 +36,7 @@ public abstract class AuditBaseEntity {
 
     @Column(name = "deleted_rs")
     private String deletedReason;
+
+    @PrePersist
+    public void prePersist() { if (createdAt == null) createdAt = LocalDateTime.now();}
 }

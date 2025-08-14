@@ -2,6 +2,7 @@ package com.example.userservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -14,17 +15,14 @@ import java.util.UUID;
 public class CustomerAddress {
 
     @Id
-    @Column(name = "address_id", nullable = false)
-    private UUID id; // = p_audit.audit_id (공유 PK)
-
-    @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
-    @MapsId // address_id == audit.audit_id
-    @JoinColumn(name = "address_id", referencedColumnName = "audit_id")
-    private UserAudit userAudit;
+    @GeneratedValue
+    @UuidGenerator
+    @Column(name = "address_id", updatable = false, nullable = false)
+    private UUID addressId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
 
     @Column(name = "address_name", nullable = false, length = 20)
     private String addressName;

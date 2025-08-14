@@ -1,9 +1,8 @@
 package com.example.userservice.service;
 
 import com.example.userservice.dto.request.SignupRequestDto;
-import com.example.userservice.entity.UserAudit;
-import com.example.userservice.entity.Owner;
-import com.example.userservice.entity.User;
+import com.example.userservice.entity.CustomerAudit;
+import com.example.userservice.entity.Customer;
 import com.example.userservice.repository.OwnerRepository;
 import com.example.userservice.repository.UserAuditRepository;
 import com.example.userservice.repository.UserRepository;
@@ -34,12 +33,12 @@ public class UserService {
                 .ifPresent(u -> { throw new IllegalArgumentException("EMAIL_DUPLICATED"); });
 
         // 2) 유저 저장 (DB가 UUID 생성)
-        User user = dto.toEntity();
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        User saved = userRepository.save(user);    // 여기서 saved.getId() 확정
+        Customer customer = dto.toEntity();
+        customer.setPassword(passwordEncoder.encode(customer.getPassword()));
+        Customer saved = userRepository.save(customer);    // 여기서 saved.getId() 확정
 
         // 3) 감사 저장 (PK=FK: audit_id = user_id, created_by = user_id)
-        UserAudit audit = UserAudit.builder()
+        CustomerAudit audit = CustomerAudit.builder()
                 .auditId(saved.getUserId())
                 .createdAt(LocalDateTime.now())
                 .createdBy(saved.getUserId())
