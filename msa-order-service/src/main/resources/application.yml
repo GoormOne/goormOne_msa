@@ -1,9 +1,9 @@
 server:
-  port: 8081
+  port: 8085
 
 spring:
   application:
-   name: msa-store-service
+    name: msa-order-service
   datasource:
     url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres
     driver-class-name: org.postgresql.Driver
@@ -11,7 +11,7 @@ spring:
     password: Goorm1!!
   jpa:
     hibernate:
-      ddl-auto: none           # ?? ? update/validate ?
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -26,15 +26,8 @@ management:
       show-details: when_authorized
 
 eureka:
-  instance:
-    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka/
-
-logging:
-  level:
-    org.springframework.cloud.loadbalancer: DEBUG
-    org.springframework.cloud.gateway.server.mvc: DEBUG
+      defaultZone: http://localhost:8761/eureka
