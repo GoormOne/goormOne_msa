@@ -5,14 +5,18 @@ import com.example.common.CommonCode;
 import com.example.storeservice.dto.MenuResponseDto;
 import com.example.storeservice.entity.Menu;
 import com.example.storeservice.entity.Store;
+import com.example.storeservice.service.AwsS3Service;
 import com.example.storeservice.service.MenuService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
+import java.net.URL;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,6 +26,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MenuController {
     private final MenuService menuService;
+    private final AwsS3Service awsS3Service;
 
 
     //todo S3 사용 -- 이미지 파일 받아서 S3저장 후 URL 받아서 저장
@@ -40,6 +45,7 @@ public class MenuController {
         return ResponseEntity.ok(ApiResponse.success(MenuResponseDto.from(menu)));
     }
 
+    // 스토어별, 스토어의 메뉴카테고리별 메뉴 리스트 검색
     @GetMapping("/{storeId}/menus")
     public ResponseEntity<ApiResponse<?>> getMenu(
             @PathVariable String storeId,
@@ -59,6 +65,19 @@ public class MenuController {
                 .toList();
 
         return ResponseEntity.ok(ApiResponse.success(menuResponseDtoList));
+    }
+
+    @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<?>> postMenu(
+            @RequestPart("file") MultipartFile file
+                                                   ){
+
+        log.info("menu controller file uploaded");
+        String fileName = awsS3Service.uploadFile(file);
+        //이미지 URL 인증 TTL
+        URL url = awsS3Service.getImageUrl(fileName, Duration.ofMinutes(1));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(url));
     }
 
 
