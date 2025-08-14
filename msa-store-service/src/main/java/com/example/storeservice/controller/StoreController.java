@@ -1,8 +1,8 @@
 package com.example.storeservice.controller;
 
 
-import com.example.common.ApiResponse;
-import com.example.common.CommonCode;
+import com.example.common.dto.ApiResponse;
+import com.example.common.exception.CommonCode;
 import com.example.storeservice.dto.StoreRegisterDto;
 import com.example.storeservice.entity.StoreAudit;
 import com.example.storeservice.service.StoreAuditService;

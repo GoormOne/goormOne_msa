@@ -1,11 +1,10 @@
 package com.example.storeservice.controller;
 
-import com.example.common.ApiResponse;
-import com.example.common.CommonCode;
+import com.example.common.dto.ApiResponse;
+import com.example.common.exception.CommonCode;
 import com.example.storeservice.dto.MenuResponseDto;
 import com.example.storeservice.entity.Menu;
 import com.example.storeservice.service.MenuService;
-import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

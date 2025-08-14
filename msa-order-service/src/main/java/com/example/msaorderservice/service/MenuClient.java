@@ -11,7 +11,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import com.example.common.ApiResponse;
+import com.example.common.dto.ApiResponse;
 import com.example.msaorderservice.dto.MenuLookUp;
 
 import lombok.RequiredArgsConstructor;

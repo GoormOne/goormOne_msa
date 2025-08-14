@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.common.ApiResponse;
+import com.example.common.dto.ApiResponse;
 
 import com.example.msaorderservice.dto.CartItemAddReq;
 import com.example.msaorderservice.dto.CartItemAddRes;

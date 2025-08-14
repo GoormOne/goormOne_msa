@@ -1,6 +1,6 @@
 package com.example.userservice.controller;
 
-import com.example.common.ApiResponse;
+import com.example.common.dto.ApiResponse;
 import com.example.userservice.dto.request.SignupRequestDto;
 import com.example.userservice.service.UserAuditService;
 import com.example.userservice.service.UserService;
@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -23,11 +22,11 @@ public class UserController {
 
     // 고객 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<Map<String, UUID>>> signup(
+    public ResponseEntity<ApiResponse<?>> signup(
             @Valid @RequestBody SignupRequestDto dto
     ) {
         UUID userId = userService.signup(dto);
-        return ResponseEntity.ok(ApiResponse.success(Map.of("userId", userId)));
+        return ResponseEntity.ok(ApiResponse.success(userId));
     }
 
 //    // 사장 회원가입
