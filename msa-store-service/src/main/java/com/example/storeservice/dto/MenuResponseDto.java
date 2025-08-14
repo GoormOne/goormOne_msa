@@ -3,11 +3,14 @@ package com.example.storeservice.dto;
 import com.example.storeservice.entity.Menu;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.UUID;
 
 @Getter
 @Builder
+@Setter
 public class MenuResponseDto {
     private UUID menuId;
     private String menuName;
