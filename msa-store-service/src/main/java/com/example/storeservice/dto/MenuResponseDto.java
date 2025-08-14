@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.net.URL;
 import java.util.UUID;
 
 @Getter
@@ -20,8 +21,8 @@ public class MenuResponseDto {
     private String menuPhotoUrl;
     private Boolean isPublicPhoto;
 
-    private UUID storeId;          // 연관 id만
-    private UUID menuCategoryId;   // 연관 id만
+    private UUID storeId;
+    private UUID menuCategoryId;
 
     public static MenuResponseDto from(Menu m) {
         return MenuResponseDto.builder()
@@ -31,6 +32,20 @@ public class MenuResponseDto {
                 .menuDescription(m.getMenuDescription())
                 .isPublic(m.getIsPublic())
                 .menuPhotoUrl(m.getMenuPhotoUrl())
+                .isPublicPhoto(m.getIsPublicPhoto())
+                .storeId(m.getStore().getStoreId())
+                .menuCategoryId(m.getMenuCategory().getMenuCategoryId())
+                .build();
+    }
+
+    public static MenuResponseDto from(Menu m, String storeUrl) {
+        return MenuResponseDto.builder()
+                .menuId(m.getMenuId())
+                .menuName(m.getMenuName())
+                .menuPrice(m.getMenuPrice())
+                .menuDescription(m.getMenuDescription())
+                .isPublic(m.getIsPublic())
+                .menuPhotoUrl(storeUrl)
                 .isPublicPhoto(m.getIsPublicPhoto())
                 .storeId(m.getStore().getStoreId())
                 .menuCategoryId(m.getMenuCategory().getMenuCategoryId())

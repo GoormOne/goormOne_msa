@@ -26,6 +26,7 @@ public class AwsS3Service {
     private final S3Client s3Client;
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucketName;
+    private final S3Presigner s3Presigner;
 
     public String uploadFile(MultipartFile multipartFile) {
 
@@ -57,11 +58,12 @@ public class AwsS3Service {
     }
 
     public URL getImageUrl(String objectKey, Duration ttl) {
-        try (S3Presigner presigner = S3Presigner.create()) {
-            GetObjectRequest get = GetObjectRequest.builder()
-                    .bucket(bucketName).key(objectKey).build();
-            PresignedGetObjectRequest req = presigner.presignGetObject(b -> b
-                    .signatureDuration(ttl).getObjectRequest(get));
+        GetObjectRequest get = GetObjectRequest.builder()
+                .bucket(bucketName).key(objectKey).build();
+
+        PresignedGetObjectRequest req = s3Presigner.presignGetObject(b -> b
+                .signatureDuration(ttl)
+                .getObjectRequest(get));
             return req.url();
         }
     }
@@ -69,4 +71,4 @@ public class AwsS3Service {
 
 
 
-}
+

@@ -30,4 +30,7 @@ public class MenuService {
         return menuList;
     }
 
+    public Menu insertMenu(Menu menu) {
+        return menuRepository.save(menu);
+    }
 }
