@@ -13,7 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CartItemAddReq {
 	private UUID storeId;
-	private UUID userId;
+	private UUID customerId;
 	private UUID menuId;
 	private int quantity;
 }

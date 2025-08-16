@@ -9,15 +9,15 @@ import com.example.msaorderservice.cart.entity.CartItemEntity;
 public interface CartService {
 	CartItemEntity addItem(CartItemAddReq req);
 
-	CartItemsPageRes getMyCartItemsPage(UUID userId, Integer page, Integer size);
+	CartItemsPageRes getMyCartItemsPage(UUID customerId, Integer page, Integer size);
 
-	void clearCartItems(UUID userId);
+	void clearCartItems(UUID customerId);
 
-	void deleteCart(UUID userId);
+	void deleteCart(UUID customerId);
 
-	void deleteCartItem(UUID userId, UUID cartItemId);
+	void deleteCartItem(UUID customerId, UUID cartItemId);
 
-	void increaseQuantity(UUID userId, UUID menuId);
+	void increaseQuantity(UUID customerId, UUID menuId);
 
-	void decreaseQuantity(UUID userId, UUID menuId);
+	void decreaseQuantity(UUID customerId, UUID menuId);
 }

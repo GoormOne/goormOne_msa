@@ -31,8 +31,8 @@ public class CartEntity {
 	@org.hibernate.annotations.Generated(org.hibernate.annotations.GenerationTime.INSERT)
 	private UUID cartId;
 
-	@Column(name = "user_id", nullable = false, columnDefinition = "uuid")
-	private UUID userId;
+	@Column(name = "customer_id", nullable = false, columnDefinition = "uuid")
+	private UUID customerId;
 
 	@Column(name = "store_id", nullable = false, columnDefinition = "uuid")
 	private UUID storeId;

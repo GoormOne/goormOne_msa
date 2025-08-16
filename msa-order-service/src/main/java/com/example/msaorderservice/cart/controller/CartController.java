@@ -42,48 +42,48 @@ public class CartController {
 	}
 
 	@GetMapping
-	public CartItemsPageRes getMyCartItems(@RequestHeader("X-User-Id") UUID userId,
+	public CartItemsPageRes getMyCartItems(@RequestHeader("X-User-Id") UUID customerId,
 		@RequestParam(required = false) Integer page,
 		@RequestParam(required = false) Integer size) {
-		return cartService.getMyCartItemsPage(userId, page, size);
+		return cartService.getMyCartItemsPage(customerId, page, size);
 	}
 
 	@DeleteMapping("/items")
 	public ResponseEntity<Void> clearMyCartItems(
-		@RequestHeader("X-User-Id") UUID userId) {
+		@RequestHeader("X-User-Id") UUID customerId) {
 
-		cartService.clearCartItems(userId);
+		cartService.clearCartItems(customerId);
 		return ResponseEntity.noContent().build();
 	}
 
 	@DeleteMapping("/items/{cartItemId}")
-	public ResponseEntity<Void> deleteMyCartItem(@RequestHeader("X-User-Id") UUID userId,
+	public ResponseEntity<Void> deleteMyCartItem(@RequestHeader("X-User-Id") UUID customerId,
 		@PathVariable UUID cartItemId) {
 
-		cartService.deleteCartItem(userId, cartItemId);
+		cartService.deleteCartItem(customerId, cartItemId);
 		return ResponseEntity.noContent().build();
 	}
 
 	@DeleteMapping
-	public ResponseEntity<Void> deleteMyCart(@RequestHeader("X-User-Id") UUID userId) {
+	public ResponseEntity<Void> deleteMyCart(@RequestHeader("X-User-Id") UUID customerId) {
 
-		cartService.deleteCart(userId);
+		cartService.deleteCart(customerId);
 		return ResponseEntity.noContent().build();
 	}
 
 	@PatchMapping("/items/{menuId}/increase")
-	public ResponseEntity<Void> increaseQuantity(@RequestHeader("X-User-Id") UUID userId,
+	public ResponseEntity<Void> increaseQuantity(@RequestHeader("X-User-Id") UUID customerId,
 		@PathVariable UUID menuId) {
 
-		cartService.increaseQuantity(userId, menuId);
+		cartService.increaseQuantity(customerId, menuId);
 		return ResponseEntity.noContent().build();
 	}
 
 	@PatchMapping("/items/{menuId}/decrease")
-	public ResponseEntity<Void> decreaseQuantity(@RequestHeader("X-User-Id") UUID userId,
+	public ResponseEntity<Void> decreaseQuantity(@RequestHeader("X-User-Id") UUID customerId,
 		@PathVariable UUID menuId) {
 
-		cartService.decreaseQuantity(userId, menuId);
+		cartService.decreaseQuantity(customerId, menuId);
 		return ResponseEntity.noContent().build();
 	}
 }
