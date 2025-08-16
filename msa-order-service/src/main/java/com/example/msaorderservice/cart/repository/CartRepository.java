@@ -1,11 +1,11 @@
-package com.example.msaorderservice.repository;
+package com.example.msaorderservice.cart.repository;
 
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.example.msaorderservice.entity.CartEntity;
+import com.example.msaorderservice.cart.entity.CartEntity;
 
 public interface CartRepository extends JpaRepository<CartEntity, UUID> {
 

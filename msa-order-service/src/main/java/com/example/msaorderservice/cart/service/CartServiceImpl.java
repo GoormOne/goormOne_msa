@@ -1,6 +1,4 @@
-package com.example.msaorderservice.service;
-
-import static org.springframework.data.jpa.domain.AbstractPersistable_.*;
+package com.example.msaorderservice.cart.service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +8,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,14 +15,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.msaorderservice.dto.CartItemAddReq;
-import com.example.msaorderservice.dto.CartItemRes;
-import com.example.msaorderservice.dto.CartItemsPageRes;
-import com.example.msaorderservice.dto.MenuLookUp;
-import com.example.msaorderservice.entity.CartEntity;
-import com.example.msaorderservice.entity.CartItemEntity;
-import com.example.msaorderservice.repository.CartItemRepository;
-import com.example.msaorderservice.repository.CartRepository;
+import com.example.msaorderservice.cart.dto.CartItemAddReq;
+import com.example.msaorderservice.cart.dto.CartItemRes;
+import com.example.msaorderservice.cart.dto.CartItemsPageRes;
+import com.example.msaorderservice.cart.dto.MenuLookUp;
+import com.example.msaorderservice.cart.entity.CartEntity;
+import com.example.msaorderservice.cart.entity.CartItemEntity;
+import com.example.msaorderservice.cart.repository.CartItemRepository;
+import com.example.msaorderservice.cart.repository.CartRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

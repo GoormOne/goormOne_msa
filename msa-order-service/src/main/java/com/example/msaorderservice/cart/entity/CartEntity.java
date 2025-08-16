@@ -1,4 +1,4 @@
-package com.example.msaorderservice.entity;
+package com.example.msaorderservice.cart.entity;
 
 import java.util.UUID;
 

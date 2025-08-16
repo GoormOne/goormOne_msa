@@ -1,8 +1,8 @@
-package com.example.msaorderservice.dto;
+package com.example.msaorderservice.cart.dto;
 
 import java.util.UUID;
 
-import com.example.msaorderservice.entity.CartItemEntity;
+import com.example.msaorderservice.cart.entity.CartItemEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

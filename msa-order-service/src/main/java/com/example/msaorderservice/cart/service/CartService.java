@@ -1,12 +1,10 @@
-package com.example.msaorderservice.service;
+package com.example.msaorderservice.cart.service;
 
 import java.util.UUID;
 
-import com.example.msaorderservice.dto.CartItemAddReq;
-import com.example.msaorderservice.dto.CartItemRes;
-import com.example.msaorderservice.dto.CartItemsPageRes;
-import com.example.msaorderservice.dto.MenuLookUp;
-import com.example.msaorderservice.entity.CartItemEntity;
+import com.example.msaorderservice.cart.dto.CartItemAddReq;
+import com.example.msaorderservice.cart.dto.CartItemsPageRes;
+import com.example.msaorderservice.cart.entity.CartItemEntity;
 
 public interface CartService {
 	CartItemEntity addItem(CartItemAddReq req);

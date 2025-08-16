@@ -1,4 +1,4 @@
-package com.example.msaorderservice.controller;
+package com.example.msaorderservice.cart.controller;
 
 import java.util.UUID;
 
@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.common.ApiResponse;
 
-import com.example.msaorderservice.dto.CartItemAddReq;
-import com.example.msaorderservice.dto.CartItemAddRes;
-import com.example.msaorderservice.dto.CartItemsPageRes;
-import com.example.msaorderservice.entity.CartItemEntity;
-import com.example.msaorderservice.service.CartService;
+import com.example.msaorderservice.cart.dto.CartItemAddReq;
+import com.example.msaorderservice.cart.dto.CartItemAddRes;
+import com.example.msaorderservice.cart.dto.CartItemsPageRes;
+import com.example.msaorderservice.cart.entity.CartItemEntity;
+import com.example.msaorderservice.cart.service.CartService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

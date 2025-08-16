@@ -1,4 +1,4 @@
-package com.example.msaorderservice.service;
+package com.example.msaorderservice.cart.service;
 
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -12,7 +12,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.common.ApiResponse;
-import com.example.msaorderservice.dto.MenuLookUp;
+import com.example.msaorderservice.cart.dto.MenuLookUp;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
