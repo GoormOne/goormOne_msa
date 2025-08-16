@@ -46,6 +46,7 @@ public class MenuService {
         if (dto.getMenuDescription() != null) menu.setMenuDescription(dto.getMenuDescription());
         if (dto.getIsPublic() != null) menu.setIsPublic(dto.getIsPublic());
         if (dto.getIsPublicPhoto() != null) menu.setIsPublicPhoto(dto.getIsPublicPhoto());
+        if (dto.getMenuPhotoUrl() != null) menu.setMenuPhotoUrl(dto.getMenuPhotoUrl());
 
         //todo -- 카테고리 ID 검증 후에 변경 포토 변경 로직 추가
 //        if (dto.getMenuCategoryId() != null) {

@@ -17,6 +17,14 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 
+/*
+* ---store 생성 단계---
+* 1.owner생성
+* 2.store생성(스토어 카테고리 선택/ 배달 가능 리전 선택)
+* => 스토어 카테고리, 배달 리전은 Get만. 생성 수정은 admin 서비스로 확장 염두
+* 3.menuCategory생성
+* 4.메뉴 생성
+* */
 @RestController
 @RequestMapping("/stores")
 @RequiredArgsConstructor

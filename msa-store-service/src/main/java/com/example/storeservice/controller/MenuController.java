@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URL;
 import java.nio.file.AccessDeniedException;
 import java.time.Duration;
 import java.util.List;
@@ -116,7 +117,19 @@ public class MenuController {
         storeService.getStore(menuDto.getStoreId(), ownerUUID);
 
         Menu menu = menuService.getMenu(menuDto.getMenuId(), menuDto.getStoreId());
+
+        if (!file.isEmpty()){
+            String fileName = awsS3Service.uploadFile(file);
+            menuDto.setMenuPhotoUrl(fileName);
+        }else{
+            menuDto.setMenuPhotoUrl(null);
+        }
         MenuDto resultDto = menuService.updateMenu(menu.getMenuId(), menuDto);
+
+        if (resultDto.getMenuPhotoUrl() != null){
+            URL photoUrl = awsS3Service.getImageUrl(resultDto.getMenuPhotoUrl(), Duration.ofMinutes(10));
+            resultDto.setMenuPhotoUrl(photoUrl.toString());
+        }
 
         return ResponseEntity.ok(ApiResponse.success(resultDto));
     }

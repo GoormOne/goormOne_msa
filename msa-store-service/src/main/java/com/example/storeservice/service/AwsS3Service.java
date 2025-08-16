@@ -48,11 +48,6 @@ public class AwsS3Service {
             log.error("cannot upload image",e);
             throw new RuntimeException(e);
         }
-//        GetUrlRequest getUrlRequest = GetUrlRequest.builder()
-//                .bucket(bucketName)
-//                .key(fileName)
-//                .build();
-
 
         return fileName;
     }
