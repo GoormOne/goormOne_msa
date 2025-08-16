@@ -2,11 +2,14 @@ package com.example.storeservice.controller;
 
 import com.example.common.ApiResponse;
 import com.example.storeservice.dto.CreateMenuDto;
-import com.example.storeservice.dto.MenuResponseDto;
+import com.example.storeservice.dto.MenuDto;
 import com.example.storeservice.entity.Menu;
-import com.example.storeservice.repository.MenuRepository;
+import com.example.storeservice.entity.Store;
+import com.example.storeservice.entity.StoreAudit;
 import com.example.storeservice.service.AwsS3Service;
 import com.example.storeservice.service.MenuService;
+import com.example.storeservice.service.StoreAuditService;
+import com.example.storeservice.service.StoreService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,11 +19,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.net.URL;
+import java.nio.file.AccessDeniedException;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
+//공통 로직 : 1.상점과 주인 일치 확인 2.메뉴와 상점 일치 확인
 @RestController
 @RequestMapping("/menu")
 @Slf4j
@@ -28,17 +32,15 @@ import java.util.UUID;
 public class MenuController {
     private final MenuService menuService;
     private final AwsS3Service awsS3Service;
-
+    private final StoreService storeService;
+    private final StoreAuditService storeAuditService;
 
     @GetMapping("/internal/{menuId}")
     public ResponseEntity<ApiResponse<?>> getMenuInternal(@PathVariable String menuId){
 
         Menu menu = menuService.getMenu(UUID.fromString(menuId));
-        if(menu == null){
-             throw new EntityNotFoundException("Menu not found");
-        }
 
-        return ResponseEntity.ok(ApiResponse.success(MenuResponseDto.from(menu)));
+        return ResponseEntity.ok(ApiResponse.success(MenuDto.from(menu)));
     }
 
     // 스토어별, 스토어의 메뉴카테고리별 메뉴 리스트 검색
@@ -55,14 +57,14 @@ public class MenuController {
             menuList = menuService.getMenuList(UUID.fromString(storeId), UUID.fromString(categoryId));
         }
 
-        List<MenuResponseDto> menuResponseDtoList = menuList.stream()
+        List<MenuDto> menuDtoList = menuList.stream()
                 .map(menu -> {
                     String url = String.valueOf(awsS3Service.getImageUrl(menu.getMenuPhotoUrl(), Duration.ofMinutes(30)));
-                    return MenuResponseDto.from(menu, url);
+                    return MenuDto.from(menu, url);
                 })
                 .toList();
 
-        return ResponseEntity.ok(ApiResponse.success(menuResponseDtoList));
+        return ResponseEntity.ok(ApiResponse.success(menuDtoList));
     }
 
     //todo - file과 dto 단순 단건 매핑로직 -> map으로 dtoList 고려
@@ -79,6 +81,44 @@ public class MenuController {
         Menu result = menuService.insertMenu(menu);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(result.getMenuId()));
+    }
+
+    @DeleteMapping("/{menuId}/store/{storeId}")
+    public ResponseEntity<ApiResponse<?>> deleteMenu(
+            @PathVariable String menuId,
+            @PathVariable String storeId
+    ){
+
+        // todo - 요청자 ownerId 파싱
+        String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";
+        UUID ownerUUID = UUID.fromString(ownerId);
+        UUID storeUUID =  UUID.fromString(storeId);
+
+        //상점, 오너 일치 확인
+        storeService.getStore(storeUUID, ownerUUID);
+
+        Menu menu = menuService.getMenu(UUID.fromString(menuId), storeUUID);
+
+        StoreAudit storeAudit = storeAuditService.deleteAudit(menu.getMenuId(), ownerUUID);
+
+        return ResponseEntity.ok(ApiResponse.success(storeAudit.getAuditId()));
+    }
+
+    @PutMapping(path = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<?>> updateMenuPhoto(
+            @RequestBody MenuDto menuDto,
+            @RequestPart("file") MultipartFile file
+            ){
+        // todo - 요청자 ownerId 파싱, photo 변경시 로직 추가
+        String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";
+        UUID ownerUUID = UUID.fromString(ownerId);
+
+        storeService.getStore(menuDto.getStoreId(), ownerUUID);
+
+        Menu menu = menuService.getMenu(menuDto.getMenuId(), menuDto.getStoreId());
+        MenuDto resultDto = menuService.updateMenu(menu.getMenuId(), menuDto);
+
+        return ResponseEntity.ok(ApiResponse.success(resultDto));
     }
 
 
