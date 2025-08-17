@@ -74,18 +74,28 @@ public class MenuController {
     @RequireStoreOwner
     public ResponseEntity<ApiResponse<?>> postMenu(
             @PathVariable String storeId,
-            @RequestPart("file") MultipartFile file,
-            @RequestBody CreateMenuDto menuDto){
+            @RequestPart(value = "photo", required = false) MultipartFile file,
+            @RequestPart("menuDto") CreateMenuDto menuDto){
+
+        //TODO -- 시큐리티컨텍스트에서 파싱
+        UUID ownerId = UUID.fromString("ac1adfde-f740-4c27-8c9a-2f0acfc4a0f4");
 
         Menu menu = CreateMenuDto.toEntity(menuDto,storeId);
-        String fileName = awsS3Service.uploadFile(file);
-        menu.setMenuPhotoUrl(fileName);
+
+        if (file != null){
+            String fileName = awsS3Service.uploadFile(file);
+            menu.setMenuPhotoUrl(fileName);
+        }
+
+        UUID pk = storeAuditService.insertAudit(ownerId);
+        menu.setMenuId(pk);
 
         Menu result = menuService.insertMenu(menu);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(result.getMenuId()));
     }
 
+    //----------------------여기서부터
     @DeleteMapping("/{menuId}/store/{storeId}")
     @RequireStoreOwner
     public ResponseEntity<ApiResponse<?>> deleteMenu(
