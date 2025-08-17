@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import com.example.msaorderservice.cart.entity.CartItemEntity;
 import com.example.msaorderservice.order.dto.OrderCreateReq;
 import com.example.msaorderservice.order.dto.OrderCreateRes;
 import com.example.msaorderservice.order.dto.OrderLineRes;
+import com.example.msaorderservice.order.dto.OrderRes;
 import com.example.msaorderservice.order.entity.OrderEntity;
 import com.example.msaorderservice.order.entity.OrderItemEntity;
 import com.example.msaorderservice.order.entity.OrderStatus;
@@ -103,5 +105,48 @@ public class OrderServiceImpl implements OrderService {
 			order.getPaymentStatus(),
 			lines
 		);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Page<OrderRes> getMyOrders(UUID customerId, Pageable pageable) {
+		Page<OrderEntity> page = orderRepository.findByCustomerId(customerId, pageable);
+
+		List<UUID> orderIds = page.stream().map(OrderEntity::getOrderId).toList();
+		Map<UUID, List<OrderItemEntity>> groupedItems = orderItemRepository
+			.findByOrderId_OrderIdIn(orderIds)
+			.stream()
+			.collect(Collectors.groupingBy(it -> it.getOrderId().getOrderId()));
+
+		return page.map(o -> toOrderRes(o, groupedItems.getOrDefault(o.getOrderId(), List.of())));
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public OrderRes getMyOrderDetail(UUID customerId, UUID orderId) {
+		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)
+			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+		List<OrderItemEntity> items = orderItemRepository.findByOrderId_OrderId(orderId);
+		return toOrderRes(order, items);
+	}
+
+	// mapper
+	private OrderRes toOrderRes(OrderEntity o, List<OrderItemEntity> items) {
+		return OrderRes.builder()
+			.orderId(o.getOrderId())
+			.customerId(o.getCustomerId())
+			.storeId(o.getStoreId())
+			.orderStatus(o.getOrderStatus())
+			.totalPrice(o.getTotalPrice())
+			// .createdAt(o.getCreatedAt())
+			.items(items.stream()
+				.map(it -> OrderRes.OrderItemDto.builder()
+					.menuId(it.getMenuId())
+					.menuName(it.getMenuName())
+					.quantity(it.getQuantity())
+					.menuPrice(it.getMenuPrice())
+					.build())
+				.collect(Collectors.toList()))
+			.build();
 	}
 }
