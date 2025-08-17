@@ -4,6 +4,7 @@ package com.example.storeservice.controller;
 import com.example.common.ApiResponse;
 import com.example.storeservice.dto.CreateMenuCategoryDto;
 import com.example.storeservice.entity.MenuCategory;
+import com.example.storeservice.interceptor.RequireStoreOwner;
 import com.example.storeservice.service.MenuCategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ public class MenuCategoryController {
     }
 
     @PostMapping("/{storeId}")
+    @RequireStoreOwner
     public ResponseEntity<?> addMenuCategory(
             @PathVariable("storeId") String storeId,
             @RequestBody CreateMenuCategoryDto mCategoryDto) {
@@ -36,6 +38,7 @@ public class MenuCategoryController {
     }
 
     @DeleteMapping("/{menuId}")
+    @RequireStoreOwner
     public ResponseEntity<?> deleteMenuCategory(
             @PathVariable("menuId") String menuId) {
         // todo - 요청자 ownerId 파싱
@@ -47,6 +50,7 @@ public class MenuCategoryController {
     }
 
     @PutMapping("/{menuId}")
+    @RequireStoreOwner
     public ResponseEntity<?> updateMenuCategory(
             @PathVariable String menuId,
             @RequestBody CreateMenuCategoryDto mCategoryDto

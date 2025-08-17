@@ -5,10 +5,13 @@ spring:
   application:
    name: msa-store-service
   datasource:
-    url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres
+#    url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres
+    url: jdbc:postgresql://localhost/sample
     driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: Goorm1!!
+    username: user
+    password: password
+#    username: postgres
+#    password: Goorm1!!
   jpa:
     hibernate:
       ddl-auto: none           # ?? ? update/validate ?

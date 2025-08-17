@@ -6,6 +6,7 @@ import com.example.storeservice.dto.StoreDto;
 import com.example.storeservice.dto.StoreRegisterDto;
 import com.example.storeservice.entity.StoreAudit;
 import com.example.storeservice.exception.StoreAlreadyDeletedException;
+import com.example.storeservice.interceptor.RequireStoreOwner;
 import com.example.storeservice.service.StoreAuditService;
 import com.example.storeservice.service.StoreService;
 import com.example.storeservice.entity.Store;
@@ -24,6 +25,8 @@ import java.util.UUID;
 * => 스토어 카테고리, 배달 리전은 Get만. 생성 수정은 admin 서비스로 확장 염두
 * 3.menuCategory생성
 * 4.메뉴 생성
+* ---인증이 필요한 엔드포인트들 ---
+* 상점 수정/삭제, 메뉴 등록/수정/삭제, 메뉴카테고리 등록/수정/삭제, 상점 리전 등록/수정/삭제
 * */
 @RestController
 @RequestMapping("/stores")
@@ -75,17 +78,13 @@ public class StoreController {
     }
 
     @DeleteMapping("/{storeId}")
+    @RequireStoreOwner
     public ResponseEntity<ApiResponse<?>> deleteStore(
-            @PathVariable("storeId") String storeId) throws AccessDeniedException {
+            @PathVariable("storeId") String storeId){
 
+        log.info("Store {} has been deleted", storeId);
         // TODO: JWT에서 ownerId 추출
         String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";
-
-        Store store = storeService.getStore(UUID.fromString(storeId));
-
-        if (!store.getOwnerId().equals(UUID.fromString(ownerId))) {
-            throw new AccessDeniedException("가게 소유자가 아닙니다.");
-        }
 
         StoreAudit storeAudit = storeAuditService.deleteAudit(UUID.fromString(storeId), UUID.fromString(ownerId));
 
@@ -95,21 +94,16 @@ public class StoreController {
 
 
     @PutMapping("/{storeId}")
+    @RequireStoreOwner
     public ResponseEntity<ApiResponse<?>> updateStore(
             @PathVariable("storeId") String storeId,
             @RequestBody StoreRegisterDto storeRegisterDto
-    ) throws AccessDeniedException {
+    ){
         // TODO: JWT에서 ownerId 추출 == 요청자
-//        String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";
-        String ownerId = storeRegisterDto.getOwerId();
         UUID storeUuid = UUID.fromString(storeId);
-        UUID ownerUuid = UUID.fromString(ownerId);
+        UUID ownerUuid = UUID.fromString(storeRegisterDto.getOwerId());
 
-        Store store = storeService.getStore(storeUuid);
-
-        if (!store.getOwnerId().equals(ownerUuid)) {
-            throw new AccessDeniedException("가게 소유자가 아닙니다.");
-        }
+        log.info("Store {} has been updated", storeId);
 
         StoreAudit storeAudit = storeAuditService.getAudit(UUID.fromString(storeId));
         if (storeAudit.getDeletedAt() != null) {

@@ -27,20 +27,6 @@ public class StoreService {
         );
     }
 
-    public Store getStore(UUID storeId, UUID ownerId){
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(()-> new EntityNotFoundException("없는 상점 입니다")
-                );
-        if (!store.getOwnerId().equals(ownerId)){
-            try {
-                throw new AccessDeniedException("가게 소유자가 아닙니다.");
-            } catch (AccessDeniedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return store;
-    }
-
 
     public Store insertStore(Store store) {
         return storeRepository.save(store);

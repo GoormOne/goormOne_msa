@@ -6,6 +6,7 @@ import com.example.storeservice.dto.MenuDto;
 import com.example.storeservice.entity.Menu;
 import com.example.storeservice.entity.Store;
 import com.example.storeservice.entity.StoreAudit;
+import com.example.storeservice.interceptor.RequireStoreOwner;
 import com.example.storeservice.service.AwsS3Service;
 import com.example.storeservice.service.MenuService;
 import com.example.storeservice.service.StoreAuditService;
@@ -69,13 +70,14 @@ public class MenuController {
     }
 
     //todo - file과 dto 단순 단건 매핑로직 -> map으로 dtoList 고려
-    @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @RequireStoreOwner
     public ResponseEntity<ApiResponse<?>> postMenu(
+            @PathVariable String storeId,
             @RequestPart("file") MultipartFile file,
             @RequestBody CreateMenuDto menuDto){
-        //todo - ownerId의 스토어와 스토어 id가 다를때, 없을 때, 카테고리가 없을 때 등 예외처리 추가
 
-        Menu menu = CreateMenuDto.toEntity(menuDto);
+        Menu menu = CreateMenuDto.toEntity(menuDto,storeId);
         String fileName = awsS3Service.uploadFile(file);
         menu.setMenuPhotoUrl(fileName);
 
@@ -85,6 +87,7 @@ public class MenuController {
     }
 
     @DeleteMapping("/{menuId}/store/{storeId}")
+    @RequireStoreOwner
     public ResponseEntity<ApiResponse<?>> deleteMenu(
             @PathVariable String menuId,
             @PathVariable String storeId
@@ -95,9 +98,7 @@ public class MenuController {
         UUID ownerUUID = UUID.fromString(ownerId);
         UUID storeUUID =  UUID.fromString(storeId);
 
-        //상점, 오너 일치 확인
-        storeService.getStore(storeUUID, ownerUUID);
-
+        // service에서 메뉴와 상점 일치 여부 확인함
         Menu menu = menuService.getMenu(UUID.fromString(menuId), storeUUID);
 
         StoreAudit storeAudit = storeAuditService.deleteAudit(menu.getMenuId(), ownerUUID);
@@ -105,18 +106,17 @@ public class MenuController {
         return ResponseEntity.ok(ApiResponse.success(storeAudit.getAuditId()));
     }
 
-    @PutMapping(path = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(path = "/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @RequireStoreOwner
     public ResponseEntity<ApiResponse<?>> updateMenuPhoto(
+            @PathVariable String storeId,
             @RequestBody MenuDto menuDto,
             @RequestPart("file") MultipartFile file
             ){
-        // todo - 요청자 ownerId 파싱, photo 변경시 로직 추가
-        String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";
-        UUID ownerUUID = UUID.fromString(ownerId);
 
-        storeService.getStore(menuDto.getStoreId(), ownerUUID);
+        UUID storeUUID = UUID.fromString(storeId);
 
-        Menu menu = menuService.getMenu(menuDto.getMenuId(), menuDto.getStoreId());
+        Menu menu = menuService.getMenu(menuDto.getMenuId(), storeUUID);
 
         if (!file.isEmpty()){
             String fileName = awsS3Service.uploadFile(file);

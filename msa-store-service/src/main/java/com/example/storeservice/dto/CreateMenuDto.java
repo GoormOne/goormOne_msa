@@ -13,7 +13,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateMenuDto {
-    private String storeId;
     private String menuCategoryId;
     private String menuName;
     private String menuDescription;
@@ -21,7 +20,7 @@ public class CreateMenuDto {
     private Boolean isPublic;
     private Boolean isPublicPhoto;
 
-    public static Menu toEntity(CreateMenuDto m) {
+    public static Menu toEntity(CreateMenuDto m, String storeId) {
 
         return Menu.builder()
                 .menuName(m.getMenuName())
@@ -29,7 +28,7 @@ public class CreateMenuDto {
                 .menuDescription(m.getMenuDescription())
                 .isPublic(m.getIsPublic())
                 .isPublicPhoto(m.getIsPublicPhoto())
-                .store(new Store(UUID.fromString(m.getStoreId())))
+                .store(new Store(UUID.fromString(storeId)))
                 .menuCategory(new MenuCategory(UUID.fromString(m.getMenuCategoryId())))
                 .build();
     }
