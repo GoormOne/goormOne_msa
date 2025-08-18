@@ -25,9 +25,8 @@ jobs:
         id: filter
         with:
           filters: |
-            store-service:
-              - 'store-service/**'
-
+            msa-store-service:
+             - 'msa-store-service/**'
 
   build-and-deploy:
 
