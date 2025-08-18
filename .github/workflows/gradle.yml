@@ -69,10 +69,9 @@ jobs:
       # --- Docker 이미지 빌드 및 푸시 ---
       - name: Build and push ${{ matrix.service }} image
         run: |
-          # 1. gradlew에 실행 권한 부여
+          # 해당 서비스만 build 하도록 설정
           chmod +x ./gradlew
-          # 2. 전체 프로젝트 빌드 (의존성 해결)
-          ./gradlew build
+          ./gradlew :${{ matrix.service }}:build
           # 3. Docker 이미지 빌드 및 푸시
           docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ matrix.service }}:${{ github.sha }} ./${{ matrix.service }}
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ matrix.service }}:${{ github.sha }}
