@@ -205,32 +205,39 @@ WITH cust AS (
          SELECT store_id, row_number() over (order by store_id) AS rn FROM p_stores
      ),
      ins_orders AS (
-         INSERT INTO p_orders (order_id, customer_id, store_id, address_id, total_price, request_message)
-             SELECT gen_random_uuid(), c.customer_id, s.store_id, c.address_id,
-                    0, '빨리 부탁해요'
+         INSERT INTO p_orders (order_id, customer_id, store_id, address_id, order_status, payment_status, total_price, request_message)
+             SELECT gen_random_uuid(),
+                    c.customer_id,
+                    s.store_id,
+                    c.address_id,
+                    'PENDING'::order_status,
+                    'PENDING'::payment_status,
+                    0,
+                    '빨리 부탁해요'
              FROM cust c
                       JOIN stor s ON s.rn = c.rn
              WHERE c.rn <= 3
              RETURNING order_id, customer_id, store_id
      ),
      pick_menu AS (
-         SELECT m.store_id, m.menu_id,
+         SELECT m.store_id, m.menu_id, m.menu_name, m.menu_price,
                 row_number() over (partition by m.store_id order by m.menu_id) AS rn
          FROM p_menus m
      )
-INSERT INTO p_order_items (order_item_id, order_id, menu_id, quantity)
-SELECT gen_random_uuid(), io.order_id, pm.menu_id, ((pm.rn - 1) % 3) + 1
+INSERT INTO p_order_items (order_item_id, order_id, menu_id, menu_name, menu_price, line_total, quantity)
+SELECT gen_random_uuid(), io.order_id, pm.menu_id, pm.menu_name, pm.menu_price,
+       pm.menu_price * (((pm.rn - 1) % 3) + 1) AS line_total,
+       (((pm.rn - 1) % 3) + 1)
 FROM ins_orders io
-    JOIN pick_menu pm ON pm.store_id = io.store_id
+         JOIN pick_menu pm ON pm.store_id = io.store_id
 WHERE pm.rn <= 3;
 
 -- 주문 합계(total_price) 갱신 (아이템 기준 합)
 UPDATE p_orders o
 SET total_price = sub.sum_price
 FROM (
-         SELECT oi.order_id, SUM(m.menu_price * oi.quantity) AS sum_price
+         SELECT oi.order_id, SUM(oi.line_total) AS sum_price
          FROM p_order_items oi
-                  JOIN p_menus m ON m.menu_id = oi.menu_id
          GROUP BY oi.order_id
      ) sub
 WHERE o.order_id = sub.order_id;
