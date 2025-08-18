@@ -14,5 +14,5 @@ public interface OrderAuditRepository extends JpaRepository<OrderAuditEntity, UU
 
 	Optional<OrderAuditEntity> findByAuditId(UUID auditId);
 
-	List<OrderAuditEntity> findByAuditIdIn(Collection<UUID> auditIds);
+	List<OrderAuditEntity> findByAuditIdIn(Collection<UUID> ids);
 }

@@ -17,10 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.msaorderservice.order.dto.OrderCreateReq;
 import com.example.msaorderservice.order.dto.OrderCreateRes;
-import com.example.msaorderservice.order.dto.OrderRes;
+import com.example.msaorderservice.order.dto.CustomerOrderDetailRes;
+import com.example.msaorderservice.order.dto.OrderSummaryRes;
+import com.example.msaorderservice.order.dto.OwnerOrderDetailRes;
 import com.example.msaorderservice.order.entity.OrderStatus;
 import com.example.msaorderservice.order.service.OrderService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -38,27 +41,43 @@ public class OrderController {
 	}
 
 	@GetMapping
-	public ResponseEntity<Page<OrderRes>> getMyOrders(
+	public Page<OrderSummaryRes> getMyOrders(
 		@RequestHeader("X-User-Id") UUID customerId,
-		Pageable pageable) {
-		return ResponseEntity.ok(orderService.getMyOrders(customerId, pageable));
+		Pageable pageable
+	) {
+		return orderService.getMyOrders(customerId, pageable);
 	}
 
 	@GetMapping("/{orderId}")
-	public ResponseEntity<OrderRes> getMyOrderDetail(
+	public CustomerOrderDetailRes getMyOrderDetail(
 		@RequestHeader("X-User-Id") UUID customerId,
-		@PathVariable UUID orderId) {
-		return ResponseEntity.ok(orderService.getMyOrderDetail(customerId, orderId));
+		@PathVariable UUID orderId
+	) {
+		return orderService.getMyOrderDetail(customerId, orderId);
+	}
+
+	@GetMapping("/owner")
+	public Page<OrderSummaryRes> getOwnerOrders(
+		@RequestHeader("X-User-Id") UUID ownerId,
+		Pageable pageable
+	) {
+		return orderService.getOwnerOrders(ownerId, pageable);
+	}
+
+	@GetMapping("/owner/{orderId}")
+	public OwnerOrderDetailRes getOwnerOrderDetail(
+		@RequestHeader("X-User-Id") UUID ownerId,
+		@PathVariable UUID orderId
+	) {
+		return orderService.getOwnerOrderDetail(orderId, ownerId);
 	}
 
 	@PatchMapping("/owner/{orderId}/status")
-	public ResponseEntity<OrderRes> updateOrderStatusByOwner(
+	public OwnerOrderDetailRes updateOrderStatusByOwner(
 		@RequestHeader("X-User-Id") UUID ownerId,
 		@PathVariable UUID orderId,
-		@RequestBody Map<String, String> body) {
-
-		OrderStatus newStatus = OrderStatus.valueOf(body.get("status"));
-		OrderRes res = orderService.updateOrderStatusByOwner(ownerId, orderId, newStatus);
-		return ResponseEntity.ok(res);
+		@Valid @RequestBody OrderStatus newStatus
+	) {
+		return orderService.updateOrderStatusByOwner(ownerId, orderId, newStatus);
 	}
 }
