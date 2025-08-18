@@ -1,6 +1,4 @@
-package com.example.msaorderservice.service;
-
-import static org.springframework.data.jpa.domain.AbstractPersistable_.*;
+package com.example.msaorderservice.cart.service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +8,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,14 +15,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.msaorderservice.dto.CartItemAddReq;
-import com.example.msaorderservice.dto.CartItemRes;
-import com.example.msaorderservice.dto.CartItemsPageRes;
-import com.example.msaorderservice.dto.MenuLookUp;
-import com.example.msaorderservice.entity.CartEntity;
-import com.example.msaorderservice.entity.CartItemEntity;
-import com.example.msaorderservice.repository.CartItemRepository;
-import com.example.msaorderservice.repository.CartRepository;
+import com.example.msaorderservice.cart.dto.CartItemAddReq;
+import com.example.msaorderservice.cart.dto.CartItemRes;
+import com.example.msaorderservice.cart.dto.CartItemsPageRes;
+import com.example.msaorderservice.cart.dto.MenuLookUp;
+import com.example.msaorderservice.cart.entity.CartEntity;
+import com.example.msaorderservice.cart.entity.CartItemEntity;
+import com.example.msaorderservice.cart.repository.CartItemRepository;
+import com.example.msaorderservice.cart.repository.CartRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -43,13 +40,13 @@ public class CartServiceImpl implements CartService {
 	@Override
 	@Transactional
 	public CartItemEntity addItem(CartItemAddReq req) {
-		CartEntity cart = cartRepository.findByUserIdAndStoreId(req.getUserId(), req.getStoreId())
+		CartEntity cart = cartRepository.findByCustomerIdAndStoreId(req.getCustomerId(), req.getStoreId())
 			.orElse(null);
 
 		if (cart == null) {
 			cart = cartRepository.save(
 				CartEntity.builder()
-					.userId(req.getUserId())
+					.customerId(req.getCustomerId())
 					.storeId(req.getStoreId())
 					.build()
 			);
@@ -69,11 +66,11 @@ public class CartServiceImpl implements CartService {
 
 	@Override
 	@Transactional
-	public CartItemsPageRes getMyCartItemsPage(UUID userId, Integer page, Integer size) {
+	public CartItemsPageRes getMyCartItemsPage(UUID customerId, Integer page, Integer size) {
 		int p = (page == null || page < 0) ? 0 : page;
 		int s = (size == null || size <= 0) ? 10 : Math.min(size, 100);
 
-		CartEntity cart = cartRepository.findFirstByUserId(userId)
+		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
 			.orElseThrow(() -> new NoSuchElementException("cart not found for user"));
 
 		Pageable pageable = PageRequest.of(p, s, Sort.by("cartItemId").ascending());
@@ -126,18 +123,18 @@ public class CartServiceImpl implements CartService {
 
 	@Override
 	@Transactional
-	public void clearCartItems(UUID userId) {
-		CartEntity cart = cartRepository.findFirstByUserId(userId)
-			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + userId));
+	public void clearCartItems(UUID customerId) {
+		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
+			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + customerId));
 
 		cartItemRepository.deleteByCartId(cart.getCartId());
 	}
 
 	@Override
 	@Transactional
-	public void deleteCartItem(UUID userId, UUID cartItemId) {
-		CartEntity cart = cartRepository.findFirstByUserId(userId)
-			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + userId));
+	public void deleteCartItem(UUID customerId, UUID cartItemId) {
+		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
+			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + customerId));
 
 		CartItemEntity item = cartItemRepository.findByCartItemId(cartItemId)
 			.orElseThrow(() -> new EntityNotFoundException("CartItem not found: " + cartItemId));
@@ -151,9 +148,9 @@ public class CartServiceImpl implements CartService {
 
 	@Override
 	@Transactional
-	public void deleteCart(UUID userId) {
-		CartEntity cart = cartRepository.findFirstByUserId(userId)
-			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + userId));
+	public void deleteCart(UUID customerId) {
+		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
+			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + customerId));
 
 		cartItemRepository.deleteByCartId(cart.getCartId());
 		cartRepository.delete(cart);
@@ -161,8 +158,8 @@ public class CartServiceImpl implements CartService {
 
 	@Override
 	@Transactional
-	public void increaseQuantity(UUID userId, UUID menuId) {
-		CartEntity cart = cartRepository.findFirstByUserId(userId)
+	public void increaseQuantity(UUID customerId, UUID menuId) {
+		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
 			.orElseThrow(() -> new IllegalArgumentException("Cart not found for user"));
 
 		CartItemEntity cartItem = cartItemRepository.findByCartIdAndMenuId(cart.getCartId(), menuId)
@@ -173,8 +170,8 @@ public class CartServiceImpl implements CartService {
 
 	@Override
 	@Transactional
-	public void decreaseQuantity(UUID userId, UUID menuId) {
-		CartEntity cart = cartRepository.findFirstByUserId(userId)
+	public void decreaseQuantity(UUID customerId, UUID menuId) {
+		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
 			.orElseThrow(() -> new IllegalArgumentException("Cart not found for user"));
 
 		CartItemEntity cartItem = cartItemRepository.findByCartIdAndMenuId(cart.getCartId(), menuId)

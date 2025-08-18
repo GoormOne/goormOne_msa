@@ -39,4 +39,8 @@ public class MenuCategory {
     @Builder.Default
     @OneToMany(mappedBy = "menuCategory", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Menu> menus = new ArrayList<>();
+
+    public MenuCategory(UUID menuCategoryId) {
+        this.menuCategoryId = menuCategoryId;
+    }
 }

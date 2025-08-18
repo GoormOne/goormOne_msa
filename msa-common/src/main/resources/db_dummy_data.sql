@@ -26,37 +26,37 @@ FROM generate_series(1,30) AS gs;
 -- ---------- CUSTOMERS (10) ----------
 INSERT INTO p_customers (customer_id, username, password, name, birth, email, is_banned)
 VALUES
-(gen_random_uuid(), 'cust01', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객1', '1990-01-01', 'cust01@example.com', false),
-(gen_random_uuid(), 'cust02', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객2', '1991-02-02', 'cust02@example.com', false),
-(gen_random_uuid(), 'cust03', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객3', '1992-03-03', 'cust03@example.com', false),
-(gen_random_uuid(), 'cust04', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객4', '1993-04-04', 'cust04@example.com', false),
-(gen_random_uuid(), 'cust05', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객5', '1994-05-05', 'cust05@example.com', false),
-(gen_random_uuid(), 'cust06', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객6', '1995-06-06', 'cust06@example.com', false),
-(gen_random_uuid(), 'cust07', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객7', '1996-07-07', 'cust07@example.com', false),
-(gen_random_uuid(), 'cust08', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객8', '1997-08-08', 'cust08@example.com', false),
-(gen_random_uuid(), 'cust09', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객9', '1998-09-09', 'cust09@example.com', false),
-(gen_random_uuid(), 'cust10', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객10','1999-10-10', 'cust10@example.com', false);
+    (gen_random_uuid(), 'cust01', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객1', '1990-01-01', 'cust01@example.com', false),
+    (gen_random_uuid(), 'cust02', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객2', '1991-02-02', 'cust02@example.com', false),
+    (gen_random_uuid(), 'cust03', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객3', '1992-03-03', 'cust03@example.com', false),
+    (gen_random_uuid(), 'cust04', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객4', '1993-04-04', 'cust04@example.com', false),
+    (gen_random_uuid(), 'cust05', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객5', '1994-05-05', 'cust05@example.com', false),
+    (gen_random_uuid(), 'cust06', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객6', '1995-06-06', 'cust06@example.com', false),
+    (gen_random_uuid(), 'cust07', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객7', '1996-07-07', 'cust07@example.com', false),
+    (gen_random_uuid(), 'cust08', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객8', '1997-08-08', 'cust08@example.com', false),
+    (gen_random_uuid(), 'cust09', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객9', '1998-09-09', 'cust09@example.com', false),
+    (gen_random_uuid(), 'cust10', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '고객10','1999-10-10', 'cust10@example.com', false);
 
 -- ---------- OWNERS (10) ----------
 INSERT INTO p_owners (owner_id, username, password, name, birth, email, is_banned)
 VALUES
-(gen_random_uuid(), 'owner01', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장1', '1980-01-01', 'owner01@example.com', false),
-(gen_random_uuid(), 'owner02', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장2', '1981-02-02', 'owner02@example.com', false),
-(gen_random_uuid(), 'owner03', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장3', '1982-03-03', 'owner03@example.com', false),
-(gen_random_uuid(), 'owner04', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장4', '1983-04-04', 'owner04@example.com', false),
-(gen_random_uuid(), 'owner05', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장5', '1984-05-05', 'owner05@example.com', false),
-(gen_random_uuid(), 'owner06', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장6', '1985-06-06', 'owner06@example.com', false),
-(gen_random_uuid(), 'owner07', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장7', '1986-07-07', 'owner07@example.com', false),
-(gen_random_uuid(), 'owner08', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장8', '1987-08-08', 'owner08@example.com', false),
-(gen_random_uuid(), 'owner09', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장9', '1988-09-09', 'owner09@example.com', false),
-(gen_random_uuid(), 'owner10', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장10','1989-10-10', 'owner10@example.com', false);
+    (gen_random_uuid(), 'owner01', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장1', '1980-01-01', 'owner01@example.com', false),
+    (gen_random_uuid(), 'owner02', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장2', '1981-02-02', 'owner02@example.com', false),
+    (gen_random_uuid(), 'owner03', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장3', '1982-03-03', 'owner03@example.com', false),
+    (gen_random_uuid(), 'owner04', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장4', '1983-04-04', 'owner04@example.com', false),
+    (gen_random_uuid(), 'owner05', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장5', '1984-05-05', 'owner05@example.com', false),
+    (gen_random_uuid(), 'owner06', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장6', '1985-06-06', 'owner06@example.com', false),
+    (gen_random_uuid(), 'owner07', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장7', '1986-07-07', 'owner07@example.com', false),
+    (gen_random_uuid(), 'owner08', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장8', '1987-08-08', 'owner08@example.com', false),
+    (gen_random_uuid(), 'owner09', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장9', '1988-09-09', 'owner09@example.com', false),
+    (gen_random_uuid(), 'owner10', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '사장10','1989-10-10', 'owner10@example.com', false);
 
 -- ---------- ADMINS (3) ----------
 INSERT INTO p_admin (admin_id, username, password, name, birth, email, is_banned)
 VALUES
-(gen_random_uuid(), 'admin01', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '관리자1', '1975-01-01', 'admin01@example.com', false),
-(gen_random_uuid(), 'admin02', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '관리자2', '1976-02-02', 'admin02@example.com', false),
-(gen_random_uuid(), 'admin03', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '관리자3', '1977-03-03', 'admin03@example.com', false);
+    (gen_random_uuid(), 'admin01', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '관리자1', '1975-01-01', 'admin01@example.com', false),
+    (gen_random_uuid(), 'admin02', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '관리자2', '1976-02-02', 'admin02@example.com', false),
+    (gen_random_uuid(), 'admin03', '$2a$10$QvsSRN8CKCM9LO/Lx96IZuXh6yVsQHS0pWUlwgkwdzQ13KoQXA5Lu', '관리자3', '1977-03-03', 'admin03@example.com', false);
 
 -- ======================================================
 -- ADDRESS: 고객당 1건
@@ -134,17 +134,17 @@ WITH target_stores AS (
     FROM p_stores
     ORDER BY store_id
     LIMIT 10   -- 10개 매장 * 3메뉴 = 30메뉴
-),
-     target AS (
-         SELECT ts.store_id, gs AS seq
-         FROM target_stores ts
-                  CROSS JOIN generate_series(1,3) AS gs
-     ),
-     pick_cat AS (
-         SELECT mc.store_id, mc.menu_category_id, mc.menu_category_name,
-                row_number() over (partition by mc.store_id order by mc.menu_category_name) AS rn
-         FROM p_menu_category mc
-     )
+    ),
+    target AS (
+SELECT ts.store_id, gs AS seq
+FROM target_stores ts
+    CROSS JOIN generate_series(1,3) AS gs
+    ),
+    pick_cat AS (
+SELECT mc.store_id, mc.menu_category_id, mc.menu_category_name,
+    row_number() over (partition by mc.store_id order by mc.menu_category_name) AS rn
+FROM p_menu_category mc
+    )
 INSERT INTO p_menus (menu_id, store_id, menu_category_id, menu_name, menu_price, menu_description, is_public, menu_photo_url, is_public_photo)
 SELECT gen_random_uuid(), t.store_id,
        (SELECT menu_category_id FROM pick_cat pc WHERE pc.store_id = t.store_id AND pc.rn = ((t.seq-1) % 5) + 1),
@@ -189,7 +189,7 @@ SELECT
     pm.menu_id,
     ((pm.rn - 1) % 3) + 1         -- 각 카트에 3개씩, 수량은 1~3 순환
 FROM ins_carts ic
-         JOIN pick_menu pm ON pm.store_id = ic.store_id
+    JOIN pick_menu pm ON pm.store_id = ic.store_id
 WHERE pm.rn <= 3;                -- "카트당 아이템 3개" 제한
 
 
@@ -221,7 +221,7 @@ WITH cust AS (
 INSERT INTO p_order_items (order_item_id, order_id, menu_id, quantity)
 SELECT gen_random_uuid(), io.order_id, pm.menu_id, ((pm.rn - 1) % 3) + 1
 FROM ins_orders io
-         JOIN pick_menu pm ON pm.store_id = io.store_id
+    JOIN pick_menu pm ON pm.store_id = io.store_id
 WHERE pm.rn <= 3;
 
 -- 주문 합계(total_price) 갱신 (아이템 기준 합)

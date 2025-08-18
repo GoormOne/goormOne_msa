@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 
 @Service
@@ -25,6 +26,7 @@ public class StoreService {
                 .orElseThrow(() -> new EntityNotFoundException("없는 상점입니다 : " + storeId)
         );
     }
+
 
     public Store insertStore(Store store) {
         return storeRepository.save(store);
