@@ -37,8 +37,18 @@ CREATE TABLE IF NOT EXISTS p_customers (
                                            name        varchar(10) NOT NULL,
                                            birth       date        NOT NULL,
                                            email       varchar(30) NOT NULL UNIQUE,
+                                           email_verified  boolean NOT NULL DEFAULT false,
                                            is_banned   boolean     NOT NULL DEFAULT false
 );
+-- unique 제약(중복 방지)
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uk_p_customers_username') THEN
+        ALTER TABLE p_customers ADD CONSTRAINT uk_p_customers_username UNIQUE (username);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uk_p_customers_email') THEN
+        ALTER TABLE p_customers ADD CONSTRAINT uk_p_customers_email UNIQUE (email);
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS p_owners (
                                         owner_id   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -47,8 +57,17 @@ CREATE TABLE IF NOT EXISTS p_owners (
                                         name       varchar(10) NOT NULL,
                                         birth      date        NOT NULL,
                                         email      varchar(30) NOT NULL UNIQUE,
+                                        email_verified  boolean NOT NULL DEFAULT false,
                                         is_banned  boolean     NOT NULL DEFAULT false
 );
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uk_p_owners_username') THEN
+        ALTER TABLE p_owners ADD CONSTRAINT uk_p_owners_username UNIQUE (username);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uk_p_owners_email') THEN
+        ALTER TABLE p_owners ADD CONSTRAINT uk_p_owners_email UNIQUE (email);
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS p_admin (
                                        admin_id  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -57,8 +76,17 @@ CREATE TABLE IF NOT EXISTS p_admin (
                                        name      varchar(10) NOT NULL,
                                        birth     date        NOT NULL,
                                        email     varchar(30) NOT NULL UNIQUE,
+                                       email_verified  boolean NOT NULL DEFAULT false,
                                        is_banned boolean     NOT NULL DEFAULT false
 );
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uk_p_admin_username') THEN
+        ALTER TABLE p_admin ADD CONSTRAINT uk_p_admin_username UNIQUE (username);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uk_p_admin_email') THEN
+        ALTER TABLE p_admin ADD CONSTRAINT uk_p_admin_email UNIQUE (email);
+    END IF;
+END $$;
 
 -- =====================
 -- ADDRESS
@@ -234,262 +262,183 @@ CREATE TABLE IF NOT EXISTS p_errors (
 -- CUSTOMER
 CREATE TABLE IF NOT EXISTS p_customer_audit (
                                                 audit_id         uuid PRIMARY KEY REFERENCES p_customers(customer_id),
-    created_at       timestamptz NOT NULL DEFAULT now(),
-    created_by       uuid        NOT NULL REFERENCES p_customers(customer_id),
-    updated_at       timestamptz,
-    updated_by       uuid,
-    updated_by_type  role_type,
-    deleted_at       timestamptz,
-    deleted_by       uuid,
-    deleted_by_type  role_type,
-    deleted_rs       varchar(255),
-    CONSTRAINT chk_customer_audit_updated
-    CHECK (
-(updated_at IS NULL AND updated_by IS NULL AND updated_by_type IS NULL)
-    OR
-(updated_at IS NOT NULL AND updated_by IS NOT NULL AND updated_by_type IS NOT NULL)
-    ),
-    CONSTRAINT chk_customer_audit_deleted
-    CHECK (
-(deleted_at IS NULL AND deleted_by IS NULL AND deleted_by_type IS NULL)
-    OR
-(deleted_at IS NOT NULL AND deleted_by IS NOT NULL AND deleted_by_type IS NOT NULL)
-    )
-    );
+                                                created_at       timestamptz NOT NULL DEFAULT now(),
+                                                created_by       uuid        NOT NULL REFERENCES p_customers(customer_id),
+                                                updated_at       timestamptz,
+                                                updated_by       uuid,
+                                                deleted_at       timestamptz,
+                                                deleted_by       uuid,
+                                                deleted_rs       varchar(255),
+                                                CONSTRAINT chk_customer_audit_updated
+                                                    CHECK ((updated_at IS NULL AND updated_by IS NULL) OR
+                                                           (updated_at IS NOT NULL AND updated_by IS NOT NULL)),
+                                                CONSTRAINT chk_customer_audit_deleted
+                                                    CHECK ((deleted_at IS NULL AND deleted_by IS NULL) OR
+                                                           (deleted_at IS NOT NULL AND deleted_by IS NOT NULL))
+);
 
 -- OWNER
 CREATE TABLE IF NOT EXISTS p_owner_audit (
                                              audit_id         uuid PRIMARY KEY REFERENCES p_owners(owner_id),
-    created_at       timestamptz NOT NULL DEFAULT now(),
-    created_by       uuid        NOT NULL REFERENCES p_owners(owner_id),
-    updated_at       timestamptz,
-    updated_by       uuid,
-    updated_by_type  role_type,
-    deleted_at       timestamptz,
-    deleted_by       uuid,
-    deleted_by_type  role_type,
-    deleted_rs       varchar(255),
-    CONSTRAINT chk_owner_audit_updated
-    CHECK (
-(updated_at IS NULL AND updated_by IS NULL AND updated_by_type IS NULL)
-    OR
-(updated_at IS NOT NULL AND updated_by IS NOT NULL AND updated_by_type IS NOT NULL)
-    ),
-    CONSTRAINT chk_owner_audit_deleted
-    CHECK (
-(deleted_at IS NULL AND deleted_by IS NULL AND deleted_by_type IS NULL)
-    OR
-(deleted_at IS NOT NULL AND deleted_by IS NOT NULL AND deleted_by_type IS NOT NULL)
-    )
-    );
+                                             created_at       timestamptz NOT NULL DEFAULT now(),
+                                             created_by       uuid        NOT NULL REFERENCES p_owners(owner_id),
+                                             updated_at       timestamptz,
+                                             updated_by       uuid,
+                                             deleted_at       timestamptz,
+                                             deleted_by       uuid,
+                                             deleted_rs       varchar(255),
+                                             CONSTRAINT chk_owner_audit_updated
+                                                 CHECK ((updated_at IS NULL AND updated_by IS NULL) OR
+                                                        (updated_at IS NOT NULL AND updated_by IS NOT NULL)),
+                                             CONSTRAINT chk_owner_audit_deleted
+                                                 CHECK ((deleted_at IS NULL AND deleted_by IS NULL) OR
+                                                        (deleted_at IS NOT NULL AND deleted_by IS NOT NULL))
+);
 
 -- ADMIN
 CREATE TABLE IF NOT EXISTS p_admin_audit (
                                              audit_id         uuid PRIMARY KEY REFERENCES p_admin(admin_id),
-    created_at       timestamptz NOT NULL DEFAULT now(),
-    created_by       uuid        NOT NULL REFERENCES p_admin(admin_id),
-    updated_at       timestamptz,
-    updated_by       uuid,
-    updated_by_type  role_type,
-    deleted_at       timestamptz,
-    deleted_by       uuid,
-    deleted_by_type  role_type,
-    deleted_rs       varchar(255),
-    CONSTRAINT chk_admin_audit_updated
-    CHECK (
-(updated_at IS NULL AND updated_by IS NULL AND updated_by_type IS NULL)
-    OR
-(updated_at IS NOT NULL AND updated_by IS NOT NULL AND updated_by_type IS NOT NULL)
-    ),
-    CONSTRAINT chk_admin_audit_deleted
-    CHECK (
-(deleted_at IS NULL AND deleted_by IS NULL AND deleted_by_type IS NULL)
-    OR
-(deleted_at IS NOT NULL AND deleted_by IS NOT NULL AND deleted_by_type IS NOT NULL)
-    )
-    );
+                                             created_at       timestamptz NOT NULL DEFAULT now(),
+                                             created_by       uuid        NOT NULL REFERENCES p_admin(admin_id),
+                                             updated_at       timestamptz,
+                                             updated_by       uuid,
+                                             deleted_at       timestamptz,
+                                             deleted_by       uuid,
+                                             deleted_rs       varchar(255),
+                                             CONSTRAINT chk_admin_audit_updated
+                                                 CHECK ((updated_at IS NULL AND updated_by IS NULL) OR
+                                                        (updated_at IS NOT NULL AND updated_by IS NOT NULL)),
+                                             CONSTRAINT chk_admin_audit_deleted
+                                                 CHECK ((deleted_at IS NULL AND deleted_by IS NULL) OR
+                                                        (deleted_at IS NOT NULL AND deleted_by IS NOT NULL))
+);
 
 -- CUSTOMER ADDRESS
 CREATE TABLE IF NOT EXISTS p_customer_address_audit (
                                                         audit_id         uuid PRIMARY KEY REFERENCES p_customer_address(address_id),
-    created_at       timestamptz NOT NULL DEFAULT now(),
-    created_by       uuid        NOT NULL REFERENCES p_customers(customer_id),
-    updated_at       timestamptz,
-    updated_by       uuid,
-    updated_by_type  role_type,
-    deleted_at       timestamptz,
-    deleted_by       uuid,
-    deleted_by_type  role_type,
-    deleted_rs       varchar(255),
-    CONSTRAINT chk_customer_addr_audit_updated
-    CHECK (
-(updated_at IS NULL AND updated_by IS NULL AND updated_by_type IS NULL)
-    OR
-(updated_at IS NOT NULL AND updated_by IS NOT NULL AND updated_by_type IS NOT NULL)
-    ),
-    CONSTRAINT chk_customer_addr_audit_deleted
-    CHECK (
-(deleted_at IS NULL AND deleted_by IS NULL AND deleted_by_type IS NULL)
-    OR
-(deleted_at IS NOT NULL AND deleted_by IS NOT NULL AND deleted_by_type IS NOT NULL)
-    )
-    );
+                                                        created_at       timestamptz NOT NULL DEFAULT now(),
+                                                        created_by       uuid        NOT NULL REFERENCES p_customers(customer_id),
+                                                        updated_at       timestamptz,
+                                                        updated_by       uuid,
+                                                        deleted_at       timestamptz,
+                                                        deleted_by       uuid,
+                                                        deleted_rs       varchar(255),
+                                                        CONSTRAINT chk_customer_addr_audit_updated
+                                                            CHECK ((updated_at IS NULL AND updated_by IS NULL) OR
+                                                                   (updated_at IS NOT NULL AND updated_by IS NOT NULL)),
+                                                        CONSTRAINT chk_customer_addr_audit_deleted
+                                                            CHECK ((deleted_at IS NULL AND deleted_by IS NULL) OR
+                                                                   (deleted_at IS NOT NULL AND deleted_by IS NOT NULL))
+);
 
 -- STORE
 CREATE TABLE IF NOT EXISTS p_store_audit (
                                              audit_id         uuid PRIMARY KEY REFERENCES p_stores(store_id),
-    created_at       timestamptz NOT NULL DEFAULT now(),
-    created_by       uuid        NOT NULL REFERENCES p_owners(owner_id),
-    updated_at       timestamptz,
-    updated_by       uuid,
-    updated_by_type  role_type,
-    deleted_at       timestamptz,
-    deleted_by       uuid,
-    deleted_by_type  role_type,
-    deleted_rs       varchar(255),
-    CONSTRAINT chk_store_audit_updated
-    CHECK (
-(updated_at IS NULL AND updated_by IS NULL AND updated_by_type IS NULL)
-    OR
-(updated_at IS NOT NULL AND updated_by IS NOT NULL AND updated_by_type IS NOT NULL)
-    ),
-    CONSTRAINT chk_store_audit_deleted
-    CHECK (
-(deleted_at IS NULL AND deleted_by IS NULL AND deleted_by_type IS NULL)
-    OR
-(deleted_at IS NOT NULL AND deleted_by IS NOT NULL AND deleted_by_type IS NOT NULL)
-    )
-    );
+                                             created_at       timestamptz NOT NULL DEFAULT now(),
+                                             created_by       uuid        NOT NULL REFERENCES p_owners(owner_id),
+                                             updated_at       timestamptz,
+                                             updated_by       uuid,
+                                             deleted_at       timestamptz,
+                                             deleted_by       uuid,
+                                             deleted_rs       varchar(255),
+                                             CONSTRAINT chk_store_audit_updated
+                                                 CHECK ((updated_at IS NULL AND updated_by IS NULL) OR
+                                                        (updated_at IS NOT NULL AND updated_by IS NOT NULL)),
+                                             CONSTRAINT chk_store_audit_deleted
+                                                 CHECK ((deleted_at IS NULL AND deleted_by IS NULL) OR
+                                                        (deleted_at IS NOT NULL AND deleted_by IS NOT NULL))
+);
 
 -- MENU
 CREATE TABLE IF NOT EXISTS p_menu_audit (
                                             audit_id         uuid PRIMARY KEY REFERENCES p_menus(menu_id),
-    created_at       timestamptz NOT NULL DEFAULT now(),
-    created_by       uuid        NOT NULL REFERENCES p_owners(owner_id),
-    updated_at       timestamptz,
-    updated_by       uuid,
-    updated_by_type  role_type,
-    deleted_at       timestamptz,
-    deleted_by       uuid,
-    deleted_by_type  role_type,
-    deleted_rs       varchar(255),
-    CONSTRAINT chk_menu_audit_updated
-    CHECK (
-(updated_at IS NULL AND updated_by IS NULL AND updated_by_type IS NULL)
-    OR
-(updated_at IS NOT NULL AND updated_by IS NOT NULL AND updated_by_type IS NOT NULL)
-    ),
-    CONSTRAINT chk_menu_audit_deleted
-    CHECK (
-(deleted_at IS NULL AND deleted_by IS NULL AND deleted_by_type IS NULL)
-    OR
-(deleted_at IS NOT NULL AND deleted_by IS NOT NULL AND deleted_by_type IS NOT NULL)
-    )
-    );
+                                            created_at       timestamptz NOT NULL DEFAULT now(),
+                                            created_by       uuid        NOT NULL REFERENCES p_owners(owner_id),
+                                            updated_at       timestamptz,
+                                            updated_by       uuid,
+                                            deleted_at       timestamptz,
+                                            deleted_by       uuid,
+                                            deleted_rs       varchar(255),
+                                            CONSTRAINT chk_menu_audit_updated
+                                                CHECK ((updated_at IS NULL AND updated_by IS NULL) OR
+                                                       (updated_at IS NOT NULL AND updated_by IS NOT NULL)),
+                                            CONSTRAINT chk_menu_audit_deleted
+                                                CHECK ((deleted_at IS NULL AND deleted_by IS NULL) OR
+                                                       (deleted_at IS NOT NULL AND deleted_by IS NOT NULL))
+);
 
 -- ORDER
 CREATE TABLE IF NOT EXISTS p_order_audit (
                                              audit_id         uuid PRIMARY KEY REFERENCES p_orders(order_id),
-    created_at       timestamptz NOT NULL DEFAULT now(),
-    created_by       uuid        NOT NULL REFERENCES p_customers(customer_id),
-    updated_at       timestamptz,
-    updated_by       uuid,
-    updated_by_type  role_type,
-    deleted_at       timestamptz,
-    deleted_by       uuid,
-    deleted_by_type  role_type,
-    deleted_rs       varchar(255),
-    CONSTRAINT chk_order_audit_updated
-    CHECK (
-(updated_at IS NULL AND updated_by IS NULL AND updated_by_type IS NULL)
-    OR
-(updated_at IS NOT NULL AND updated_by IS NOT NULL AND updated_by_type IS NOT NULL)
-    ),
-    CONSTRAINT chk_order_audit_deleted
-    CHECK (
-(deleted_at IS NULL AND deleted_by IS NULL AND deleted_by_type IS NULL)
-    OR
-(deleted_at IS NOT NULL AND deleted_by IS NOT NULL AND deleted_by_type IS NOT NULL)
-    )
-    );
+                                             created_at       timestamptz NOT NULL DEFAULT now(),
+                                             created_by       uuid        NOT NULL REFERENCES p_customers(customer_id),
+                                             updated_at       timestamptz,
+                                             updated_by       uuid,
+                                             deleted_at       timestamptz,
+                                             deleted_by       uuid,
+                                             deleted_rs       varchar(255),
+                                             CONSTRAINT chk_order_audit_updated
+                                                 CHECK ((updated_at IS NULL AND updated_by IS NULL) OR
+                                                        (updated_at IS NOT NULL AND updated_by IS NOT NULL)),
+                                             CONSTRAINT chk_order_audit_deleted
+                                                 CHECK (
+                                                     (deleted_at IS NULL AND deleted_by IS NULL) OR
+                                                     (deleted_at IS NOT NULL AND deleted_by IS NOT NULL))
+);
 
--- ORDER ITEM
-CREATE TABLE IF NOT EXISTS p_order_item_audit (
-                                                  audit_id         uuid PRIMARY KEY REFERENCES p_order_items(order_item_id),
-    created_at       timestamptz NOT NULL DEFAULT now(),
-    created_by       uuid        NOT NULL REFERENCES p_customers(customer_id),
-    updated_at       timestamptz,
-    updated_by       uuid,
-    updated_by_type  role_type,
-    deleted_at       timestamptz,
-    deleted_by       uuid,
-    deleted_by_type  role_type,
-    deleted_rs       varchar(255),
-    CONSTRAINT chk_order_item_audit_updated
-    CHECK (
-(updated_at IS NULL AND updated_by IS NULL AND updated_by_type IS NULL)
-    OR
-(updated_at IS NOT NULL AND updated_by IS NOT NULL AND updated_by_type IS NOT NULL)
-    ),
-    CONSTRAINT chk_order_item_audit_deleted
-    CHECK (
-(deleted_at IS NULL AND deleted_by IS NULL AND deleted_by_type IS NULL)
-    OR
-(deleted_at IS NOT NULL AND deleted_by IS NOT NULL AND deleted_by_type IS NOT NULL)
-    )
-    );
+-- -- ORDER ITEM
+-- CREATE TABLE IF NOT EXISTS p_order_item_audit (
+--                                                   audit_id         uuid PRIMARY KEY REFERENCES p_order_items(order_item_id),
+--                                                   created_at       timestamptz NOT NULL DEFAULT now(),
+--                                                   created_by       uuid        NOT NULL REFERENCES p_customers(customer_id),
+--                                                   updated_at       timestamptz,
+--                                                   updated_by       uuid,
+--                                                   deleted_at       timestamptz,
+--                                                   deleted_by       uuid,
+--                                                   deleted_rs       varchar(255),
+--                                                   CONSTRAINT chk_order_item_audit_updated
+--                                                       CHECK ((updated_at IS NULL AND updated_by IS NULL) OR
+--                                                              (updated_at IS NOT NULL AND updated_by IS NOT NULL)),
+--                                                   CONSTRAINT chk_order_item_audit_deleted
+--                                                       CHECK ((deleted_at IS NULL AND deleted_by IS NULL) OR
+--                                                              (deleted_at IS NOT NULL AND deleted_by IS NOT NULL))
+-- );
 
 -- REVIEW
 CREATE TABLE IF NOT EXISTS p_review_audit (
                                               audit_id         uuid PRIMARY KEY REFERENCES p_reviews(review_id),
-    created_at       timestamptz NOT NULL DEFAULT now(),
-    created_by       uuid        NOT NULL REFERENCES p_customers(customer_id),
-    updated_at       timestamptz,
-    updated_by       uuid,
-    updated_by_type  role_type,
-    deleted_at       timestamptz,
-    deleted_by       uuid,
-    deleted_by_type  role_type,
-    deleted_rs       varchar(255),
-    CONSTRAINT chk_review_audit_updated
-    CHECK (
-(updated_at IS NULL AND updated_by IS NULL AND updated_by_type IS NULL)
-    OR
-(updated_at IS NOT NULL AND updated_by IS NOT NULL AND updated_by_type IS NOT NULL)
-    ),
-    CONSTRAINT chk_review_audit_deleted
-    CHECK (
-(deleted_at IS NULL AND deleted_by IS NULL AND deleted_by_type IS NULL)
-    OR
-(deleted_at IS NOT NULL AND deleted_by IS NOT NULL AND deleted_by_type IS NOT NULL)
-    )
-    );
+                                              created_at       timestamptz NOT NULL DEFAULT now(),
+                                              created_by       uuid        NOT NULL REFERENCES p_customers(customer_id),
+                                              updated_at       timestamptz,
+                                              updated_by       uuid,
+                                              deleted_at       timestamptz,
+                                              deleted_by       uuid,
+                                              deleted_rs       varchar(255),
+                                              CONSTRAINT chk_review_audit_updated
+                                                  CHECK ((updated_at IS NULL AND updated_by IS NULL) OR
+                                                         (updated_at IS NOT NULL AND updated_by IS NOT NULL)),
+                                              CONSTRAINT chk_review_audit_deleted
+                                                  CHECK ((deleted_at IS NULL AND deleted_by IS NULL) OR
+                                                         (deleted_at IS NOT NULL AND deleted_by IS NOT NULL))
+);
 
 -- PAYMENT
 CREATE TABLE IF NOT EXISTS p_payment_audit (
                                                audit_id         uuid PRIMARY KEY REFERENCES p_payments(payment_id),
-    created_at       timestamptz NOT NULL DEFAULT now(),
-    created_by       uuid        NOT NULL REFERENCES p_customers(customer_id),
-    updated_at       timestamptz,
-    updated_by       uuid,
-    updated_by_type  role_type,
-    deleted_at       timestamptz,
-    deleted_by       uuid,
-    deleted_by_type  role_type,
-    deleted_rs       varchar(255),
-    CONSTRAINT chk_payment_audit_updated
-    CHECK (
-(updated_at IS NULL AND updated_by IS NULL AND updated_by_type IS NULL)
-    OR
-(updated_at IS NOT NULL AND updated_by IS NOT NULL AND updated_by_type IS NOT NULL)
-    ),
-    CONSTRAINT chk_payment_audit_deleted
-    CHECK (
-(deleted_at IS NULL AND deleted_by IS NULL AND deleted_by_type IS NULL)
-    OR
-(deleted_at IS NOT NULL AND deleted_by IS NOT NULL AND deleted_by_type IS NOT NULL)
-    )
-    );
+                                               created_at       timestamptz NOT NULL DEFAULT now(),
+                                               created_by       uuid        NOT NULL REFERENCES p_customers(customer_id),
+                                               updated_at       timestamptz,
+                                               updated_by       uuid,
+                                               deleted_at       timestamptz,
+                                               deleted_by       uuid,
+                                               deleted_rs       varchar(255),
+                                               CONSTRAINT chk_payment_audit_updated
+                                                   CHECK ((updated_at IS NULL AND updated_by IS NULL) OR
+                                                          (updated_at IS NOT NULL AND updated_by IS NOT NULL)),
+                                               CONSTRAINT chk_payment_audit_deleted
+                                                   CHECK ((deleted_at IS NULL AND deleted_by IS NULL) OR
+                                                          (deleted_at IS NOT NULL AND deleted_by IS NOT NULL))
+);
 
 -- 권장 인덱스 (조회 패턴에 맞춰 선택적으로 추가)
 -- CREATE INDEX IF NOT EXISTS idx_p_customer_audit_created_at ON p_customer_audit(created_at);

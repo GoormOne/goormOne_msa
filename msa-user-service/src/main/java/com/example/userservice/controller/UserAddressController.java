@@ -32,4 +32,10 @@ public class UserAddressController {
 //
 //    // 기본 주소지 설정
 
+//    •	GET /users/me/addresses?size=10
+//    •	POST /users/me/addresses
+//	  •	PUT /users/me/addresses/{id}
+//	  •	DELETE /users/me/addresses/{id}
+//	  •	PATCH /users/me/addresses/{id}/default
+
 }

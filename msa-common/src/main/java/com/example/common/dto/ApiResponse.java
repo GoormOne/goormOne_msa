@@ -34,4 +34,9 @@ public class ApiResponse<T> {
         return new ApiResponse<>(false, errorCode.getCode(), errorCode.getMessage(), null);
     }
 
+    // 중복이긴 한데, 나중에 형식 통일한다 생각하고 쓸게요.
+    public static <T> ApiResponse<T> failure(ErrorResponse er) {
+        return new ApiResponse<>(false, er.getCode(), er.getMessage(), null);
+    }
+
 }

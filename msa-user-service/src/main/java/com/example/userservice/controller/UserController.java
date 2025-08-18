@@ -44,6 +44,16 @@ public class UserController {
 //        String result = userService.createOwner(request);
 //        return ResponseEntity.ok(ApiResponse.success(result));
 //    }
+
+//    •	POST /users (프로필 생성; auth 등록 후 호출)
+//    •	GET /users/me
+//	  •	PUT /users/me
+//	  •	DELETE /users/me (soft delete)
+//	  •	GET /admin/users?query=&sort=createdAt,desc&page=0&size=10
+//    •	PATCH /admin/users/{id} (role/is_banned)
+
+
+
 }
 
 // 기존 코드 주석처리
