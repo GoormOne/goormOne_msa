@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import com.example.msaorderservice.order.dto.OrderCreateReq;
 import com.example.msaorderservice.order.dto.OrderCreateRes;
 import com.example.msaorderservice.order.dto.OrderRes;
+import com.example.msaorderservice.order.entity.OrderStatus;
 
 public interface OrderService {
 	OrderCreateRes createOrder(UUID customerId, OrderCreateReq req);
@@ -15,4 +16,6 @@ public interface OrderService {
 	Page<OrderRes> getMyOrders(UUID customerId, Pageable pageable);
 
 	OrderRes getMyOrderDetail(UUID customerId, UUID orderId);
+
+	OrderRes updateOrderStatusByOwner(UUID ownerId, UUID orderId, OrderStatus newStatus);
 }

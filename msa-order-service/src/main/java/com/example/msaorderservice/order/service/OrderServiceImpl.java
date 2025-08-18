@@ -3,6 +3,7 @@ package com.example.msaorderservice.order.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -18,6 +19,7 @@ import com.example.msaorderservice.order.dto.OrderCreateReq;
 import com.example.msaorderservice.order.dto.OrderCreateRes;
 import com.example.msaorderservice.order.dto.OrderLineRes;
 import com.example.msaorderservice.order.dto.OrderRes;
+import com.example.msaorderservice.order.dto.StoreLookUp;
 import com.example.msaorderservice.order.entity.OrderEntity;
 import com.example.msaorderservice.order.entity.OrderItemEntity;
 import com.example.msaorderservice.order.entity.OrderStatus;
@@ -39,6 +41,7 @@ public class OrderServiceImpl implements OrderService {
 	private final OrderRepository orderRepository;
 	private final OrderItemRepository orderItemRepository;
 	private final MenuClient menuClient;
+	private final StoreClient storeClient;
 
 	@Override
 	@Transactional
@@ -130,7 +133,6 @@ public class OrderServiceImpl implements OrderService {
 		return toOrderRes(order, items);
 	}
 
-	// mapper
 	private OrderRes toOrderRes(OrderEntity o, List<OrderItemEntity> items) {
 		return OrderRes.builder()
 			.orderId(o.getOrderId())
@@ -148,5 +150,20 @@ public class OrderServiceImpl implements OrderService {
 					.build())
 				.collect(Collectors.toList()))
 			.build();
+	}
+
+	@Override
+	@Transactional
+	public OrderRes updateOrderStatusByOwner(UUID ownerId, UUID orderId, OrderStatus newStatus) {
+		OrderEntity order = orderRepository.findById(orderId)
+			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+
+		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
+
+		order.setOrderStatus(newStatus);
+		orderRepository.save(order);
+
+		var items = orderItemRepository.findByOrderId_OrderId(orderId);
+		return toOrderRes(order, items);
 	}
 }
