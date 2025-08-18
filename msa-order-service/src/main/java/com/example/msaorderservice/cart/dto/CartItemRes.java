@@ -1,4 +1,4 @@
-package com.example.msaorderservice.dto;
+package com.example.msaorderservice.cart.dto;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,12 +14,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CartItemsPageRes {
-	private UUID storeId;
-	private int page;
-	private int size;
-	private long totalItems;
-	private int totalPages;
-	private int pageTotalPrice;
-	private List<CartItemRes> items;
+public class CartItemRes {
+	private UUID menuId;
+	private String menuName;
+	private int menuPrice;
+	private int quantity;
+	private int lineTotal;
 }
