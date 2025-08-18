@@ -16,6 +16,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+
 management:
   endpoints:
     web:
@@ -31,7 +32,7 @@ spring:
     activate:
       on-profile: local
 server:
-  port: 8081 # 8080
+  port: 8081
 
 eureka:
   instance:
@@ -52,6 +53,13 @@ spring:
   config:
     activate:
       on-profile: dev
+  datasource:
+    url: jdbc:postgresql://postgres.cpug0kggoegu.ap-northeast-2.rds.amazonaws.com/postgres #우리 디비로 바꾸기
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: Goorm1!!
+
 server:
   port: 8080
+
 
