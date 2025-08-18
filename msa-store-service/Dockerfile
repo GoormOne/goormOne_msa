@@ -5,23 +5,23 @@ FROM gradle:8.8-jdk17-jammy AS builder
 # 작업 디렉토리 설정
 WORKDIR /build
 
-# 빌드에 필요한 파일들만 먼저 복사하여 Docker 캐시 활용 극대화
-COPY build.gradle settings.gradle ./
-COPY gradle ./gradle
-COPY src ./src
+# 프로젝트 전체 파일을 빌드 컨텍스트로 복사
+COPY . .
 
-# Gradle 빌드 실행
-RUN gradle build --no-daemon
+# 2. 특정 서비스 모듈만 빌드하여 Jar 파일 생성
+# --no-daemon 옵션은 CI 환경에서 권장됩니다.
+RUN gradle :msa-store-service:build --no-daemon
 
-# --- 2. 실행 단계 (Final Stage) ---
+
+# --- 3. 실행 단계 (Final Stage) ---
 # 가벼운 JRE 이미지에서 시작
 FROM eclipse-temurin:17-jre-jammy
 
-
+# 작업 디렉토리 설정
 WORKDIR /app
 
-# 빌드 단계에서 생성된 Jar 파일만 복사
-COPY --from=builder /build/build/libs/*.jar app.jar
+# 빌드 단계에서 생성된 특정 서비스의 Jar 파일만 복사
+COPY --from=builder /build/msa-store-service/build/libs/*.jar app.jar
 
 # 포트 노출
 EXPOSE 8080
