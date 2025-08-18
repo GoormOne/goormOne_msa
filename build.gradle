@@ -14,7 +14,7 @@ subprojects {
 
 	apply plugin: "java"
 	apply plugin: "io.spring.dependency-management"
-
+	apply plugin: "org.springframework.boot"
 	java {
 		toolchain {
 			languageVersion = JavaLanguageVersion.of(17) // SDK: ms-17, 언어수준 17
