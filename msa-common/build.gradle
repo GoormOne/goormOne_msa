@@ -16,9 +16,7 @@ dependencies {
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 
-tasks.named("bootJar") {
-	enabled = false
-}
+
 tasks.named("jar") {
 	enabled = true
 }
