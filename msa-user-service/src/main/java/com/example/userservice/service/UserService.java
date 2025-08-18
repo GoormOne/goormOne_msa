@@ -40,8 +40,8 @@ public class UserService {
         // 3) 감사 저장 (PK=FK: audit_id = user_id, created_by = user_id)
         CustomerAudit audit = CustomerAudit.builder()
                 .auditId(saved.getUserId())
-                .createdAt(LocalDateTime.now())
-                .createdBy(saved.getUserId())
+//                .createdAt(LocalDateTime.now())
+//                .createdBy(saved.getUserId())
                 .build();
         userAuditRepository.save(audit);
 

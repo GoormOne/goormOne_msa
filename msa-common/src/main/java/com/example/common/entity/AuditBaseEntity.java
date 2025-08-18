@@ -1,6 +1,7 @@
 package com.example.common.entity;
 
 import jakarta.persistence.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -20,9 +21,9 @@ public abstract class AuditBaseEntity {
     @Column(name = "updated_by")
     private UUID updatedBy;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "updated_by_type")
-    private Role updatedByType;
+//    @Enumerated(EnumType.STRING)
+//    @Column(name = "updated_by_type")
+//    private Role updatedByType;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
@@ -30,9 +31,9 @@ public abstract class AuditBaseEntity {
     @Column(name = "deleted_by")
     private UUID deletedBy;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "deleted_by_type")
-    private Role deletedByType;
+//    @Enumerated(EnumType.STRING)
+//    @Column(name = "deleted_by_type")
+//    private Role deletedByType;
 
     @Column(name = "deleted_rs")
     private String deletedReason;
