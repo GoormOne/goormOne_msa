@@ -13,6 +13,7 @@ COPY . .
 RUN gradle :msa-store-service:build --no-daemon
 
 
+
 # --- 3. 실행 단계 (Final Stage) ---
 # 가벼운 JRE 이미지에서 시작
 FROM eclipse-temurin:17-jre-jammy
