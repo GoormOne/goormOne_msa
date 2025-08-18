@@ -10,7 +10,7 @@ COPY . .
 
 # 2. 특정 서비스 모듈만 빌드하여 Jar 파일 생성
 # --no-daemon 옵션은 CI 환경에서 권장됩니다.
-RUN gradle :msa-store-service:build --no-daemon
+RUN ./gradlew :msa-store-service:build --no-daemon
 
 
 # --- 3. 실행 단계 (Final Stage) ---
