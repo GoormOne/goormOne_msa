@@ -1,9 +1,9 @@
-server:
-  port: 8081 # 8080
-
 spring:
   application:
    name: msa-store-service
+
+  profiles:
+    active: local
   datasource:
     url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres #우리 디비로 바꾸기
     driver-class-name: org.postgresql.Driver
@@ -25,6 +25,14 @@ management:
     health:
       show-details: when_authorized
 
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+server:
+  port: 8081 # 8080
+
 eureka:
   instance:
     instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
@@ -38,3 +46,12 @@ logging:
   level:
     org.springframework.cloud.loadbalancer: DEBUG
     org.springframework.cloud.gateway.server.mvc: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+server:
+  port: 8080
+
