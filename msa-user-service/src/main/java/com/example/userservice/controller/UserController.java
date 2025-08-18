@@ -12,6 +12,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+/*
+* --- user ---
+* 1. 고객/사장 회원가입 (인증 X)
+* 2. 고객/사장 회원탈퇴
+* 3. 고객/사장 내정보 조회
+* 4. 고객/사장 내정보 수정
+* 5. 고객/사장 비밀번호 변경
+* 6. 관리자 회원정보 조회, 수정
+* */
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
