@@ -1,6 +1,6 @@
 # --- 1. 빌드 단계 (Builder Stage) ---
 # Gradle과 JDK가 포함된 이미지에서 시작
-FROM gradle:8.8-jdk17-jammy AS builder
+FROM openjdk:17-jdk-slim AS builder
 
 # 작업 디렉토리 설정
 WORKDIR /build
@@ -15,7 +15,7 @@ RUN gradle :msa-store-service:build --no-daemon
 
 # --- 3. 실행 단계 (Final Stage) ---
 # 가벼운 JRE 이미지에서 시작
-FROM eclipse-temurin:17-jre-jammy
+FROM openjdk:17-slim
 
 # 작업 디렉토리 설정
 WORKDIR /app
