@@ -16,6 +16,10 @@ public enum CommonCode {
     FORBIDDEN(HttpStatus.FORBIDDEN, 4003, "권한 없음"),
     NOT_FOUND(HttpStatus.NOT_FOUND, 4004, "리소스를 찾을 수 없음"),
 
+    // ✅ 상점 관련 오류
+    STORE_NOT_FOUND(HttpStatus.NOT_FOUND, 4100, "없는 상점입니다."),
+    STORE_DELETED(HttpStatus.GONE, 4101, "지워진 상점입니다."),
+
     // ✅ 서버 오류
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 5000, "서버 오류");
 

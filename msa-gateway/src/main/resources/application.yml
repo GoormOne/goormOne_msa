@@ -11,12 +11,16 @@ spring:
       default-filters:
         - RemoveResponseHeader=Server
       routes:
-        - id: store-service
-          uri: lb://store-service
+        - id: msa-store-service
+          uri: lb://MSA-STORE-SERVICE
           predicates:
-            - Path=/stores/**,/menus/**
-          filters:
-            - StripPrefix=1
+            - Path=/stores/**,/menu/**,/review/**
+        - id: msa-common-service
+          uri: lb://MSA-COMMON-SERVICE
+          predicates:
+            - Path=/common/**
+#          filters:
+#            - StripPrefix=1
     discovery:
       enabled: true
   datasource:
@@ -46,3 +50,6 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+
+
