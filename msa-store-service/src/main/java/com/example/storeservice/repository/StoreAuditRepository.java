@@ -16,4 +16,5 @@ public interface StoreAuditRepository extends JpaRepository<StoreAudit, UUID> {
             nativeQuery = true
     )
     UUID insertAuditReturningId(@Param("createdBy") UUID createdBy);
+
 }

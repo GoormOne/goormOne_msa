@@ -1,6 +1,8 @@
 package com.example.storeservice.dto;
 
 import com.example.storeservice.entity.Menu;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,12 +14,15 @@ import java.util.UUID;
 @Setter
 public class MenuDto {
     private UUID menuId;
+    @NotNull
     private String menuName;
+    @NotNull
+    @Positive
     private Integer menuPrice;
     private String menuDescription;
-    private Boolean isPublic;
     private String menuPhotoUrl;
-    private Boolean isPublicPhoto;
+    private Boolean isPublic = true;
+    private Boolean isPublicPhoto = true;
 
     private UUID storeId;
     private UUID menuCategoryId;

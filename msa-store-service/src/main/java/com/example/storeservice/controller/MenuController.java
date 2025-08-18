@@ -12,6 +12,7 @@ import com.example.storeservice.service.MenuService;
 import com.example.storeservice.service.StoreAuditService;
 import com.example.storeservice.service.StoreService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,36 +29,29 @@ import java.util.UUID;
 
 //공통 로직 : 1.상점과 주인 일치 확인 2.메뉴와 상점 일치 확인
 @RestController
-@RequestMapping("/menu")
+@RequestMapping("/stores/{storeId}/menu")
 @Slf4j
 @RequiredArgsConstructor
 public class MenuController {
     private final MenuService menuService;
     private final AwsS3Service awsS3Service;
-    private final StoreService storeService;
     private final StoreAuditService storeAuditService;
 
-    @GetMapping("/internal/{menuId}")
-    public ResponseEntity<ApiResponse<?>> getMenuInternal(@PathVariable String menuId){
+//    @GetMapping("/internal/{menuId}")
+//    public ResponseEntity<ApiResponse<?>> getMenuInternal(@PathVariable UUID menuId){
+//
+//        Menu menu = menuService.getMenu(menuId);
+//
+//        return ResponseEntity.ok(ApiResponse.success(MenuDto.from(menu)));
+//    }
 
-        Menu menu = menuService.getMenu(UUID.fromString(menuId));
-
-        return ResponseEntity.ok(ApiResponse.success(MenuDto.from(menu)));
-    }
-
-    // 스토어별, 스토어의 메뉴카테고리별 메뉴 리스트 검색
-    @GetMapping("/{storeId}/menus")
+    // 스토어별 메뉴만 반환
+    @GetMapping("/")
     public ResponseEntity<ApiResponse<?>> getMenu(
-            @PathVariable String storeId,
-            @RequestParam(required = false) String categoryId
+            @PathVariable UUID storeId
     ){
 
-        List<Menu> menuList;
-        if (categoryId == null){
-            menuList = menuService.getMenuList(UUID.fromString(storeId));
-        }else {
-            menuList = menuService.getMenuList(UUID.fromString(storeId), UUID.fromString(categoryId));
-        }
+        List<Menu> menuList = menuService.getMenuList(storeId);
 
         List<MenuDto> menuDtoList = menuList.stream()
                 .map(menu -> {
@@ -65,17 +59,36 @@ public class MenuController {
                     return MenuDto.from(menu, url);
                 })
                 .toList();
-
         return ResponseEntity.ok(ApiResponse.success(menuDtoList));
     }
 
+    //TODO -- 메뉴 + 카테고리 반환 필요
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<?>> getAllMenu(
+            @PathVariable UUID storeId
+    ){
+
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @GetMapping("/{menuId}")
+    public ResponseEntity<ApiResponse<?>> getMenu(
+            @PathVariable UUID storeId,
+            @PathVariable UUID menuId
+    ){
+
+        Menu menu = menuService.getMenuList(storeId, menuId);
+
+        return ResponseEntity.ok(ApiResponse.success(menu));
+    }
+
     //todo - file과 dto 단순 단건 매핑로직 -> map으로 dtoList 고려
-    @PostMapping(value = "/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @RequireStoreOwner
     public ResponseEntity<ApiResponse<?>> postMenu(
-            @PathVariable String storeId,
+            @PathVariable UUID storeId,
             @RequestPart(value = "photo", required = false) MultipartFile file,
-            @RequestPart("menuDto") CreateMenuDto menuDto){
+            @Valid @RequestPart("menuDto") CreateMenuDto menuDto){
 
         //TODO -- 시큐리티컨텍스트에서 파싱
         UUID ownerId = UUID.fromString("ac1adfde-f740-4c27-8c9a-2f0acfc4a0f4");
@@ -95,38 +108,37 @@ public class MenuController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(result.getMenuId()));
     }
 
-    //----------------------여기서부터
-    @DeleteMapping("/{menuId}/store/{storeId}")
+    @DeleteMapping("/{menuId}")
     @RequireStoreOwner
     public ResponseEntity<ApiResponse<?>> deleteMenu(
-            @PathVariable String menuId,
-            @PathVariable String storeId
+            @PathVariable UUID menuId,
+            @PathVariable UUID storeId
     ){
 
         // todo - 요청자 ownerId 파싱
         String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";
         UUID ownerUUID = UUID.fromString(ownerId);
-        UUID storeUUID =  UUID.fromString(storeId);
 
         // service에서 메뉴와 상점 일치 여부 확인함
-        Menu menu = menuService.getMenu(UUID.fromString(menuId), storeUUID);
+        Menu menu = menuService.getMenu(menuId, storeId);
 
         StoreAudit storeAudit = storeAuditService.deleteAudit(menu.getMenuId(), ownerUUID);
 
         return ResponseEntity.ok(ApiResponse.success(storeAudit.getAuditId()));
     }
 
-    @PutMapping(path = "/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+
+    @PutMapping(path = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @RequireStoreOwner
     public ResponseEntity<ApiResponse<?>> updateMenuPhoto(
-            @PathVariable String storeId,
-            @RequestBody MenuDto menuDto,
+            @PathVariable UUID storeId,
+            @Valid @RequestBody MenuDto menuDto,
             @RequestPart("file") MultipartFile file
             ){
+        String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";
+        UUID ownerUUID = UUID.fromString(ownerId);
 
-        UUID storeUUID = UUID.fromString(storeId);
-
-        Menu menu = menuService.getMenu(menuDto.getMenuId(), storeUUID);
+        Menu menu = menuService.getMenu(menuDto.getMenuId(), storeId);
 
         if (!file.isEmpty()){
             String fileName = awsS3Service.uploadFile(file);
@@ -140,6 +152,7 @@ public class MenuController {
             URL photoUrl = awsS3Service.getImageUrl(resultDto.getMenuPhotoUrl(), Duration.ofMinutes(10));
             resultDto.setMenuPhotoUrl(photoUrl.toString());
         }
+        storeAuditService.updateAudit(menu.getMenuId(), ownerUUID);
 
         return ResponseEntity.ok(ApiResponse.success(resultDto));
     }

@@ -110,14 +110,14 @@ CREATE TABLE IF NOT EXISTS p_stores_regions (
 -- MENU DOMAIN
 -- =====================
 CREATE TABLE IF NOT EXISTS p_menu_category (
-                                               menu_category_id   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    menu_category_id   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     store_id           uuid NOT NULL REFERENCES p_stores(store_id),
     menu_category_name varchar(50) NOT NULL,
     UNIQUE (store_id, menu_category_name)
     );
 
 CREATE TABLE IF NOT EXISTS p_menus (
-                                       menu_id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    menu_id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     store_id         uuid NOT NULL REFERENCES p_stores(store_id),
     menu_category_id uuid NOT NULL REFERENCES p_menu_category(menu_category_id),
     menu_name        varchar(20) NOT NULL,

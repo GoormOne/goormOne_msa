@@ -32,4 +32,9 @@ public class ApiResponse<T> {
         return new ApiResponse<>(errorCode.getCode(), errorCode.getMessage(), null);
     }
 
+    public static <T> ApiResponse<T> fail(CommonCode errorCode, String message) {
+        return new ApiResponse<>(errorCode.getCode(), message, null);
+    }
+
+
 }
