@@ -1,9 +1,9 @@
-server:
-  port: 8085
-
 spring:
   application:
     name: msa-order-service
+
+  profiles:
+    active: local
   datasource:
     url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres
     driver-class-name: org.postgresql.Driver
@@ -16,6 +16,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+
 management:
   endpoints:
     web:
@@ -25,9 +26,41 @@ management:
     health:
       show-details: when_authorized
 
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+server:
+  port: 8085
+
 eureka:
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+logging:
+  level:
+    org.springframework.cloud.loadbalancer: DEBUG
+    org.springframework.cloud.gateway.server.mvc: DEBUG
+
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:postgresql://postgres.cpug0kggoegu.ap-northeast-2.rds.amazonaws.com/postgres #우리 디비로 바꾸기
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: Goorm1!!
+
+server:
+  port: 8080

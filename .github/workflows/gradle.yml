@@ -30,6 +30,9 @@ jobs:
           filters: |
             msa-store-service:
              - 'msa-store-service/**'
+            msa-order-service:
+             - 'msa-order-service/**'
+
 
   build-and-deploy:
 
