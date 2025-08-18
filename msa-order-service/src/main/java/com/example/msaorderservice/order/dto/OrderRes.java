@@ -1,6 +1,7 @@
 package com.example.msaorderservice.order.dto;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -18,9 +19,10 @@ public class OrderRes {
 	private UUID orderId;
 	private UUID customerId;
 	private UUID storeId;
+	private String storeName;
 	private OrderStatus orderStatus;
 	private int totalPrice;
-	private LocalDateTime createdAt;
+	private OffsetDateTime createdAt;
 
 	private List<OrderItemDto> items;
 
@@ -31,5 +33,6 @@ public class OrderRes {
 		private String menuName;
 		private int quantity;
 		private int menuPrice;
+		private int lineTotal;
 	}
 }

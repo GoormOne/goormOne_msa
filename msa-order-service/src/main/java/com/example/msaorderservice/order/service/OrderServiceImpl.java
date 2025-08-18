@@ -1,5 +1,8 @@
 package com.example.msaorderservice.order.service;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,10 +23,12 @@ import com.example.msaorderservice.order.dto.OrderCreateRes;
 import com.example.msaorderservice.order.dto.OrderLineRes;
 import com.example.msaorderservice.order.dto.OrderRes;
 import com.example.msaorderservice.order.dto.StoreLookUp;
+import com.example.msaorderservice.order.entity.OrderAuditEntity;
 import com.example.msaorderservice.order.entity.OrderEntity;
 import com.example.msaorderservice.order.entity.OrderItemEntity;
 import com.example.msaorderservice.order.entity.OrderStatus;
 import com.example.msaorderservice.order.entity.PaymentStatus;
+import com.example.msaorderservice.order.repository.OrderAuditRepository;
 import com.example.msaorderservice.order.repository.OrderItemRepository;
 import com.example.msaorderservice.order.repository.OrderRepository;
 import com.example.msaorderservice.cart.repository.CartItemRepository;
@@ -40,6 +45,7 @@ public class OrderServiceImpl implements OrderService {
 	private final CartItemRepository cartItemRepository;
 	private final OrderRepository orderRepository;
 	private final OrderItemRepository orderItemRepository;
+	private final OrderAuditRepository orderAuditRepository;
 	private final MenuClient menuClient;
 	private final StoreClient storeClient;
 
@@ -98,7 +104,13 @@ public class OrderServiceImpl implements OrderService {
 		toSave.forEach(i -> i.setOrderId(savedOrder));
 		orderItemRepository.saveAll(toSave);
 
-		cartItemRepository.deleteByCartId(cart.getCartId());
+		OrderAuditEntity audit = OrderAuditEntity.builder()
+			.orderId(order)
+			.createdAt(OffsetDateTime.now())
+			.createdBy(customerId)
+			.build();
+
+		orderAuditRepository.save(audit);
 
 		return new OrderCreateRes(
 			order.getOrderId(),
@@ -113,15 +125,7 @@ public class OrderServiceImpl implements OrderService {
 	@Override
 	@Transactional(readOnly = true)
 	public Page<OrderRes> getMyOrders(UUID customerId, Pageable pageable) {
-		Page<OrderEntity> page = orderRepository.findByCustomerId(customerId, pageable);
 
-		List<UUID> orderIds = page.stream().map(OrderEntity::getOrderId).toList();
-		Map<UUID, List<OrderItemEntity>> groupedItems = orderItemRepository
-			.findByOrderId_OrderIdIn(orderIds)
-			.stream()
-			.collect(Collectors.groupingBy(it -> it.getOrderId().getOrderId()));
-
-		return page.map(o -> toOrderRes(o, groupedItems.getOrDefault(o.getOrderId(), List.of())));
 	}
 
 	@Override
@@ -129,24 +133,35 @@ public class OrderServiceImpl implements OrderService {
 	public OrderRes getMyOrderDetail(UUID customerId, UUID orderId) {
 		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)
 			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+
 		List<OrderItemEntity> items = orderItemRepository.findByOrderId_OrderId(orderId);
-		return toOrderRes(order, items);
+
+		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
+
+		OffsetDateTime createdAt = orderAuditRepository.findByAuditId(orderId)
+			.map(OrderAuditEntity::getCreatedAt)
+			.orElseThrow(() -> new IllegalStateException("감사 로그가 없습니다."));
+
+		return toOrderRes(order, items, createdAt, store.getStoreName());
 	}
 
-	private OrderRes toOrderRes(OrderEntity o, List<OrderItemEntity> items) {
+	private OrderRes toOrderRes(OrderEntity o, List<OrderItemEntity> items, OffsetDateTime createdAt,
+		String storeName) {
 		return OrderRes.builder()
 			.orderId(o.getOrderId())
 			.customerId(o.getCustomerId())
 			.storeId(o.getStoreId())
+			.storeName(storeName)
 			.orderStatus(o.getOrderStatus())
 			.totalPrice(o.getTotalPrice())
-			// .createdAt(o.getCreatedAt())
+			.createdAt(createdAt)
 			.items(items.stream()
 				.map(it -> OrderRes.OrderItemDto.builder()
 					.menuId(it.getMenuId())
 					.menuName(it.getMenuName())
 					.quantity(it.getQuantity())
 					.menuPrice(it.getMenuPrice())
+					.lineTotal(it.getLineTotal())
 					.build())
 				.collect(Collectors.toList()))
 			.build();
@@ -163,7 +178,13 @@ public class OrderServiceImpl implements OrderService {
 		order.setOrderStatus(newStatus);
 		orderRepository.save(order);
 
+		var audit = orderAuditRepository.findById(orderId)
+			.orElseThrow(() -> new IllegalStateException("주문 감사 레코드가 없습니다."));
+		audit.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+		audit.setUpdatedBy(ownerId);
+		orderAuditRepository.save(audit);
+
 		var items = orderItemRepository.findByOrderId_OrderId(orderId);
-		return toOrderRes(order, items);
+		return toOrderRes(order, items, audit.getUpdatedAt(), store.getStoreName());
 	}
 }
