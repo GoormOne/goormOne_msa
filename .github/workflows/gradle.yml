@@ -5,7 +5,10 @@ on:
   push:
     branches: [ "release/1.0.0" ]
 
+env:
+  AWS_REGION: ap-northeast-2
 jobs:
+
 
   determine-changes:
     runs-on: ubuntu-latest
@@ -66,12 +69,22 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Set ECR Repository Name
+        id: ecr-repo
+        run: echo "name=$(echo ${{ matrix.service }} | sed 's/msa-//g')" >> $GITHUB_OUTPUT
+
       # --- Docker 이미지 빌드 및 푸시 ---
       - name: Build and push ${{ matrix.service }} image
         run: |
           # 해당 서비스만 build 하도록 설정
           chmod +x ./gradlew
-          ./gradlew :${{ matrix.service }}:build
+          ./gradlew :${{ matrix.service }}:build --no-daemon
           # 3. Docker 이미지 빌드 및 푸시
-          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ matrix.service }}:${{ github.sha }} ./${{ matrix.service }}
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ matrix.service }}:${{ github.sha }}
+          # 이미지 tag
+          IMAGE_TAG = ${{ github.sha }}
+          
+          
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ steps.ecr-repo.outputs.name }}:${IMAGE_TAG} -f ./${{ matrix.service }}/Dockerfile .
+          
+          # Docker 푸시
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ steps.ecr-repo.outputs.name }}:${IMAGE_TAG}
