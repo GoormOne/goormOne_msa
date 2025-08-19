@@ -37,17 +37,19 @@ public class MenuController {
     private final AwsS3Service awsS3Service;
     private final StoreAuditService storeAuditService;
 
-//    @GetMapping("/internal/{menuId}")
-//    public ResponseEntity<ApiResponse<?>> getMenuInternal(@PathVariable UUID menuId){
-//
-//        Menu menu = menuService.getMenu(menuId);
-//
-//        return ResponseEntity.ok(ApiResponse.success(MenuDto.from(menu)));
-//    }
+    @GetMapping("/{menuId}")
+    public ResponseEntity<ApiResponse<?>> getMenu(
+            @PathVariable UUID menuId,
+            @PathVariable UUID storeId){
+
+        Menu menu = menuService.getMenu(menuId,storeId);
+
+        return ResponseEntity.ok(ApiResponse.success(MenuDto.from(menu)));
+    }
 
     // 스토어별 메뉴만 반환
     @GetMapping("/")
-    public ResponseEntity<ApiResponse<?>> getMenu(
+    public ResponseEntity<ApiResponse<?>> getMenuByStore(
             @PathVariable UUID storeId
     ){
 
@@ -71,16 +73,6 @@ public class MenuController {
         return ResponseEntity.ok(ApiResponse.success());
     }
 
-    @GetMapping("/{menuId}")
-    public ResponseEntity<ApiResponse<?>> getMenu(
-            @PathVariable UUID storeId,
-            @PathVariable UUID menuId
-    ){
-
-        Menu menu = menuService.getMenuList(storeId, menuId);
-
-        return ResponseEntity.ok(ApiResponse.success(menu));
-    }
 
     //todo - file과 dto 단순 단건 매핑로직 -> map으로 dtoList 고려
     @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
