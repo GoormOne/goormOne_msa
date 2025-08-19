@@ -24,51 +24,51 @@ public class UserProfileService {
 
     // ===== customers =====
     @Transactional(readOnly = true)
-    public CustomerProfileRes getCustomer(UUID userId) {
-        var c = customerRepository.findByUserId(userId).orElseThrow(ServiceException::notFound);
+    public CustomerProfileRes getCustomer(UUID customerId) {
+        var c = customerRepository.findByCustomerId(customerId).orElseThrow(ServiceException::notFound);
         return toCustomerRes(c.getCustomerId(), c.getUsername(), c.getName(), c.getEmail(), c.getIsBanned(), c.getEmailVerified());
     }
 
     @Transactional
-    public CustomerProfileRes updateCustomer(UUID userId, CustomerProfileUpdateReq req) {
-        var c = customerRepository.findByUserId(userId).orElseThrow(ServiceException::notFound);
-        if (customerRepository.existsByEmailAndUserIdNot(req.getEmail(), userId)) throw ServiceException.duplicatedEmail();
+    public CustomerProfileRes updateCustomer(UUID customerId, CustomerProfileUpdateReq req) {
+        var c = customerRepository.findByCustomerId(customerId).orElseThrow(ServiceException::notFound);
+        if (customerRepository.existsByEmailAndCustomerIdNot(req.getEmail(), customerId)) throw ServiceException.duplicatedEmail();
 
         c.setName(req.getName());
         c.setEmail(req.getEmail());
-        c.setUpdatedBy(userId);  // 감사 주체 기록
+        c.setUpdatedBy(customerId);  // 감사 주체 기록
         return toCustomerRes(c.getCustomerId(), c.getUsername(), c.getName(), c.getEmail(), c.getIsBanned(), c.getEmailVerified());
     }
 
     @Transactional
-    public void deleteCustomer(UUID userId, String reason) {
-        var c = customerRepository.findByUserId(userId).orElseThrow(ServiceException::notFound);
-        c.setDeletedBy(userId);
+    public void deleteCustomer(UUID customerId, String reason) {
+        var c = customerRepository.findByCustomerId(customerId).orElseThrow(ServiceException::notFound);
+        c.setDeletedBy(customerId);
         c.setDeletedRs(reason);
         // @PreRemove 대신 soft delete -> deleted_at/by/rs 세팅 (AuditBaseEntity에 로직이 있으면 따라감)
     }
 
     // ===== owners =====
     @Transactional(readOnly = true)
-    public OwnerProfileRes getOwner(UUID userId) {
-        var o = ownerRepository.findByUserId(userId).orElseThrow(ServiceException::notFound);
+    public OwnerProfileRes getOwner(UUID ownerId) {
+        var o = ownerRepository.findByOwnerId(ownerId).orElseThrow(ServiceException::notFound);
         return toOwnerRes(o.getOwnerId(), o.getUsername(), o.getName(), o.getEmail(), o.getIsBanned(), o.getEmailVerified());
     }
 
     @Transactional
-    public OwnerProfileRes updateOwner(UUID userId, OwnerProfileUpdateReq req) {
-        var o = ownerRepository.findByUserId(userId).orElseThrow(ServiceException::notFound);
-        if (ownerRepository.existsByEmailAndUserIdNot(req.getEmail(), userId)) throw ServiceException.duplicatedEmail();
+    public OwnerProfileRes updateOwner(UUID ownerId, OwnerProfileUpdateReq req) {
+        var o = ownerRepository.findByOwnerId(ownerId).orElseThrow(ServiceException::notFound);
+        if (ownerRepository.existsByEmailAndOwnerIdNot(req.getEmail(), ownerId)) throw ServiceException.duplicatedEmail();
 
         o.setName(req.getName());
         o.setEmail(req.getEmail());
-        o.setUpdatedBy(userId);
+        o.setUpdatedBy(ownerId);
         return toOwnerRes(o.getOwnerId(), o.getUsername(), o.getName(), o.getEmail(), o.getIsBanned(), o.getEmailVerified());
     }
 
     @Transactional
     public void deleteOwner(UUID userId, String reason) {
-        var o = ownerRepository.findByUserId(userId).orElseThrow(ServiceException::notFound);
+        var o = ownerRepository.findByOwnerId(userId).orElseThrow(ServiceException::notFound);
         o.setDeletedBy(userId);
         o.setDeletedRs(reason);
     }
