@@ -30,16 +30,13 @@ public class AwsS3Service {
 
     public String uploadFile(MultipartFile multipartFile) {
 
-        if(multipartFile.isEmpty()) {
-            log.info("image is null");
-            return null;
-        }
         String fileName = UUID.randomUUID().toString();
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .contentType(multipartFile.getContentType())
                     .contentLength(multipartFile.getSize())
+                    .contentDisposition("inline")
                     .key(fileName)
                     .build();
             RequestBody requestBody = RequestBody.fromBytes(multipartFile.getBytes());
@@ -54,7 +51,11 @@ public class AwsS3Service {
 
     public URL getImageUrl(String objectKey, Duration ttl) {
         GetObjectRequest get = GetObjectRequest.builder()
-                .bucket(bucketName).key(objectKey).build();
+                .bucket(bucketName)
+                .key(objectKey)
+                .responseContentType("image/jpeg")
+                .responseContentDisposition("inline")
+                .build();
 
         PresignedGetObjectRequest req = s3Presigner.presignGetObject(b -> b
                 .signatureDuration(ttl)
