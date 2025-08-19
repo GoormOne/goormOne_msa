@@ -64,10 +64,10 @@ VALUES
 INSERT INTO p_customer_address (address_id, customer_id, address_name, address1, address2, zip_cd, user_latitude, user_longitude, is_default)
 SELECT gen_random_uuid(), c.customer_id,
        '집', '서울시 어딘가 ' || right(c.username,2), '101동 100' || (row_number() over (order by c.customer_id))::text,
-    lpad((10000 + row_number() over (order by c.customer_id))::text, 6, '0'),
-    37.50 + (row_number() over (order by c.customer_id))*0.001,
-    127.00 + (row_number() over (order by c.customer_id))*0.001,
-    true
+       lpad((10000 + row_number() over (order by c.customer_id))::text, 6, '0'),
+       37.50 + (row_number() over (order by c.customer_id))*0.001,
+       127.00 + (row_number() over (order by c.customer_id))*0.001,
+       true
 FROM p_customers c;
 
 -- ======================================================
@@ -104,8 +104,8 @@ SELECT
     127.05 + o.rn * 0.002,
     '09:00'::time, '21:00'::time, false
 FROM owners o
-    JOIN cat c
-ON c.rn = ((o.rn - 1) % 5) + 1;     -- 윈도우 함수 대신 사전계산 rn 사용
+         JOIN cat c
+              ON c.rn = ((o.rn - 1) % 5) + 1;     -- 윈도우 함수 대신 사전계산 rn 사용
 
 -- 매장-지역 매핑: 각 매장을 3개 지역에 연결
 WITH r AS (
@@ -148,12 +148,12 @@ FROM p_menu_category mc
 INSERT INTO p_menus (menu_id, store_id, menu_category_id, menu_name, menu_price, menu_description, is_public, menu_photo_url, is_public_photo)
 SELECT gen_random_uuid(), t.store_id,
        (SELECT menu_category_id FROM pick_cat pc WHERE pc.store_id = t.store_id AND pc.rn = ((t.seq-1) % 5) + 1),
-    '메뉴' || (row_number() over (order by t.store_id, t.seq))::text,
-    5000 + (t.seq * 500),
-    '아주 맛있는 메뉴',
-    true,
-    NULL,
-    NULL
+       '메뉴' || (row_number() over (order by t.store_id, t.seq))::text,
+       5000 + (t.seq * 500),
+       '아주 맛있는 메뉴',
+       true,
+       NULL,
+       NULL
 FROM target t;
 
 -- ======================================================
@@ -169,18 +169,18 @@ WITH cust AS (
          FROM p_stores
      ),
      ins_carts AS (  -- 여기서 carts 3건을 만들고 RETURNING으로 결과를 CTE에 담음 (테이블 아님!)
-INSERT INTO p_carts (cart_id, customer_id, store_id)
-SELECT gen_random_uuid(), c.customer_id, s.store_id
-FROM cust c
-         JOIN stor s ON s.rn = c.rn
-WHERE c.rn <= 3
-    RETURNING cart_id, customer_id, store_id
+         INSERT INTO p_carts (cart_id, customer_id, store_id)
+             SELECT gen_random_uuid(), c.customer_id, s.store_id
+             FROM cust c
+                      JOIN stor s ON s.rn = c.rn
+             WHERE c.rn <= 3
+             RETURNING cart_id, customer_id, store_id
      ),
      pick_menu AS (  -- 매장별 메뉴에 순번 부여 (CTE)
-SELECT m.store_id, m.menu_id,
-    row_number() OVER (PARTITION BY m.store_id ORDER BY m.menu_id) AS rn
-FROM p_menus m
-    )
+         SELECT m.store_id, m.menu_id,
+                row_number() OVER (PARTITION BY m.store_id ORDER BY m.menu_id) AS rn
+         FROM p_menus m
+     )
 -- 각 카트당 아이템 3개: 해당 매장의 메뉴 3개 선택
 INSERT INTO p_cart_items (cart_item_id, cart_id, menu_id, quantity)
 SELECT
@@ -205,32 +205,39 @@ WITH cust AS (
          SELECT store_id, row_number() over (order by store_id) AS rn FROM p_stores
      ),
      ins_orders AS (
-INSERT INTO p_orders (order_id, customer_id, store_id, address_id, total_price, request_message)
-SELECT gen_random_uuid(), c.customer_id, s.store_id, c.address_id,
-       0, '빨리 부탁해요'
-FROM cust c
-         JOIN stor s ON s.rn = c.rn
-WHERE c.rn <= 3
-    RETURNING order_id, customer_id, store_id
+         INSERT INTO p_orders (order_id, customer_id, store_id, address_id, order_status, payment_status, total_price, request_message)
+             SELECT gen_random_uuid(),
+                    c.customer_id,
+                    s.store_id,
+                    c.address_id,
+                    'PENDING'::order_status,
+                    'PENDING'::payment_status,
+                    0,
+                    '빨리 부탁해요'
+             FROM cust c
+                      JOIN stor s ON s.rn = c.rn
+             WHERE c.rn <= 3
+             RETURNING order_id, customer_id, store_id
      ),
      pick_menu AS (
-SELECT m.store_id, m.menu_id,
-    row_number() over (partition by m.store_id order by m.menu_id) AS rn
-FROM p_menus m
-    )
-INSERT INTO p_order_items (order_item_id, order_id, menu_id, quantity)
-SELECT gen_random_uuid(), io.order_id, pm.menu_id, ((pm.rn - 1) % 3) + 1
+         SELECT m.store_id, m.menu_id, m.menu_name, m.menu_price,
+                row_number() over (partition by m.store_id order by m.menu_id) AS rn
+         FROM p_menus m
+     )
+INSERT INTO p_order_items (order_item_id, order_id, menu_id, menu_name, menu_price, line_total, quantity)
+SELECT gen_random_uuid(), io.order_id, pm.menu_id, pm.menu_name, pm.menu_price,
+       pm.menu_price * (((pm.rn - 1) % 3) + 1) AS line_total,
+       (((pm.rn - 1) % 3) + 1)
 FROM ins_orders io
-    JOIN pick_menu pm ON pm.store_id = io.store_id
+         JOIN pick_menu pm ON pm.store_id = io.store_id
 WHERE pm.rn <= 3;
 
 -- 주문 합계(total_price) 갱신 (아이템 기준 합)
 UPDATE p_orders o
 SET total_price = sub.sum_price
-    FROM (
-         SELECT oi.order_id, SUM(m.menu_price * oi.quantity) AS sum_price
+FROM (
+         SELECT oi.order_id, SUM(oi.line_total) AS sum_price
          FROM p_order_items oi
-                  JOIN p_menus m ON m.menu_id = oi.menu_id
          GROUP BY oi.order_id
      ) sub
 WHERE o.order_id = sub.order_id;
@@ -249,10 +256,10 @@ WITH cust AS (
 INSERT INTO p_reviews (review_id, customer_id, menu_id, rating, comment, is_public)
 SELECT gen_random_uuid(),
        (SELECT customer_id FROM cust WHERE rn = ((menu.rn - 1) % (SELECT total FROM cust LIMIT 1)) + 1),
-    menu.menu_id,
-    ((menu.rn - 1) % 5) + 1,
-    '맛있어요!',
-    true
+       menu.menu_id,
+       ((menu.rn - 1) % 5) + 1,
+       '맛있어요!',
+       true
 FROM menu;
 
 -- REVIEW AVERAGE: 리뷰 기반 집계

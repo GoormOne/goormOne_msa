@@ -1,4 +1,4 @@
-package com.example.common;
+package com.example.common.exception;
 
 
 import lombok.Getter;
@@ -17,9 +17,15 @@ public enum CommonCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, 4004, "리소스를 찾을 수 없음"),
     INVALID_UUID(HttpStatus.BAD_REQUEST, 4005, "잘못된 UUID 형식입니다."), // ✅ 추가
 
+    // 유저 관련 오류
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, 4100, "없는 유저입니다."),
+    USER_DELETED(HttpStatus.GONE, 4101, "지워진 유저입니다."),
+    USER_DUPLICATED(HttpStatus.CONFLICT, 4102, "이미 존재하는 유저입니다."),
+    EMAIL_DUPLICATED(HttpStatus.CONFLICT, 4103, "이미 존재하는 이메일입니다."),
+
     // ✅ 상점 관련 오류
-    STORE_NOT_FOUND(HttpStatus.NOT_FOUND, 4100, "없는 상점입니다."),
-    STORE_DELETED(HttpStatus.GONE, 4101, "지워진 상점입니다."),
+    STORE_NOT_FOUND(HttpStatus.NOT_FOUND, 4200, "없는 상점입니다."),
+    STORE_DELETED(HttpStatus.GONE, 4201, "지워진 상점입니다."),
 
     // ✅ 서버 오류
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 5000, "서버 오류");

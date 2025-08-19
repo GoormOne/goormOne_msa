@@ -1,7 +1,7 @@
 package com.example.storeservice.controller;
 
 
-import com.example.common.ApiResponse;
+import com.example.common.dto.ApiResponse;
 import com.example.storeservice.dto.MenuCategoryDto;
 import com.example.storeservice.entity.Menu;
 import com.example.storeservice.entity.MenuCategory;

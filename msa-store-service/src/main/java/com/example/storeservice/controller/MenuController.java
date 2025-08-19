@@ -1,6 +1,6 @@
 package com.example.storeservice.controller;
 
-import com.example.common.ApiResponse;
+import com.example.common.dto.ApiResponse;
 import com.example.storeservice.dto.CreateMenuDto;
 import com.example.storeservice.dto.MenuDto;
 import com.example.storeservice.entity.Menu;
