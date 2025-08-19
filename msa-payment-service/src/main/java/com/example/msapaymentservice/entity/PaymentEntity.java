@@ -55,7 +55,7 @@ public class PaymentEntity {
 	private String cardNumberMasked;
 
 	@Column(name = "payment_amount", nullable = false)
-	private Integer paymentAmount;
+	private int paymentAmount;
 
 	@Column(name = "currency", nullable = false, length = 3)
 	@Builder.Default
