@@ -9,6 +9,6 @@ import java.util.UUID;
 
 @Repository
 public interface OwnerRepository extends JpaRepository<Owner, UUID> {
-    boolean existsByEmailAndUserIdNot(String email, UUID userId);
-    Optional<Owner> findByUserId(UUID userId);
+    boolean existsByEmailAndOwnerIdNot(String email, UUID ownerId);
+    Optional<Owner> findByOwnerId(UUID ownerId);
 }
