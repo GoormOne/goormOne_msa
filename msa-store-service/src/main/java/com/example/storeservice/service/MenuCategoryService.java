@@ -8,6 +8,7 @@ import com.example.storeservice.repository.StoreRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
@@ -48,5 +49,14 @@ public class MenuCategoryService {
 
     public MenuCategory insertMenuCategory(MenuCategory menuCategory) {
         return menuCategoryRepository.save(menuCategory);
+    }
+
+    @Transactional
+    public MenuCategory updateMenuCategory(UUID menuCategoryId, UUID storeId, String name) {
+        MenuCategory menuCategory = getMenuCategory(storeId, menuCategoryId);
+
+        menuCategory.setMenuCategoryName(name);
+
+        return menuCategory;
     }
 }

@@ -36,6 +36,7 @@ public class CreateMenuDto {
                 .isPublicPhoto(m.getIsPublicPhoto())
                 .store(new Store(storeId))
                 .menuCategory(new MenuCategory(m.getMenuCategoryId()))
+                .isDeleted(false)
                 .build();
     }
 }

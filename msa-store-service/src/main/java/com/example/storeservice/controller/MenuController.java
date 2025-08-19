@@ -92,7 +92,8 @@ public class MenuController {
             menu.setMenuPhotoUrl(fileName);
         }
 
-        UUID pk = storeAuditService.insertAudit(ownerId);
+        UUID pk = UUID.randomUUID();
+        storeAuditService.insertStoreAudit(new StoreAudit(ownerId,pk));
         menu.setMenuId(pk);
 
         Menu result = menuService.insertMenu(menu);
@@ -112,7 +113,7 @@ public class MenuController {
         UUID ownerUUID = UUID.fromString(ownerId);
 
         // service에서 메뉴와 상점 일치 여부 확인함
-        Menu menu = menuService.getMenu(menuId, storeId);
+        Menu menu = menuService.deleteMenu(menuId, storeId);
 
         StoreAudit storeAudit = storeAuditService.deleteAudit(menu.getMenuId(), ownerUUID);
 
