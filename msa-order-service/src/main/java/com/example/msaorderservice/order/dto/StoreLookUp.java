@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 public class StoreLookUp {
 	private UUID storeId;
-	// private UUID ownerId;
+	private UUID ownerId;
 	private String storeName;
 }

@@ -25,14 +25,14 @@ public class MenuClient {
 
 	private static final String STORE_BASE = "http://msa-store-service";
 
-	public MenuLookUp getMenuDetail(UUID menuId) {
-		String url = STORE_BASE + "/menu/internal/{menuId}";
+	public MenuLookUp getMenuDetail(UUID storeId, UUID menuId) {
+		String url = STORE_BASE + "/stores/{storeId}/menu/{menuId}";
 		try {
 			ParameterizedTypeReference<ApiResponse<MenuLookUp>> typeRef =
 				new ParameterizedTypeReference<>() {
 				};
 			ResponseEntity<ApiResponse<MenuLookUp>> resp =
-				restTemplate.exchange(url, HttpMethod.GET, null, typeRef, menuId.toString());
+				restTemplate.exchange(url, HttpMethod.GET, null, typeRef, storeId.toString(), menuId.toString());
 
 			if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
 				throw new IllegalStateException("Store response invalid");

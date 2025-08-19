@@ -19,9 +19,9 @@ public interface OrderService {
 
 	CustomerOrderDetailRes getMyOrderDetail(UUID customerId, UUID orderId);
 
-	Page<OrderSummaryRes> getOwnerOrders(UUID ownerId, Pageable pageable);
+	Page<OrderSummaryRes> getOwnerOrders(UUID ownerId, UUID storeId, Pageable pageable);
 
-	OwnerOrderDetailRes getOwnerOrderDetail(UUID orderId, UUID ownerId);
+	OwnerOrderDetailRes getOwnerOrderDetail(UUID orderId, UUID storeId, UUID ownerId);
 
 	OwnerOrderDetailRes updateOrderStatusByOwner(UUID ownerId, UUID orderId, OrderStatus newStatus);
 }

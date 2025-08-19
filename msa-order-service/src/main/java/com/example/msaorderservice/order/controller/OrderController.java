@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.msaorderservice.order.dto.OrderCreateReq;
@@ -59,17 +60,19 @@ public class OrderController {
 	@GetMapping("/owner")
 	public Page<OrderSummaryRes> getOwnerOrders(
 		@RequestHeader("X-User-Id") UUID ownerId,
+		@RequestParam("storeId") UUID storeId,
 		Pageable pageable
 	) {
-		return orderService.getOwnerOrders(ownerId, pageable);
+		return orderService.getOwnerOrders(ownerId, storeId, pageable);
 	}
 
 	@GetMapping("/owner/{orderId}")
 	public OwnerOrderDetailRes getOwnerOrderDetail(
 		@RequestHeader("X-User-Id") UUID ownerId,
+		@RequestParam("storeId") UUID storeId,
 		@PathVariable UUID orderId
 	) {
-		return orderService.getOwnerOrderDetail(orderId, ownerId);
+		return orderService.getOwnerOrderDetail(orderId, storeId, ownerId);
 	}
 
 	@PatchMapping("/owner/{orderId}/status")

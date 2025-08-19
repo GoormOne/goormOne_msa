@@ -15,6 +15,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class MenuLookUp {
 	private UUID menuId;
+	private UUID storeId;
 	private String menuName;
 	private int menuPrice;
 }

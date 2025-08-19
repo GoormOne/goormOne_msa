@@ -73,6 +73,8 @@ public class CartServiceImpl implements CartService {
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
 			.orElseThrow(() -> new NoSuchElementException("cart not found for user"));
 
+		UUID storeId = cart.getStoreId();
+
 		Pageable pageable = PageRequest.of(p, s, Sort.by("cartItemId").ascending());
 		Page<CartItemEntity> pageResult = cartItemRepository.findByCartId(cart.getCartId(), pageable);
 
@@ -83,9 +85,9 @@ public class CartServiceImpl implements CartService {
 			.distinct()
 			.map(id -> {
 				try {
-					return menuClient.getMenuDetail(id);
+					return menuClient.getMenuDetail(storeId, id);
 				} catch (Exception e) {
-					log.error("menu lookup 실패. menuId={}", id, e);
+					log.error("menu lookup 실패. storeId={}, menuId={}", storeId, id, e);
 					return null;
 				}
 			})

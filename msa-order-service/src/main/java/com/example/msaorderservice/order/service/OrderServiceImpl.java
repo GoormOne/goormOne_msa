@@ -74,7 +74,7 @@ public class OrderServiceImpl implements OrderService {
 
 		int total = 0;
 		for (CartItemEntity ci : cartItems) {
-			MenuLookUp menu = menuClient.getMenuDetail(ci.getMenuId());
+			MenuLookUp menu = menuClient.getMenuDetail(storeId,ci.getMenuId());
 
 			int unitPrice = menu.getMenuPrice();
 			int qty = ci.getQuantity();
@@ -210,17 +210,62 @@ public class OrderServiceImpl implements OrderService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public Page<OrderSummaryRes> getOwnerOrders(UUID ownerId, Pageable pageable) {
-		throw new UnsupportedOperationException("owner 주문 목록 조회는 store-service의 '점주 매장 목록' API가 필요합니다.");
+	public Page<OrderSummaryRes> getOwnerOrders(UUID ownerId, UUID storeId, Pageable pageable) {
+
+		StoreLookUp store = storeClient.getStoreDetail(storeId);
+
+		UUID ownerFromStore = store.getOwnerId();
+		if (ownerFromStore != null && !ownerFromStore.equals(ownerId)) {
+			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+		}
+
+		Page<OrderEntity> page = orderRepository.findByStoreIdIn(List.of(storeId), pageable);
+
+		List<UUID> orderIds = page.stream().map(OrderEntity::getOrderId).toList();
+
+		Map<UUID, List<OrderItemEntity>> itemsByOrderId = orderItemRepository
+			.findByOrderId_OrderIdIn(orderIds).stream()
+			.collect(Collectors.groupingBy(it -> it.getOrderId().getOrderId()));
+
+		Map<UUID, OffsetDateTime> createdAtByOrderId = orderAuditRepository
+			.findAllById(orderIds).stream()
+			.collect(Collectors.toMap(OrderAuditEntity::getAuditId, OrderAuditEntity::getCreatedAt));
+
+		final String storeName = store.getStoreName();
+
+		return page.map(o -> {
+			List<OrderItemEntity> items = itemsByOrderId.getOrDefault(o.getOrderId(), List.of());
+			String first = items.isEmpty() ? "-" : items.get(0).getMenuName();
+			int extra = Math.max(0, items.size() - 1);
+			String preview = items.isEmpty() ? "-" : (extra > 0 ? first + " 외 " + extra + "개" : first);
+
+			return OrderSummaryRes.builder()
+				.orderId(o.getOrderId())
+				.storeId(o.getStoreId())
+				.storeName(storeName)
+				.orderStatus(o.getOrderStatus())
+				.totalPrice(o.getTotalPrice())
+				.createdAt(createdAtByOrderId.get(o.getOrderId()))
+				.summaryTitle(preview)
+				.itemCount(items.size())
+				.build();
+		});
 	}
 
 
 	@Override
 	@Transactional(readOnly = true)
-	public OwnerOrderDetailRes getOwnerOrderDetail(UUID orderId, UUID ownerId) {
+	public OwnerOrderDetailRes getOwnerOrderDetail(UUID orderId, UUID storeId, UUID ownerId) {
 
 		OrderEntity order = orderRepository.findById(orderId)
 			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+
+		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
+
+		UUID ownerFromStore = store.getOwnerId();
+		if (ownerFromStore != null && !ownerFromStore.equals(ownerId)) {
+			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+		}
 
 		List<OrderItemEntity> items = orderItemRepository.findByOrderId_OrderId(orderId);
 
@@ -255,6 +300,11 @@ public class OrderServiceImpl implements OrderService {
 		OrderEntity order = orderRepository.findById(orderId)
 			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
+		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
+		if (!store.getOwnerId().equals(ownerId)) {
+			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+		}
+
 		order.setOrderStatus(newStatus);
 		orderRepository.save(order);
 
@@ -286,6 +336,22 @@ public class OrderServiceImpl implements OrderService {
 					.lineTotal(it.getLineTotal())
 					.build()
 			).toList())
+			.build();
+	}
+
+	private OrderSummaryRes toOrderSummary(OrderEntity o, List<OrderItemEntity> items, OffsetDateTime createdAt, String storeName) {
+		String firstMenu = items.isEmpty() ? null : items.get(0).getMenuName();
+		int extraCount = Math.max(0, items.size() - 1);
+		String menuSummary = (firstMenu == null) ? null : (extraCount > 0 ? firstMenu + " 외 " + extraCount + "개" : firstMenu);
+
+		return OrderSummaryRes.builder()
+			.orderId(o.getOrderId())
+			.storeId(o.getStoreId())
+			.storeName(storeName)
+			.orderStatus(o.getOrderStatus())
+			.totalPrice(o.getTotalPrice())
+			.createdAt(createdAt)
+			.summaryTitle(menuSummary)
 			.build();
 	}
 }
