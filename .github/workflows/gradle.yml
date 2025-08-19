@@ -67,14 +67,17 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          # 위 단계에서 생성한 결과값을 사용하도록 수정
           ECR_REPOSITORY: ${{ steps.repo-name.outputs.name }}
           IMAGE_TAG: ${{ steps.vars.outputs.sha_short }}
+#        run: |
+#          chmod +x ./gradlew && ./gradlew :${{ matrix.service }}:build --no-daemon
+#          docker buildx build --platform linux/amd64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f ./${{ matrix.service }}/Dockerfile . --push
+#          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
         run: |
           chmod +x ./gradlew && ./gradlew :${{ matrix.service }}:build --no-daemon
-          docker buildx build --platform linux/amd64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f ./${{ matrix.service }}/Dockerfile . --push
+          # 빌드 컨텍스트를 프로젝트 루트(.)에서 각 서비스 폴더로 변경
+          docker buildx build --platform linux/amd64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f ./${{ matrix.service }}/Dockerfile ./${{ matrix.service }} --push
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
       # -------------------------- ECS 자동 배포 --------------------
       - name: Render Amazon ECS task definition
         id: task-def
