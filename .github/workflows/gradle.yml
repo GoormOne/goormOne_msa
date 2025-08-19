@@ -59,6 +59,9 @@ jobs:
         id: repo-name
         run: echo "name=$(echo '${{ matrix.service }}' | sed 's/msa-//g')" >> $GITHUB_OUTPUT
 
+      - name: Set short git commit SHA
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       # --- Docker 이미지 빌드 및 푸시 ---
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
@@ -66,7 +69,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           # 위 단계에서 생성한 결과값을 사용하도록 수정
           ECR_REPOSITORY: ${{ steps.repo-name.outputs.name }}
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: ${{ steps.vars.outputs.sha_short }}
         run: |
           chmod +x ./gradlew && ./gradlew :${{ matrix.service }}:build --no-daemon
           docker buildx build --platform linux/amd64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f ./${{ matrix.service }}/Dockerfile . --push
