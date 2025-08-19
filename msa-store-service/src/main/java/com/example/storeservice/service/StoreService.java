@@ -18,11 +18,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StoreService {
     private final StoreRepository storeRepository;
-    private final StoreAuditRepository storeAuditRepository;
-    private record StoreContext(Store store, StoreAudit audit) {}
 
     public Store getStore(UUID storeId) {
-        return storeRepository.findById(storeId)
+        return storeRepository.findByStoreIdAndIsDeletedFalse(storeId)
                 .orElseThrow(() -> new EntityNotFoundException("없는 상점입니다 : " + storeId)
         );
     }
@@ -33,11 +31,9 @@ public class StoreService {
     }
 
     @Transactional
-    public Store updateStore(UUID storeId, StoreRegisterDto dto, UUID updaterId) {
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(
-                        () -> new EntityNotFoundException
-                                ("없는 상점입니다 : " + storeId));
+    public Store updateStore(UUID storeId, StoreRegisterDto dto) {
+        Store store = storeRepository.findByStoreIdAndIsDeletedFalse(storeId)
+                .orElseThrow(() -> new EntityNotFoundException("없는 상점입니다 : " + storeId));
 
         if (dto.getStoreName() != null) store.setStoreName(dto.getStoreName());
         if (dto.getStoreDescription() != null) store.setStoreDescription(dto.getStoreDescription());
@@ -54,6 +50,15 @@ public class StoreService {
         return store; // 더티체킹으로 UPDATE
     }
 
+    @Transactional
+    public UUID deleteStore(UUID storeId) {
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new EntityNotFoundException("없는 상점입니다 : " + storeId)
+                );
+        store.setIsDeleted(true);
+
+        return store.getStoreId();
+    }
 }
 
 

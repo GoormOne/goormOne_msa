@@ -48,4 +48,7 @@ public class Menu {
     // nullable 허용 (DDL에서 NOT NULL 아님)
     @Column(name = "is_public_photo")
     private Boolean isPublicPhoto;
+
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
 }

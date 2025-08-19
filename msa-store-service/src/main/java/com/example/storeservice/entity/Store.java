@@ -75,6 +75,9 @@ public class Store {
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Menu> menus = new ArrayList<>();
 
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
+
     public Store (UUID storeId) {
         this.storeId = storeId;
     }

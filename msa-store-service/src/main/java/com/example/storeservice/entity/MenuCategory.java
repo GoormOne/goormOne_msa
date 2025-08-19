@@ -40,7 +40,16 @@ public class MenuCategory {
     @OneToMany(mappedBy = "menuCategory", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Menu> menus = new ArrayList<>();
 
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
+
     public MenuCategory(UUID menuCategoryId) {
         this.menuCategoryId = menuCategoryId;
+    }
+
+    public MenuCategory(UUID pk, UUID storeId, String menuCategoryName) {
+        this.menuCategoryId = pk;
+        this.store =  new Store(storeId);
+        this.menuCategoryName = menuCategoryName;
     }
 }

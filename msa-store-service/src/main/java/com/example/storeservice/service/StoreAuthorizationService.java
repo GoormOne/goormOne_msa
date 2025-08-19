@@ -19,7 +19,6 @@ import java.util.UUID;
 @Slf4j
 public class StoreAuthorizationService {
     private final StoreRepository storeRepository;
-    private final MenuRepository menuRepository;
 
     @Transactional(readOnly = true)
     public boolean isOwner(UUID storeId, UUID ownerId){

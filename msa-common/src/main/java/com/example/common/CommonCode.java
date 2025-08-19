@@ -15,6 +15,7 @@ public enum CommonCode {
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 4001, "인증 실패"),
     FORBIDDEN(HttpStatus.FORBIDDEN, 4003, "권한 없음"),
     NOT_FOUND(HttpStatus.NOT_FOUND, 4004, "리소스를 찾을 수 없음"),
+    INVALID_UUID(HttpStatus.BAD_REQUEST, 4005, "잘못된 UUID 형식입니다."), // ✅ 추가
 
     // ✅ 상점 관련 오류
     STORE_NOT_FOUND(HttpStatus.NOT_FOUND, 4100, "없는 상점입니다."),
