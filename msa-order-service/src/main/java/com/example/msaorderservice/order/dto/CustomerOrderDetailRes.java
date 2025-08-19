@@ -1,26 +1,28 @@
 package com.example.msaorderservice.order.dto;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import com.example.msaorderservice.order.entity.OrderEntity;
-import com.example.msaorderservice.order.entity.OrderItemEntity;
 import com.example.msaorderservice.order.entity.OrderStatus;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-public class OrderRes {
+@NoArgsConstructor
+@AllArgsConstructor
+public class CustomerOrderDetailRes {
 	private UUID orderId;
 	private UUID customerId;
 	private UUID storeId;
+	private String storeName;
 	private OrderStatus orderStatus;
 	private int totalPrice;
-	private LocalDateTime createdAt;
+	private OffsetDateTime createdAt;
 
 	private List<OrderItemDto> items;
 
@@ -31,5 +33,6 @@ public class OrderRes {
 		private String menuName;
 		private int quantity;
 		private int menuPrice;
+		private int lineTotal;
 	}
 }
