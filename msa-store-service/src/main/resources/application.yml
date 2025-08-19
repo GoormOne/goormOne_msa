@@ -65,7 +65,7 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:postgresql://postgres.cpug0kggoegu.ap-northeast-2.rds.amazonaws.com/postgres #우리 디비로 바꾸기
+    url: jdbc:postgresql://postgres.cpug0kggoegu.ap-northeast-2.rds.amazonaws.com/postgres
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: Goorm1!!
