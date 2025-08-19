@@ -42,4 +42,10 @@ public class StoreAudit {
 
     @Column(name = "deleted_rs", length = 255)
     private String deletedReason;
+
+    public StoreAudit(UUID createdBy, UUID pk){
+        this.createdBy = createdBy;
+        this.auditId = pk;
+        this.createdAt = LocalDateTime.now();
+    }
 }

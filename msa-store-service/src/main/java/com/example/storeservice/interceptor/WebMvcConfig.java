@@ -1,6 +1,5 @@
-package com.example.storeservice.global;
+package com.example.storeservice.interceptor;
 
-import com.example.storeservice.interceptor.StoreOwnerInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -14,6 +13,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(interceptor)
-                .addPathPatterns("/stores/**", "/menus/**", "/menuCategory/**");
+                .addPathPatterns("/stores/**");
     }
 }
