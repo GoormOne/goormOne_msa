@@ -90,6 +90,6 @@ jobs:
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
 
-          service: ${{ steps.repo-name.outputs.name }}-td
+          service: ${{ steps.repo-name.outputs.name }}
           cluster: DevCluster # 실제 ECS 클러스터 이름
           wait-for-service-stability: true
