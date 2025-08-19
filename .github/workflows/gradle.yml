@@ -54,13 +54,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # --- Docker 이미지 빌드 및 푸시 (수정된 부분) ---
+      # --- ECR 리포지토리 이름 설정 (새로 추가된 부분) ---
+      - name: Set ECR repository name
+        id: repo-name
+        run: echo "name=$(echo '${{ matrix.service }}' | sed 's/msa-//g')" >> $GITHUB_OUTPUT
+
+      # --- Docker 이미지 빌드 및 푸시 ---
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          # 실제 ECR 리포지토리 이름에 맞게 'msa-' 접두사 제거
-          ECR_REPOSITORY: ${{ replace(matrix.service, 'msa-', '') }}
+          # 위 단계에서 생성한 결과값을 사용하도록 수정
+          ECR_REPOSITORY: ${{ steps.repo-name.outputs.name }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           chmod +x ./gradlew && ./gradlew :${{ matrix.service }}:build --no-daemon
@@ -81,7 +86,7 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          # ❗️ ECS 서비스 이름에는 '-td'가 붙지 않습니다.
-          service: ${{ matrix.service }}
+
+          service: ${{ matrix.service }}-td
           cluster: DevCluster # 실제 ECS 클러스터 이름
           wait-for-service-stability: true
