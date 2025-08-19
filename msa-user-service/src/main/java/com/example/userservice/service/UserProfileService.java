@@ -1,52 +1,83 @@
 package com.example.userservice.service;
 
-import com.example.userservice.dto.request.SignupRequestDto;
-import com.example.userservice.entity.CustomerAudit;
-import com.example.userservice.entity.Customer;
+import com.example.userservice.dto.CustomerProfileRes;
+import com.example.userservice.dto.CustomerProfileUpdateReq;
+import com.example.userservice.dto.OwnerProfileRes;
+import com.example.userservice.dto.OwnerProfileUpdateReq;
+import com.example.userservice.exception.ServiceException;
+import com.example.userservice.repository.CustomerRepository;
 import com.example.userservice.repository.OwnerRepository;
-import com.example.userservice.repository.UserAuditRepository;
-import com.example.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserService {
-    private final UserRepository userRepository;
-    private final UserAuditRepository userAuditRepository;
+public class UserProfileService {
+
+    private final CustomerRepository customerRepository;
     private final OwnerRepository ownerRepository;
-    private final PasswordEncoder passwordEncoder;
+
+    // ===== customers =====
+    @Transactional(readOnly = true)
+    public CustomerProfileRes getCustomer(UUID userId) {
+        var c = customerRepository.findByUserId(userId).orElseThrow(ServiceException::notFound);
+        return toCustomerRes(c.getCustomerId(), c.getUsername(), c.getName(), c.getEmail(), c.getIsBanned(), c.getEmailVerified());
+    }
 
     @Transactional
-    public UUID signup(SignupRequestDto dto) {
-        // 1) 중복 체크
-        userRepository.findByUsername(dto.getUsername())
-                .ifPresent(u -> { throw new IllegalArgumentException("USERNAME_DUPLICATED"); });
-        userRepository.findByEmail(dto.getEmail())
-                .ifPresent(u -> { throw new IllegalArgumentException("EMAIL_DUPLICATED"); });
+    public CustomerProfileRes updateCustomer(UUID userId, CustomerProfileUpdateReq req) {
+        var c = customerRepository.findByUserId(userId).orElseThrow(ServiceException::notFound);
+        if (customerRepository.existsByEmailAndUserIdNot(req.getEmail(), userId)) throw ServiceException.duplicatedEmail();
 
-        // 2) 유저 저장 (DB가 UUID 생성)
-        Customer customer = dto.toEntity();
-        customer.setPassword(passwordEncoder.encode(customer.getPassword()));
-        Customer saved = userRepository.save(customer);    // 여기서 saved.getId() 확정
+        c.setName(req.getName());
+        c.setEmail(req.getEmail());
+        c.setUpdatedBy(userId);  // 감사 주체 기록
+        return toCustomerRes(c.getCustomerId(), c.getUsername(), c.getName(), c.getEmail(), c.getIsBanned(), c.getEmailVerified());
+    }
 
-        // 3) 감사 저장 (PK=FK: audit_id = user_id, created_by = user_id)
-        CustomerAudit audit = CustomerAudit.builder()
-                .auditId(saved.getUserId())
-//                .createdAt(LocalDateTime.now())
-//                .createdBy(saved.getUserId())
-                .build();
-        userAuditRepository.save(audit);
+    @Transactional
+    public void deleteCustomer(UUID userId, String reason) {
+        var c = customerRepository.findByUserId(userId).orElseThrow(ServiceException::notFound);
+        c.setDeletedBy(userId);
+        c.setDeletedRs(reason);
+        // @PreRemove 대신 soft delete -> deleted_at/by/rs 세팅 (AuditBaseEntity에 로직이 있으면 따라감)
+    }
 
-        log.info("회원가입 완료 userId={}", saved.getUserId());
-        return saved.getUserId();
+    // ===== owners =====
+    @Transactional(readOnly = true)
+    public OwnerProfileRes getOwner(UUID userId) {
+        var o = ownerRepository.findByUserId(userId).orElseThrow(ServiceException::notFound);
+        return toOwnerRes(o.getOwnerId(), o.getUsername(), o.getName(), o.getEmail(), o.getIsBanned(), o.getEmailVerified());
+    }
+
+    @Transactional
+    public OwnerProfileRes updateOwner(UUID userId, OwnerProfileUpdateReq req) {
+        var o = ownerRepository.findByUserId(userId).orElseThrow(ServiceException::notFound);
+        if (ownerRepository.existsByEmailAndUserIdNot(req.getEmail(), userId)) throw ServiceException.duplicatedEmail();
+
+        o.setName(req.getName());
+        o.setEmail(req.getEmail());
+        o.setUpdatedBy(userId);
+        return toOwnerRes(o.getOwnerId(), o.getUsername(), o.getName(), o.getEmail(), o.getIsBanned(), o.getEmailVerified());
+    }
+
+    @Transactional
+    public void deleteOwner(UUID userId, String reason) {
+        var o = ownerRepository.findByUserId(userId).orElseThrow(ServiceException::notFound);
+        o.setDeletedBy(userId);
+        o.setDeletedRs(reason);
+    }
+
+    private CustomerProfileRes toCustomerRes(UUID id, String username, String name, String email, Boolean banned, Boolean emailVerified) {
+        return new CustomerProfileRes(id, username, name, email, banned, emailVerified);
+    }
+    private OwnerProfileRes toOwnerRes(UUID id, String username, String name, String email, Boolean banned, Boolean emailVerified) {
+        return new OwnerProfileRes(id, username, name, email, banned, emailVerified);
     }
 
 }

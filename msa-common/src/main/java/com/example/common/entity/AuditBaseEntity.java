@@ -1,12 +1,15 @@
 package com.example.common.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @MappedSuperclass
+@Getter @Setter
 public abstract class AuditBaseEntity {
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -36,7 +39,7 @@ public abstract class AuditBaseEntity {
 //    private Role deletedByType;
 
     @Column(name = "deleted_rs")
-    private String deletedReason;
+    private String deletedRs;
 
     @PrePersist
     public void prePersist() { if (createdAt == null) createdAt = LocalDateTime.now();}
