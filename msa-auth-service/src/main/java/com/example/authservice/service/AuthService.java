@@ -1,8 +1,11 @@
 package com.example.authservice.service;
 
 import com.example.authservice.dto.CustomerRegisterRes;
-import com.example.authservice.dto.RegisterReq;
+import com.example.authservice.dto.CustomerRegisterReq;
+import com.example.authservice.dto.OwnerRegisterReq;
+import com.example.authservice.dto.OwnerRegisterRes;
 import com.example.authservice.entity.CustomerAuth;
+import com.example.authservice.entity.OwnerAuth;
 import com.example.authservice.exception.ServiceException;
 import com.example.authservice.repository.CustomerAuthRepository;
 import com.example.authservice.repository.OwnerAuthRepository;
@@ -22,7 +25,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public RegisterReq registerCustomer(RegisterReq req) {
+    public CustomerRegisterRes registerCustomer(CustomerRegisterReq req) {
 
         if (customerAuthRepository.existsByUsername(req.getUsername())) throw ServiceException.duplicatedUsername();
         if (customerAuthRepository.existsByEmail(req.getEmail())) throw ServiceException.duplicatedEmail();
@@ -37,7 +40,25 @@ public class AuthService {
                 .build();
         customerAuthRepository.save(entity);
 
-        return new CustomerRegisterRes(entity.getCustomerId(), entity.getUsername());
+        return new CustomerRegisterRes();
+    }
 
+    @Transactional
+    public OwnerRegisterRes registerOwner(OwnerRegisterReq req) {
+
+        if (customerAuthRepository.existsByUsername(req.getUsername())) throw ServiceException.duplicatedUsername();
+        if (customerAuthRepository.existsByEmail(req.getEmail())) throw ServiceException.duplicatedEmail();
+
+        var entity = OwnerAuth.builder()
+                .ownerId(UUID.randomUUID())
+                .username(req.getUsername())
+                .password(passwordEncoder.encode(req.getPassword()))
+                .name(req.getName())
+                .birth(req.getBirth())
+                .email(req.getEmail())
+                .build();
+        ownerAuthRepository.save(entity);
+
+        return new OwnerRegisterRes();
     }
 }

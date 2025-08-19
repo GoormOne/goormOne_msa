@@ -1,7 +1,5 @@
 package com.example.authservice.dto;
 
-import com.example.authservice.entity.CustomerAuth;
-import com.example.authservice.entity.OwnerAuth;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -11,7 +9,7 @@ import java.time.LocalDate;
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
-public class RegisterReq {
+public class OwnerRegisterReq {
 
     @NotBlank
     @Size(min = 4, max = 10)
