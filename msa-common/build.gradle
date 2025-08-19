@@ -9,6 +9,9 @@ dependencies {
 	api "org.springframework:spring-context"
 	api "org.springframework:spring-web"
 
+	implementation 'com.fasterxml.jackson.core:jackson-annotations'
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+
 	// Lombok (컴파일 전용)
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
