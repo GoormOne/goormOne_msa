@@ -80,15 +80,13 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: ./${{ matrix.service }}/task-definition.json
-          # task-definition.json 안의 컨테이너 이름과 일치해야 합니다.
-          container-name: ${{ matrix.service }}
+          container-name: ${{ matrix.service }}   # 무조건 msa-xxx-service
           image: ${{ steps.build-image.outputs.image }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-
-          service: ${{ steps.repo-name.outputs.name }}
-          cluster: DevCluster # 실제 ECS 클러스터 이름
+          service: ${{ steps.repo-name.outputs.name }}   # store-service / order-service
+          cluster: DevCluster
           wait-for-service-stability: true
