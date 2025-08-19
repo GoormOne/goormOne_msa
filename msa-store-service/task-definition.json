@@ -1,5 +1,6 @@
+
 {
-    "taskDefinitionArn": "arn:aws:ecs:ap-northeast-2:490913547024:task-definition/store-service-td:3",
+    "taskDefinitionArn": "arn:aws:ecs:ap-northeast-2:490913547024:task-definition/store-service-td:13",
     "containerDefinitions": [
         {
             "name": "msa-store-service",
@@ -28,10 +29,8 @@
                     "value": "dev"
                 }
             ],
-            "environmentFiles": [],
             "mountPoints": [],
             "volumesFrom": [],
-            "ulimits": [],
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
@@ -39,8 +38,7 @@
                     "awslogs-create-group": "true",
                     "awslogs-region": "ap-northeast-2",
                     "awslogs-stream-prefix": "ecs"
-                },
-                "secretOptions": []
+                }
             },
             "systemControls": []
         }
@@ -49,7 +47,7 @@
     "taskRoleArn": "arn:aws:iam::490913547024:role/ecs-task-role-store-service",
     "executionRoleArn": "arn:aws:iam::490913547024:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 3,
+    "revision": 13,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -95,7 +93,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2025-08-19T06:54:00.131Z",
-    "registeredBy": "arn:aws:iam::490913547024:user/user1",
+    "registeredAt": "2025-08-19T09:31:36.069Z",
+    "registeredBy": "arn:aws:sts::490913547024:assumed-role/gitactionToECR/GitHubActions",
     "tags": []
 }
