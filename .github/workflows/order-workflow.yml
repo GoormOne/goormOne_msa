@@ -11,7 +11,7 @@ on:
 # 워크플로우 전체에서 사용할 환경 변수
 env:
   AWS_REGION: ap-northeast-2
-  SERVICE_DIR: msa-order-service        # 이 워크플로우가 담당할 서비스 디렉토리
+  SERVICE_DIR: msa-order-service
   ECR_REPOSITORY: order-service         # ECR 리포지토리 및 ECS 서비스 이름
   CONTAINER_NAME: msa-order-service     # Task Definition 안의 컨테이너 이름
 
