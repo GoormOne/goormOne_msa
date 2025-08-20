@@ -18,15 +18,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      # 변경된 모듈만 추출 (키 이름 = 컨테이너 이름과 동일)
       - name: Detect changed services
-        uses: dorny/paths-filter@v3
         id: filter
+        uses: dorny/paths-filter@v3
         with:
           filters: |
             msa-store-service:
-             - 'msa-store-service/**'
+              - 'msa-store-service/**'
             msa-order-service:
-             - 'msa-order-service/**'
+              - 'msa-order-service/**'
 
   build-and-deploy:
     needs: determine-changes
@@ -37,62 +38,72 @@ jobs:
       contents: read
     strategy:
       matrix:
-        service: ${{ fromJson(needs.determine-changes.outputs.services) }}
+        service: ${{ fromJson(needs.determine-changes.outputs.services) }} # e.g. "msa-store-service"
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      # --- 디버그용 출력 (선택)
+      - name: Debug matrix.service
+        run: |
+          echo "matrix.service=${{ matrix.service }}"
 
       # --- AWS 인증 ---
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::490913547024:role/gitactionToECR
-          aws-region: ap-northeast-2
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # --- ECR 리포지토리 이름(ECS 서비스 이름) 추출 ---
+      # --- ECR/ECS '서비스 이름'(= repo/service)만 msa- 제거 ---
       - name: Set ECS/ECR service name
         id: repo-name
-        run: echo "name=$(echo '${{ matrix.service }}' | sed 's/msa-//g')" >> $GITHUB_OUTPUT
+        run: echo "name=$(echo '${{ matrix.service }}' | sed 's/^msa-//')" >> $GITHUB_OUTPUT
 
       # --- 커밋 SHA 태그 ---
       - name: Set short git commit SHA
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
+      # --- Gradle 빌드 ---
+      - name: Build with Gradle (module only)
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :${{ matrix.service }}:build --no-daemon
+
       # --- Docker 빌드 & ECR 푸시 ---
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ steps.repo-name.outputs.name }}
+          ECR_REPOSITORY: ${{ steps.repo-name.outputs.name }}   # e.g. store-service / order-service
           IMAGE_TAG: ${{ steps.vars.outputs.sha_short }}
         run: |
-          chmod +x ./gradlew && ./gradlew :${{ matrix.service }}:build --no-daemon
           docker buildx build --platform linux/amd64 \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-            -f ./${{ matrix.service }}/Dockerfile . \
+            -f ./${{ matrix.service }}/Dockerfile ./${{ matrix.service }} \
             --push
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      # --- ECS Task Definition 업데이트 ---
+      # --- ECS Task Definition 렌더링 (!!! container-name = matrix.service 그대로 사용 !!!)
       - name: Render Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: ./${{ matrix.service }}/task-definition.json
-          container-name: ${{ matrix.service }}   # msa-xxx-service (그대로)
+          container-name: ${{ matrix.service }}               # e.g. msa-store-service
           image: ${{ steps.build-image.outputs.image }}
 
-      # --- ECS 서비스 배포 ---
+      # --- ECS 서비스 배포 (서비스 이름은 msa- 제거한 값 사용) ---
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ steps.repo-name.outputs.name }}   # store-service / order-service
+          service: ${{ steps.repo-name.outputs.name }}        # e.g. store-service
           cluster: DevCluster
           wait-for-service-stability: true
