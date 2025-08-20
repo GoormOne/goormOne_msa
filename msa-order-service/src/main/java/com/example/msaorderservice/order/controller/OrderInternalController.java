@@ -1,21 +1,25 @@
 package com.example.msaorderservice.order.controller;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.msaorderservice.order.dto.OrderCheckoutView;
+import com.example.common.dto.OrderCheckoutView;
+import com.example.common.dto.PaymentStatusUpdatedReq;
+import com.example.common.entity.PaymentStatus;
 import com.example.msaorderservice.order.entity.OrderEntity;
 import com.example.msaorderservice.order.entity.OrderItemEntity;
-import com.example.msaorderservice.order.entity.OrderStatus;
-import com.example.msaorderservice.order.entity.PaymentStatus;
+
 import com.example.msaorderservice.order.repository.OrderAuditRepository;
 import com.example.msaorderservice.order.repository.OrderItemRepository;
 import com.example.msaorderservice.order.repository.OrderRepository;
@@ -68,21 +72,31 @@ public class OrderInternalController {
 			.build();
 	}
 
-	@PostMapping("/{orderId}/status/paid")
+	@PatchMapping("/{orderId}/status/paid")
 	@Transactional
-	public void markPaid(@RequestHeader("X-User-Id") UUID customerId,
-		@PathVariable UUID orderId) {
+	public ResponseEntity<Void> markPaid(@RequestHeader("X-User-Id") UUID customerId,
+		@PathVariable UUID orderId,
+		@RequestBody PaymentStatusUpdatedReq req) {
 		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)
 			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
-		order.setPaymentStatus(PaymentStatus.PAID);
-	}
 
-	@PostMapping("/{orderId}/status/failed")
-	@Transactional
-	public void markFailed(@RequestHeader("X-User-Id") UUID customerId,
-		@PathVariable UUID orderId) {
-		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)
-			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
-		order.setPaymentStatus(PaymentStatus.FAILED);
+		PaymentStatus curr = order.getPaymentStatus();
+		PaymentStatus next = req.getPaymentStatus();
+
+		boolean allowed =
+			(curr == PaymentStatus.PENDING && (next == PaymentStatus.PAID || next == PaymentStatus.FAILED)) ||
+				(curr == PaymentStatus.PAID && next == PaymentStatus.REFUNDED);
+
+		if ((!allowed)) {
+			throw new IllegalStateException("허용되지 않은 상태입니다. 현재=" + curr + ", 요청=" + next);
+		}
+		order.setPaymentStatus(next);
+
+		var audit = orderAuditRepository.findById(orderId)
+			.orElseThrow(() -> new IllegalStateException("주문 감사 레코드를 찾을 수 없습니다."));
+		audit.setUpdatedAt(OffsetDateTime.now());
+		audit.setUpdatedBy(customerId);
+
+		return ResponseEntity.noContent().build();
 	}
 }

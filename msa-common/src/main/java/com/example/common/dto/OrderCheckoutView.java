@@ -1,4 +1,4 @@
-package com.example.msaorderservice.order.dto;
+package com.example.common.dto;
 
 import java.util.List;
 import java.util.UUID;
@@ -33,3 +33,4 @@ public class OrderCheckoutView {
 		private int quantity;
 	}
 }
+
