@@ -11,7 +11,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import com.example.common.ApiResponse;
+import com.example.common.dto.ApiResponse;
 import com.example.msaorderservice.cart.dto.MenuLookUp;
 
 import lombok.RequiredArgsConstructor;
@@ -25,14 +25,14 @@ public class MenuClient {
 
 	private static final String STORE_BASE = "http://msa-store-service";
 
-	public MenuLookUp getMenuDetail(UUID menuId) {
-		String url = STORE_BASE + "/menu/internal/{menuId}";
+	public MenuLookUp getMenuDetail(UUID storeId, UUID menuId) {
+		String url = STORE_BASE + "/stores/{storeId}/menu/{menuId}";
 		try {
 			ParameterizedTypeReference<ApiResponse<MenuLookUp>> typeRef =
 				new ParameterizedTypeReference<>() {
 				};
 			ResponseEntity<ApiResponse<MenuLookUp>> resp =
-				restTemplate.exchange(url, HttpMethod.GET, null, typeRef, menuId.toString());
+				restTemplate.exchange(url, HttpMethod.GET, null, typeRef, storeId.toString(), menuId.toString());
 
 			if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
 				throw new IllegalStateException("Store response invalid");

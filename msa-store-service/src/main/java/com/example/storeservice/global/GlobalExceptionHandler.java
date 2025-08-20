@@ -1,8 +1,8 @@
 package com.example.storeservice.global;
 
 
-import com.example.common.ApiResponse;
-import com.example.common.CommonCode;
+import com.example.common.dto.ApiResponse;
+import com.example.common.exception.CommonCode;
 import com.example.storeservice.exception.StoreAlreadyDeletedException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
@@ -12,9 +12,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.AccessDeniedException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
@@ -26,7 +29,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.fail(CommonCode.STORE_DELETED));
     }
-
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<?>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        log.warn("Invalid parameter: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.fail(CommonCode.INVALID_UUID));
+    }
 
     // 404 - 엔티티 없음
     @ExceptionHandler(EntityNotFoundException.class)
@@ -53,7 +61,7 @@ public class GlobalExceptionHandler {
                 .orElse("validation error");
         log.warn("Validation failed: {}", msg);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.fail(CommonCode.BAD_REQUEST));
+                .body(ApiResponse.fail(CommonCode.BAD_REQUEST, msg));
     }
 
     // 400 - 제약 위반 (컨트롤러 파라미터 @Validated)

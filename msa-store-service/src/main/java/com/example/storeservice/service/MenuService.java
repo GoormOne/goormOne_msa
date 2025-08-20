@@ -11,21 +11,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class MenuService {
     private final MenuRepository menuRepository;
-    public Menu getMenu(UUID uuid) {
-        return menuRepository.findById(uuid).orElseThrow(()->{
-            throw new EntityNotFoundException("없는 메뉴입니다,");
-        });
-    }
+
     public Menu getMenu(UUID menuId, UUID storeId){
-        Menu menu =  menuRepository.findById(menuId).orElseThrow(()->{
-            throw new EntityNotFoundException("없는 메뉴입니다.");
-        });
+        Menu menu =  menuRepository.findByMenuIdAndIsDeletedFalse(menuId).orElseThrow(()-> new EntityNotFoundException("없는 메뉴입니다."));
         if (!menu.getStore().getStoreId().equals(storeId)){
             try {
                 throw new AccessDeniedException("메뉴와 상점 정보가 일치하지 않습니다.");
@@ -37,8 +32,15 @@ public class MenuService {
     }
 
     @Transactional
+    public Menu deleteMenu(UUID menuId, UUID storeId){
+        Menu menu =  getMenu(menuId, storeId);
+        menu.setIsDeleted(true);
+        return menu;
+    }
+
+    @Transactional
     public MenuDto updateMenu(UUID menuId, MenuDto dto){
-        Menu menu = menuRepository.findById(menuId)
+        Menu menu = menuRepository.findByMenuIdAndIsDeletedFalse(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("menu not found: " + menuId));
 
         if (dto.getMenuName() != null) menu.setMenuName(dto.getMenuName());
@@ -48,26 +50,17 @@ public class MenuService {
         if (dto.getIsPublicPhoto() != null) menu.setIsPublicPhoto(dto.getIsPublicPhoto());
         if (dto.getMenuPhotoUrl() != null) menu.setMenuPhotoUrl(dto.getMenuPhotoUrl());
 
-        //todo -- 카테고리 ID 검증 후에 변경 포토 변경 로직 추가
-//        if (dto.getMenuCategoryId() != null) {
-//            var categoryRef = menuCategoryRepository.getReferenceById(dto.getMenuCategoryId());
-//            menu.changeCategory(categoryRef);
-//        }
 
         return MenuDto.from(menu);
     }
 
     public List<Menu> getMenuList(UUID storeId) {
-        List<Menu> menuList = menuRepository.findByIsPublicTrueAndStore_StoreId(storeId);
+        List<Menu> menuList = menuRepository.findAllByStore_StoreIdAndIsDeletedFalse(storeId);
         if (menuList.isEmpty()) {throw new EntityNotFoundException("상점에 메뉴가 없습니다. " );}
         return menuList;
     }
 
-    public List<Menu> getMenuList(UUID storeId, UUID categoryId) {
-        List<Menu> menuList = menuRepository.findByIsPublicTrueAndStore_StoreIdAndMenuCategory_MenuCategoryId(storeId, categoryId);
-        if (menuList.isEmpty()) {throw new EntityNotFoundException("상점에 메뉴가 없습니다. " );}
-        return menuList;
-    }
+
 
     public Menu insertMenu(Menu menu) {
         return menuRepository.save(menu);

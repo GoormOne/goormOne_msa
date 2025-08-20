@@ -16,8 +16,8 @@ import java.util.UUID;
 public class StoreAuditService {
     private final StoreAuditRepository storeAuditRepository;
 
-    public UUID insertAudit(UUID createdBy) {
-        return storeAuditRepository.insertAuditReturningId(createdBy);
+    public StoreAudit insertStoreAudit(StoreAudit storeAudit) {
+        return storeAuditRepository.save(storeAudit);
     }
 
     public StoreAudit getAudit(UUID auditId) {
@@ -27,7 +27,11 @@ public class StoreAuditService {
     }
 
     @Transactional
-    public void updateAudit(StoreAudit storeAudit,  UUID byId) {
+    public void updateAudit(UUID auditId,  UUID byId) {
+        StoreAudit storeAudit = storeAuditRepository.findById(auditId).orElseThrow(
+                () -> new EntityNotFoundException("감사내역이 없습니다 : " + auditId)
+        );
+
         storeAudit.setUpdatedAt(LocalDateTime.now());
         storeAudit.setUpdatedBy(byId);
     }

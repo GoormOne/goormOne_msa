@@ -1,5 +1,6 @@
 package com.example.storeservice.entity;
 
+import com.example.storeservice.dto.MenuDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -48,4 +49,12 @@ public class Menu {
     // nullable 허용 (DDL에서 NOT NULL 아님)
     @Column(name = "is_public_photo")
     private Boolean isPublicPhoto;
+
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
+
+
+    public Menu(UUID menuId) {
+        this.menuId = menuId;
+    }
 }
