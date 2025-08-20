@@ -1,15 +1,12 @@
-server:
-  port: 8089
-
 spring:
   application:
     name: msa-auth-service
+
+  profiles:
+    active: local
   datasource:
     url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres
-    #    url: jdbc:postgresql://localhost/sample
     driver-class-name: org.postgresql.Driver
-    #    username: user
-    #    password: password
     username: postgres
     password: Goorm1!!
   jpa:
@@ -18,6 +15,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
   cloud:
     aws:
       credentials:
@@ -58,6 +56,14 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+server:
+  port: 8089
 
 eureka:
   instance:
@@ -72,3 +78,26 @@ logging:
   level:
     org.springframework.cloud.loadbalancer: DEBUG
     org.springframework.cloud.gateway.server.mvc: DEBUG
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:postgresql://postgres.cpug0kggoegu.ap-northeast-2.rds.amazonaws.com/postgres
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: Goorm1!!
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    enabled: false
