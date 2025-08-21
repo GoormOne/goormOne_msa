@@ -3,8 +3,9 @@ package com.example.msaorderservice.order.dto;
 import java.util.List;
 import java.util.UUID;
 
+import com.example.common.entity.PaymentStatus;
 import com.example.msaorderservice.order.entity.OrderStatus;
-import com.example.msaorderservice.order.entity.PaymentStatus;
+
 
 public class OrderCreateRes {
 	private UUID orderId;

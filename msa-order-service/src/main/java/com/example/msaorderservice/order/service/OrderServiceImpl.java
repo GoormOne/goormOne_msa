@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.common.entity.PaymentStatus;
 import com.example.msaorderservice.cart.dto.MenuLookUp;
 import com.example.msaorderservice.cart.entity.CartEntity;
 import com.example.msaorderservice.cart.entity.CartItemEntity;
@@ -28,7 +29,6 @@ import com.example.msaorderservice.order.entity.OrderAuditEntity;
 import com.example.msaorderservice.order.entity.OrderEntity;
 import com.example.msaorderservice.order.entity.OrderItemEntity;
 import com.example.msaorderservice.order.entity.OrderStatus;
-import com.example.msaorderservice.order.entity.PaymentStatus;
 import com.example.msaorderservice.order.repository.OrderAuditRepository;
 import com.example.msaorderservice.order.repository.OrderItemRepository;
 import com.example.msaorderservice.order.repository.OrderRepository;

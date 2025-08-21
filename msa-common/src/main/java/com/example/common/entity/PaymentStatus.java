@@ -1,4 +1,4 @@
-package com.example.msaorderservice.order.entity;
+package com.example.common.entity;
 
 public enum PaymentStatus {
 	PENDING,
@@ -6,4 +6,3 @@ public enum PaymentStatus {
 	FAILED,
 	REFUNDED
 }
-
