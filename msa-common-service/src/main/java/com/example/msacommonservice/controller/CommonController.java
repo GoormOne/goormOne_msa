@@ -2,7 +2,7 @@ package com.example.msacommonservice.controller;
 
 
 
-import com.example.common.ApiResponse;
+import com.example.common.dto.ApiResponse;
 import com.example.msacommonservice.StoreServiceClient;
 import com.example.msacommonservice.dto.StoreDto;
 import lombok.RequiredArgsConstructor;

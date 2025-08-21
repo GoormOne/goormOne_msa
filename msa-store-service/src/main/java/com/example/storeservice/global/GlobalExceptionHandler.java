@@ -1,8 +1,8 @@
 package com.example.storeservice.global;
 
 
-import com.example.common.ApiResponse;
-import com.example.common.CommonCode;
+import com.example.common.dto.ApiResponse;
+import com.example.common.exception.CommonCode;
 import com.example.storeservice.exception.StoreAlreadyDeletedException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
