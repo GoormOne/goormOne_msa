@@ -65,7 +65,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: Goorm1!!
-    jpa:
+  jpa:
       hibernate:
         ddl-auto: none
       properties:
@@ -73,10 +73,10 @@ spring:
           dialect: org.hibernate.dialect.PostgreSQLDialect
 
 
-  server:
+server:
     port: 8080
 
-  eureka:
+eureka:
     client:
       enabled: false
 
