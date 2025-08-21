@@ -72,9 +72,9 @@ public class OrderInternalController {
 			.build();
 	}
 
-	@PatchMapping("/{orderId}/status/paid")
+	@PatchMapping("/{orderId}/status")
 	@Transactional
-	public ResponseEntity<Void> markPaid(@RequestHeader("X-User-Id") UUID customerId,
+	public ResponseEntity<Void> markPaymentStatus(@RequestHeader("X-User-Id") UUID customerId,
 		@PathVariable UUID orderId,
 		@RequestBody PaymentStatusUpdatedReq req) {
 		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)

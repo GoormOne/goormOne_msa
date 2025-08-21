@@ -32,8 +32,7 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
-payment:
-  toss:
-    api-url: ${TOSS_API_URL}
-    secret-key: ${TOSS_SECRET_KEY}
-    client-key: ${TOSS_CLIENT_KEY}
+toss:
+  api-url: https://api.tosspayments.com
+  secret-key: test_sk_GePWvyJnrKblk4AJ4qbEVgLzN97E
+  client-key: test_ck_Ba5PzR0Arn9bqEYORBDXVvmYnNeD

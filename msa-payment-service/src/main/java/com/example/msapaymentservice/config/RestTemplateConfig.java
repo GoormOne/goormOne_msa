@@ -21,13 +21,12 @@ public class RestTemplateConfig {
 
 	@Bean
 	@LoadBalanced
-	public RestTemplate restTemplate(RestTemplateBuilder builder) {
-		PoolingHttpClientConnectionManager connManager =
-			PoolingHttpClientConnectionManagerBuilder.create().build();
+	public RestTemplate restTemplate() {
+		var connManager = PoolingHttpClientConnectionManagerBuilder.create().build();
 		connManager.setMaxTotal(200);
 		connManager.setDefaultMaxPerRoute(50);
 
-		RequestConfig requestConfig = RequestConfig.custom()
+		var requestConfig = RequestConfig.custom()
 			.setConnectTimeout(Timeout.ofMilliseconds(500))
 			.setResponseTimeout(Timeout.ofMilliseconds(3000))
 			.setConnectionRequestTimeout(Timeout.ofMilliseconds(1000))
@@ -39,12 +38,33 @@ public class RestTemplateConfig {
 			.evictExpiredConnections()
 			.build();
 
-		HttpComponentsClientHttpRequestFactory factory =
-			new HttpComponentsClientHttpRequestFactory(httpClient);
+		var factory = new HttpComponentsClientHttpRequestFactory(httpClient);
 
-		return builder
-			.requestFactory(() -> factory)
-			.setConnectTimeout(Duration.ofMillis(500))
+		// ✅ builder 타임아웃 호출( setConnectTimeout / setReadTimeout ) 금지
+		return new RestTemplate(factory);
+	}
+
+	@Bean(name = "externalRestTemplate")
+	public RestTemplate externalRestTemplate() {
+		var connManager = PoolingHttpClientConnectionManagerBuilder.create().build();
+		connManager.setMaxTotal(200);
+		connManager.setDefaultMaxPerRoute(50);
+
+		var requestConfig = RequestConfig.custom()
+			.setConnectTimeout(Timeout.ofMilliseconds(500))
+			.setResponseTimeout(Timeout.ofMilliseconds(3000))
+			.setConnectionRequestTimeout(Timeout.ofMilliseconds(1000))
 			.build();
+
+		CloseableHttpClient httpClient = HttpClients.custom()
+			.setConnectionManager(connManager)
+			.setDefaultRequestConfig(requestConfig)
+			.evictExpiredConnections()
+			.build();
+
+		var factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+
+
+		return new RestTemplate(factory);
 	}
 }

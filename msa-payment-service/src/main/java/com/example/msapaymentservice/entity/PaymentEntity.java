@@ -33,13 +33,13 @@ public class PaymentEntity {
 	@Column(name = "order_id", nullable = false)
 	private UUID orderId;
 
-	@Column(name = "payment_key", nullable = false, length = 100, unique = true)
+	@Column(name = "payment_key", length = 100, unique = true)
 	private String paymentKey;
 
 	@Column(name = "status", nullable = false, length = 20)
 	private String status;
 
-	@Column(name = "payment_method", nullable = false, length = 20)
+	@Column(name = "payment_method", length = 20)
 	private String paymentMethod;
 
 	@Column(name = "card_company", length = 30)
