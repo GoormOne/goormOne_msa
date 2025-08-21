@@ -62,6 +62,13 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  cloud:
+    discovery:
+      enabled: true
+    aws:
+      discovery:
+        cloud-map:
+          namespace: mas-service
 server:
   port: 8080
 
