@@ -17,6 +17,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+
 management:
   endpoints:
     web:
@@ -29,9 +30,9 @@ jwt:
   secret: ""
   issuer: ""
   access-token:
-    expiration-ms: 900000      # 15?
+    expiration-ms: 900000
   refresh-token:
-    expiration-ms: 1209600000  # 14?
+    expiration-ms: 1209600000
 
 logging:
   level:
