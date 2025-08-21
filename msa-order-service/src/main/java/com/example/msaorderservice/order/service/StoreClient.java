@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.example.common.ApiResponse;
+import com.example.common.dto.ApiResponse;
 import com.example.msaorderservice.order.dto.StoreLookUp;
 
 import lombok.RequiredArgsConstructor;
