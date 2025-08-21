@@ -4,17 +4,16 @@ server:
 spring:
   application:
    name: msa-common-service
-#  datasource:
-#    url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres
-#    driver-class-name: org.postgresql.Driver
-#    username: postgres
-#    password: Goorm1!!
-#  jpa:
-#    hibernate:
-#      ddl-auto: none           # ?? ? update/validate ?
-#    properties:
-#      hibernate:
-#        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  kafka:
+    bootstrap-servers: localhost:29092
+    consumer:
+      group-id: store-consumer
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    # (SASL/SSL 쓰면 여기에 security 설정 추가)
+
 
 management:
   endpoints:

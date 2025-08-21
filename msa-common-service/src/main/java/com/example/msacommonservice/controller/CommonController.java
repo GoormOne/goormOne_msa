@@ -23,7 +23,6 @@ public class CommonController {
         log.info("getCommon");
         String storeId = "56191524-d0af-4e47-a597-63577138e263";
 
-//        Mono<StoreDto> mono= storeClient.getStore();
         ApiResponse<StoreDto> storeDto = storeServiceClient.getStore(storeId);
 
         return storeDto.getData();
