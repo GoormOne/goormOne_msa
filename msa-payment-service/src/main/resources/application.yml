@@ -13,6 +13,10 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+toss:
+  api-url: https://api.tosspayments.com
+  secret-key: test_sk_GePWvyJnrKblk4AJ4qbEVgLzN97E
+  client-key: test_ck_Ba5PzR0Arn9bqEYORBDXVvmYnNeD
 
 ---
 spring:
@@ -43,10 +47,7 @@ order:
   service:
     url: http://msa-order-service
 
-toss:
-  api-url: https://api.tosspayments.com
-  secret-key: test_sk_GePWvyJnrKblk4AJ4qbEVgLzN97E
-  client-key: test_ck_Ba5PzR0Arn9bqEYORBDXVvmYnNeD
+
 
 ---
 spring:
