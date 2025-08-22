@@ -1,10 +1,10 @@
-package com.example.msacommonservice.controller;
+package com.example.commonservice.controller;
 
 
 
 import com.example.common.dto.ApiResponse;
-import com.example.msacommonservice.StoreServiceClient;
-import com.example.msacommonservice.dto.StoreDto;
+import com.example.commonservice.StoreServiceClient;
+import com.example.commonservice.dto.StoreDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;

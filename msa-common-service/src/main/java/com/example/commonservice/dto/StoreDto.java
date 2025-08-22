@@ -1,4 +1,4 @@
-package com.example.msacommonservice.dto;
+package com.example.commonservice.dto;
 
 
 import lombok.AllArgsConstructor;

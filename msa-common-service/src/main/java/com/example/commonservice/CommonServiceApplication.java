@@ -1,4 +1,4 @@
-package com.example.msacommonservice;
+package com.example.commonservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,10 +8,10 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableFeignClients
-public class MsaCommonServiceApplication {
+public class CommonServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(MsaCommonServiceApplication.class, args);
+        SpringApplication.run(CommonServiceApplication.class, args);
     }
 
 }

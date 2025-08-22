@@ -1,10 +1,10 @@
-package com.example.msacommonservice;
+package com.example.commonservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MsaCommonServiceApplicationTests {
+class CommonServiceApplicationTests {
 
     @Test
     void contextLoads() {
