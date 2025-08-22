@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class StoreClient {
 	private final RestTemplate restTemplate;
 	@Value("${store.service.url}")
-	private static String STORE_BASE;
+	private String STORE_BASE;
 
 	public StoreLookUp getStoreDetail(UUID storeId) {
 		String url = STORE_BASE + "/stores/{storeId}";

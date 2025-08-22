@@ -26,7 +26,7 @@ public class MenuClient {
 	private final RestTemplate restTemplate;
 
 	@Value("${store.service.url}")
-	private static  String STORE_BASE;
+	private  String STORE_BASE;
 
 	public MenuLookUp getMenuDetail(UUID storeId, UUID menuId) {
 		String url = STORE_BASE + "/stores/{storeId}/menu/{menuId}";

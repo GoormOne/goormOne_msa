@@ -25,7 +25,7 @@ public class OrderClient {
 	}
 
 	@Value("${order.service.url}")
-	private static String STORE_BASE;
+	private String STORE_BASE;
 
 	public OrderCheckoutView getCheckout(UUID orderId, UUID customerId) {
 		String url = STORE_BASE + "/internal/orders/" + orderId + "/checkout";
