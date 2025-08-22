@@ -2,6 +2,22 @@ spring:
   application:
     name: msa-payment-service
 
+  profiles:
+    active: local
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env # 디버깅을 위해 env 추가
+  endpoint:
+    health:
+      show-details: when_authorized
+toss:
+  api-url: https://api.tosspayments.com
+  secret-key: test_sk_GePWvyJnrKblk4AJ4qbEVgLzN97E
+  client-key: test_ck_Ba5PzR0Arn9bqEYORBDXVvmYnNeD
+
 ---
 spring:
   config:
@@ -18,23 +34,20 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  server:
-    port: 8086
-  eureka:
-    client:
-      register-with-eureka: true
-      fetch-registry: true
-      service-url:
-        defaultZone: http://localhost:8761/eureka/
+server:
+  port: 8086
+eureka:
+   client:
+     register-with-eureka: true
+     fetch-registry: true
+     service-url:
+       defaultZone: http://localhost:8761/eureka/
 
 order:
   service:
     url: http://msa-order-service
 
-toss:
-  api-url: https://api.tosspayments.com
-  secret-key: test_sk_GePWvyJnrKblk4AJ4qbEVgLzN97E
-  client-key: test_ck_Ba5PzR0Arn9bqEYORBDXVvmYnNeD
+
 
 ---
 spring:
@@ -52,11 +65,18 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  server:
-    port: 8080
-  eureka:
-    client:
-      enabled: false
+  cloud:
+    loadbalancer:
+        enabled: false
+
+server:
+  port: 8080
+eureka:
+   client:
+     enabled: false
+
+
+
 
 order:
   service:
