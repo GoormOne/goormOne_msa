@@ -1,50 +1,49 @@
 package com.example.common.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
-@MappedSuperclass
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
+@MappedSuperclass
 public abstract class AuditBaseEntity {
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "created_at", nullable = false)
+    private OffsetDateTime createdAt;
 
-    @Column(name = "created_by", nullable = false, updatable = false)
+    @Column(name = "created_by", nullable = false, columnDefinition = "uuid")
     private UUID createdBy;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
 
-    @Column(name = "updated_by")
+    @Column(name = "updated_by", columnDefinition = "uuid")
     private UUID updatedBy;
 
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "updated_by_type")
-//    private Role updatedByType;
-
     @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    private OffsetDateTime deletedAt;
 
-    @Column(name = "deleted_by")
+    @Column(name = "deleted_by", columnDefinition = "uuid")
     private UUID deletedBy;
-
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "deleted_by_type")
-//    private Role deletedByType;
 
     @Column(name = "deleted_rs")
     private String deletedRs;
 
     @PrePersist
-    public void prePersist() { if (createdAt == null) createdAt = LocalDateTime.now();}
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = OffsetDateTime.now(ZoneOffset.UTC);
+        }
+    }
 }
