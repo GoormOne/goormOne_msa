@@ -43,9 +43,9 @@ eureka:
      service-url:
        defaultZone: http://localhost:8761/eureka/
 
-#order:
-#  service:
-#    url: http://msa-order-service
+order:
+  service:
+    url: http://msa-order-service
 
 
 ---
@@ -75,6 +75,6 @@ eureka:
    client:
      enabled: false
 
-#order:
-#  service:
-#    url: http://msa-order-service:8080 # 클라우드 orderservice url
+order:
+  service:
+    url: http://msa-order-service:8080 # 클라우드 orderservice url

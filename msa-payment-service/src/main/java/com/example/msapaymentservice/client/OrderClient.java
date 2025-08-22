@@ -24,7 +24,8 @@ public class OrderClient {
 		this.restTemplate = restTemplate;
 	}
 
-	private static final String STORE_BASE = "http://msa-order-service";
+	@Value("${order.service.url}")
+	private static String STORE_BASE;
 
 	public OrderCheckoutView getCheckout(UUID orderId, UUID customerId) {
 		String url = STORE_BASE + "/internal/orders/" + orderId + "/checkout";

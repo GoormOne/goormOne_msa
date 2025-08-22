@@ -15,6 +15,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+store:
+  service:
+    url: http://msa-store-service
 
 
 
@@ -46,14 +49,13 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
+
 logging:
   level:
     org.springframework.cloud.loadbalancer: DEBUG
     org.springframework.cloud.gateway.server.mvc: DEBUG
 
-#store:
-#  service:
-#    url: http://msa-store-service
+
 
 
 ---
@@ -76,6 +78,9 @@ spring:
   cloud:
     loadbalancer:
       enabled: false
+store:
+  service:
+    url: http://msa-store-service:8080
 
 
 server:
@@ -85,7 +90,4 @@ server:
 eureka:
   client:
     enabled: false
-#
-#store:
-#  service:
-#    url: http://msa-store-service:8080
+
