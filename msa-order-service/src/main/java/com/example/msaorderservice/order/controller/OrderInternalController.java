@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.common.dto.OrderCheckoutView;
 import com.example.common.dto.PaymentStatusUpdatedReq;
 import com.example.common.entity.PaymentStatus;
+import com.example.msaorderservice.cart.service.CartService;
 import com.example.msaorderservice.order.entity.OrderEntity;
 import com.example.msaorderservice.order.entity.OrderItemEntity;
 
@@ -36,6 +37,7 @@ public class OrderInternalController {
 	private final OrderItemRepository orderItemRepository;
 	private final OrderAuditRepository orderAuditRepository;
 	private final StoreClient storeClient;
+	private final CartService cartService;
 
 	@GetMapping("/{orderId}/checkout")
 	public OrderCheckoutView getOrderForCheckout(@PathVariable UUID orderId,
@@ -96,6 +98,10 @@ public class OrderInternalController {
 			.orElseThrow(() -> new IllegalStateException("주문 감사 레코드를 찾을 수 없습니다."));
 		audit.setUpdatedAt(OffsetDateTime.now());
 		audit.setUpdatedBy(customerId);
+
+		if (curr == PaymentStatus.PENDING && next == PaymentStatus.PAID) {
+				cartService.deleteCart(customerId);
+		}
 
 		return ResponseEntity.noContent().build();
 	}
