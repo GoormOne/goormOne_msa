@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.*;
@@ -52,6 +54,9 @@ public class Menu {
 
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
+
+    @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY)
+    private List<Review> reviews = new ArrayList<>();
 
 
     public Menu(UUID menuId) {

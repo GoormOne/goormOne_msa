@@ -12,20 +12,30 @@ spring:
 #    password: password
     username: postgres
     password: Goorm1!!
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 2
+      idle-timeout: 300000        # 5m
+      max-lifetime: 1500000       # 25m
+      keepalive-time: 1200000     # 20m
+      connection-timeout: 30000
+      validation-timeout: 3000
+      auto-commit: false
+
   data:
     mongodb:
-      host: mongodb+srv://ksm3255:!4786buch@team1mongodb.oh0o0np.mongodb.net/?retryWrites=true&w=majority&appName=Team1Mongodb
-      port: 27017
+      uri: mongodb+srv://ksm3255:!4786buch@team1mongodb.oh0o0np.mongodb.net/?retryWrites=true&w=majority&appName=Team1Mongodb
+#      port: 27017
       database: ai_service_db
-      username: ksm3255
-      password: !478buch
 
   jpa:
     hibernate:
-      ddl-auto: none           # ?? ? update/validate ?
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
   cloud:
     aws:
       credentials:

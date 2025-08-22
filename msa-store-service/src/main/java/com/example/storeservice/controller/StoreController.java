@@ -3,11 +3,14 @@ package com.example.storeservice.controller;
 
 import com.example.common.dto.ApiResponse;
 import com.example.common.exception.CommonCode;
+import com.example.storeservice.dto.AiFlatRow;
 import com.example.storeservice.dto.StoreDto;
 import com.example.storeservice.dto.StoreRegisterDto;
+import com.example.storeservice.entity.AiDocumentEntity;
 import com.example.storeservice.entity.StoreAudit;
 import com.example.storeservice.exception.StoreAlreadyDeletedException;
 import com.example.storeservice.interceptor.RequireStoreOwner;
+import com.example.storeservice.repository.StoreBatchQueryRepository;
 import com.example.storeservice.service.OutboxService;
 import com.example.storeservice.service.StoreAuditService;
 import com.example.storeservice.service.StoreService;
@@ -15,10 +18,14 @@ import com.example.storeservice.entity.Store;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 import java.util.UUID;
 
 /*
@@ -37,8 +44,19 @@ import java.util.UUID;
 @Slf4j
 public class StoreController {
     private final StoreService storeService;
-    private final StoreAuditService storeAuditService;
+    private final StoreBatchQueryRepository storeBatchQueryRepository;
 
+    @GetMapping("/test")
+    public ResponseEntity<ApiResponse> test() {
+
+        Pageable pageable = PageRequest.of(0, 100);
+        Page<UUID> idPage = storeService.findAllStoreIds(pageable);
+        List<UUID> storeIds = idPage.getContent();
+        List<AiFlatRow> aiFlatRowPage = storeBatchQueryRepository.findFlatRows(storeIds);
+        List<AiDocumentEntity> aiDocumentEntities = storeService.toDocuments(aiFlatRowPage);
+
+        return ResponseEntity.ok(ApiResponse.success(aiDocumentEntities));
+    }
 
     // todo - 스토어 상세조회  : 메뉴카테고리, 메뉴, 리전, 오너까지 반환 추가
     @GetMapping("/{storeId}")
