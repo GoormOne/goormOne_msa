@@ -62,19 +62,19 @@ import com.example.common.dto.OrderCheckoutView;
 public class OrderClient {
 
 	private final RestTemplate restTemplate;
-	//private final String storeBase;
+	private final String storeBase;
 
 	public OrderClient(@Qualifier("restTemplate") RestTemplate restTemplate,
 					   @Value("${order.service.url}") String storeBase) {
 		this.restTemplate = restTemplate;
-		//this.storeBase = storeBase;
+		this.storeBase = storeBase;
 	}
-	private static final String STORE_BASE = "http://msa-order-service:8080";
+
 
 
 
 	public OrderCheckoutView getCheckout(UUID orderId, UUID customerId) {
-		String url = STORE_BASE + "/internal/orders/" + orderId + "/checkout";
+		String url = storeBase+ "/internal/orders/" + orderId + "/checkout";
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("X-User-Id", customerId.toString());
@@ -93,7 +93,7 @@ public class OrderClient {
 	}
 
 	public void updateOrderStatus(UUID orderId, UUID customerId, PaymentStatus status, String reason) {
-		String url = STORE_BASE + "/internal/orders/" + orderId + "/status";
+		String url = storeBase + "/internal/orders/" + orderId + "/status";
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("X-User-Id", customerId.toString());
