@@ -37,7 +37,7 @@
       "systemControls": []
     }
   ],
-  "family": "store-service-td",
+  "family": "payment-service-td",
   "taskRoleArn": "arn:aws:iam::490913547024:role/ecs-task-role-store-service",
   "executionRoleArn": "arn:aws:iam::490913547024:role/ecsTaskExecutionRole",
   "networkMode": "awsvpc",
