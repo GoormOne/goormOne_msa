@@ -16,10 +16,6 @@ import java.util.UUID;
 public class StoreAuditService {
     private final StoreAuditRepository storeAuditRepository;
 
-    public UUID insertAudit(UUID createdBy) {
-        return storeAuditRepository.insertAuditReturningId(createdBy);
-    }
-
     public StoreAudit insertStoreAudit(StoreAudit storeAudit) {
         return storeAuditRepository.save(storeAudit);
     }

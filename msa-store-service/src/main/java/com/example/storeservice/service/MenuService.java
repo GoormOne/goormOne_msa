@@ -32,6 +32,13 @@ public class MenuService {
     }
 
     @Transactional
+    public Menu deleteMenu(UUID menuId, UUID storeId){
+        Menu menu =  getMenu(menuId, storeId);
+        menu.setIsDeleted(true);
+        return menu;
+    }
+
+    @Transactional
     public MenuDto updateMenu(UUID menuId, MenuDto dto){
         Menu menu = menuRepository.findByMenuIdAndIsDeletedFalse(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("menu not found: " + menuId));
@@ -43,11 +50,6 @@ public class MenuService {
         if (dto.getIsPublicPhoto() != null) menu.setIsPublicPhoto(dto.getIsPublicPhoto());
         if (dto.getMenuPhotoUrl() != null) menu.setMenuPhotoUrl(dto.getMenuPhotoUrl());
 
-        //todo -- 카테고리 ID 검증 후에 변경 포토 변경 로직 추가
-//        if (dto.getMenuCategoryId() != null) {
-//            var categoryRef = menuCategoryRepository.getReferenceById(dto.getMenuCategoryId());
-//            menu.changeCategory(categoryRef);
-//        }
 
         return MenuDto.from(menu);
     }
@@ -58,19 +60,7 @@ public class MenuService {
         return menuList;
     }
 
-    public Menu getMenuList(UUID storeId, UUID menuId) {
-        Menu menu = menuRepository.findByMenuIdAndIsDeletedFalse(menuId)
-                .orElseThrow(() -> new EntityNotFoundException("메뉴를 찾을 수 없습니다."));
 
-        if (!menu.getStore().getStoreId().equals(storeId)) {
-            try {
-                throw new AccessDeniedException("메뉴가 상점 정보가 일치하지 않습니다.");
-            } catch (AccessDeniedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return menu;
-    }
 
     public Menu insertMenu(Menu menu) {
         return menuRepository.save(menu);

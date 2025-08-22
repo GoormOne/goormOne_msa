@@ -72,7 +72,6 @@ public class MenuCategoryController {
         //store audit 등록
         StoreAudit audit = storeAuditService.insertStoreAudit(new StoreAudit( ownerUUID,pk));
 
-        log.info("audit info : {}", audit.getAuditId().toString() + audit.getCreatedBy().toString());
         mCategoryDto.setMenuCategoryId(pk);
 
 
@@ -83,7 +82,7 @@ public class MenuCategoryController {
     @RequireStoreOwner
     public ResponseEntity<?> deleteMenuCategory(
             @PathVariable("menuCategoryId") UUID menuCategoryId,
-            @PathVariable("menuCategoryId") UUID storeId) {
+            @PathVariable("storeId") UUID storeId) {
         // todo - 요청자 ownerId 파싱
         String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";
         UUID ownerUUID = UUID.fromString(ownerId);
@@ -98,15 +97,17 @@ public class MenuCategoryController {
         return ResponseEntity.ok(ApiResponse.success());
     }
 
-    @PutMapping("/")
+    //path파라미터는 안전한 타입인 영문,숫자를 추천 -> 한글 입력값은 쿼리 파라미 추천
+    @PutMapping("/{menuCategoryId}/name")
     @RequireStoreOwner
     public ResponseEntity<?> updateMenuCategory(
-            @Valid @RequestBody MenuCategoryDto mCategoryDto
+            @PathVariable("menuCategoryId") UUID menuCategoryId,
+            @PathVariable("storeId") UUID storeId,
+            @RequestParam("value") String name
     ){
+        MenuCategory menuCategory = menuCategoryService.updateMenuCategory(menuCategoryId, storeId, name);
 
-        //todo -- 카테고리 이름 변경
-
-        return ResponseEntity.ok(ApiResponse.success());
+        return ResponseEntity.ok(ApiResponse.success(new MenuCategoryDto(menuCategory)));
     }
 
 }
