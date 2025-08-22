@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:ap-northeast-2:490913547024:task-definition/store-service-td:27",
+    "taskDefinitionArn": "arn:aws:ecs:ap-northeast-2:490913547024:task-definition/store-service-td:30",
     "containerDefinitions": [
         {
             "name": "msa-store-service",
@@ -45,7 +45,7 @@
                 "logDriver": "awsfirelens",
                 "options": {
                     "config-file-type": "file",
-                    "config-file-value": "Labels job=store-service, cluster=${ECS_CLUSTER_NAME}, service=${ECS_SERVICE_NAME}"
+                    "config-file-value": "Labels job=firelens, cluster=${ECS_CLUSTER_NAME}, service=${ECS_SERVICE_NAME}"
                 },
                 "secretOptions": []
             },
@@ -59,7 +59,7 @@
     "taskRoleArn": "arn:aws:iam::490913547024:role/ecs-task-role-store-service",
     "executionRoleArn": "arn:aws:iam::490913547024:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 27,
+    "revision": 30,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -108,7 +108,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2025-08-22T05:12:45.932Z",
+    "registeredAt": "2025-08-22T05:49:57.022Z",
     "registeredBy": "arn:aws:iam::490913547024:user/user1",
     "tags": []
 }
