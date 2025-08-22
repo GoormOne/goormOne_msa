@@ -51,6 +51,10 @@ logging:
     org.springframework.cloud.loadbalancer: DEBUG
     org.springframework.cloud.gateway.server.mvc: DEBUG
 
+#store:
+#  service:
+#    url: http://msa-store-service
+
 
 ---
 spring:
@@ -69,6 +73,10 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  cloud:
+    loadbalancer:
+      enabled: false
+
 
 server:
   port: 8080
@@ -77,3 +85,7 @@ server:
 eureka:
   client:
     enabled: false
+#
+#store:
+#  service:
+#    url: http://msa-store-service:8080
