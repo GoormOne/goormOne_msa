@@ -1,21 +1,20 @@
-# 워크플로우 이름
 name: CI/CD for Store Service
 
-# 워크플로우 실행 조건
+
 on:
   push:
     branches: [ "release/1.0.0" ]
     paths:
-      - 'msa-store-service/**' # store-service 폴더 변경만 감지하도록 수정
+      - 'msa-store-service/**'
 
-# 워크플로우 전체에서 사용할 환경 변수
+
 env:
   AWS_REGION: ap-northeast-2
   SERVICE_DIR: msa-store-service
-  ECR_REPOSITORY: store-service         # ECR 리포지토리 및 ECS 서비스 이름
-  CONTAINER_NAME: msa-store-service     # Task Definition 안의 컨테이너 이름
+  ECR_REPOSITORY: store-service
+  CONTAINER_NAME: msa-store-service
 
-# GitHub Actions Runner에 부여할 권한
+
 permissions:
   id-token: write
   contents: read

@@ -3,6 +3,7 @@ package com.example.msapaymentservice.client;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpHeaders;
@@ -14,19 +15,63 @@ import com.example.common.dto.PaymentStatusUpdatedReq;
 import com.example.common.entity.PaymentStatus;
 import com.example.common.dto.OrderCheckoutView;
 
-
+//
+//@Component
+//public class OrderClient {
+//
+//	private final @Qualifier("restTemplate") RestTemplate restTemplate;
+//	public OrderClient(@Qualifier("restTemplate") RestTemplate restTemplate) {
+//		this.restTemplate = restTemplate;
+//	}
+//
+//	private static final String STORE_BASE = "http://msa-order-service";
+//
+//	public OrderCheckoutView getCheckout(UUID orderId, UUID customerId) {
+//		String url = STORE_BASE + "/internal/orders/" + orderId + "/checkout";
+//
+//		HttpHeaders headers = new HttpHeaders();
+//		headers.set("X-User-Id", customerId.toString());
+//		HttpEntity<Void> entity = new HttpEntity<>(headers);
+//
+//		var resp = restTemplate.exchange(url, HttpMethod.GET, entity, OrderCheckoutView.class);
+//		if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
+//			throw new IllegalStateException("checkout 조회 실패: " + resp.getStatusCode());
+//		}
+//
+//		return resp.getBody();
+//	}
+//
+//	public void updateOrderStatus(UUID orderId, UUID customerId, PaymentStatus status) {
+//		updateOrderStatus(orderId, customerId, status, null);
+//	}
+//
+//	public void updateOrderStatus(UUID orderId, UUID customerId, PaymentStatus status, String reason) {
+//		String url = STORE_BASE + "/internal/orders/" + orderId + "/status";
+//
+//		HttpHeaders headers = new HttpHeaders();
+//		headers.set("X-User-Id", customerId.toString());
+//		headers.setContentType(MediaType.APPLICATION_JSON);
+//
+//		PaymentStatusUpdatedReq req = new PaymentStatusUpdatedReq(status, reason);
+//		HttpEntity<PaymentStatusUpdatedReq> entity = new HttpEntity<>(req, headers);
+//
+//		restTemplate.exchange(url, HttpMethod.PATCH, entity, Void.class);
+//	}
+//}
 @Component
 public class OrderClient {
 
-	private final @Qualifier("restTemplate") RestTemplate restTemplate;
-	public OrderClient(@Qualifier("restTemplate") RestTemplate restTemplate) {
+	private final RestTemplate restTemplate;
+	private final String storeBase;
+
+	public OrderClient(@Qualifier("restTemplate") RestTemplate restTemplate,
+					   @Value("${order.service.url}") String storeBase) {
 		this.restTemplate = restTemplate;
+		this.storeBase = storeBase;
 	}
 
-	private static final String STORE_BASE = "http://msa-order-service";
-
 	public OrderCheckoutView getCheckout(UUID orderId, UUID customerId) {
-		String url = STORE_BASE + "/internal/orders/" + orderId + "/checkout";
+		String url = storeBase + "/internal/orders/" + orderId + "/checkout";
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("X-User-Id", customerId.toString());
@@ -45,7 +90,7 @@ public class OrderClient {
 	}
 
 	public void updateOrderStatus(UUID orderId, UUID customerId, PaymentStatus status, String reason) {
-		String url = STORE_BASE + "/internal/orders/" + orderId + "/status";
+		String url = storeBase + "/internal/orders/" + orderId + "/status";
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("X-User-Id", customerId.toString());

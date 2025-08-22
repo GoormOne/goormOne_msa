@@ -1,14 +1,14 @@
-# 워크플로우 이름
+
 name: CI/CD for User Service
 
-# 워크플로우 실행 조건
+
 on:
   push:
     branches: [ "release/1.0.0" ]
     paths:
       - 'msa-user-service/**'
 
-# 워크플로우 전체에서 사용할 환경 변수
+
 env:
   AWS_REGION: ap-northeast-2
   SERVICE_DIR: msa-user-service
