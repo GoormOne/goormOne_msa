@@ -16,7 +16,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TossConfirmRes {
+public class TossPaymentRes {
 	private String status;
 	private String method;
 	private String currency;

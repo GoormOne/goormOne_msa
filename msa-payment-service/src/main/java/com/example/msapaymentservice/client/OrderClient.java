@@ -48,7 +48,13 @@ public class OrderClient {
 		String url = STORE_BASE + "/internal/orders/" + orderId + "/status";
 
 		HttpHeaders headers = new HttpHeaders();
-		headers.set("X-User-Id", customerId.toString());
+
+		if (customerId != null) {
+			headers.set("X-User-Id", customerId.toString());
+		}else {
+			headers.set("X-Internal-Call", "msa-payment-service");
+		}
+
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		PaymentStatusUpdatedReq req = new PaymentStatusUpdatedReq(status, reason);

@@ -40,7 +40,6 @@ public class RestTemplateConfig {
 
 		var factory = new HttpComponentsClientHttpRequestFactory(httpClient);
 
-		// ✅ builder 타임아웃 호출( setConnectTimeout / setReadTimeout ) 금지
 		return new RestTemplate(factory);
 	}
 

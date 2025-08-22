@@ -3,6 +3,7 @@ package com.example.msapaymentservice.service;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,7 +11,7 @@ import com.example.common.dto.OrderCheckoutView;
 import com.example.common.entity.PaymentStatus;
 import com.example.msapaymentservice.client.OrderClient;
 import com.example.msapaymentservice.client.TossPaymentClient;
-import com.example.msapaymentservice.dto.TossConfirmRes;
+import com.example.msapaymentservice.dto.TossPaymentRes;
 import com.example.msapaymentservice.entity.PaymentEntity;
 import com.example.msapaymentservice.repository.PaymentRepository;
 
@@ -28,6 +29,31 @@ public class PaymentServiceImpl implements PaymentService {
 	@Transactional(readOnly = true)
 	public OrderCheckoutView getCheckout(UUID customerId, UUID orderId) {
 		return orderClient.getCheckout(orderId, customerId);
+	}
+
+	@Override
+	@Transactional
+	public ResponseEntity<String> cancelPayment(UUID customerId, String paymentKey, String cancelReason) {
+
+		PaymentEntity payment = paymentRepository.findByPaymentKey(paymentKey);
+
+
+		if ("REFUNDED".equalsIgnoreCase(payment.getStatus())) {
+			orderClient.updateOrderStatus(payment.getOrderId(), null, PaymentStatus.REFUNDED);
+			return ResponseEntity.ok("{\"message\":\"already canceled\"}");
+		}
+
+
+		String tossRaw = tossPaymentClient.cancelPayment(customerId, paymentKey, cancelReason);
+
+
+		payment.setStatus("REFUNDED");
+		paymentRepository.save(payment);
+
+		orderClient.updateOrderStatus(payment.getOrderId(), customerId, PaymentStatus.REFUNDED);
+
+
+		return ResponseEntity.ok(tossRaw);
 	}
 
 
@@ -54,7 +80,7 @@ public class PaymentServiceImpl implements PaymentService {
 			return;
 		}
 
-		TossConfirmRes confirm = tossPaymentClient.confirmPayment(paymentKey, orderId, amount);
+		TossPaymentRes confirm = tossPaymentClient.confirmPayment(paymentKey, orderId, amount);
 
 		PaymentEntity ok = PaymentEntity.builder()
 			.orderId(orderId)
