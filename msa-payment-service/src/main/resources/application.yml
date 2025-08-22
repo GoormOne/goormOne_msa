@@ -1,6 +1,9 @@
 spring:
   application:
     name: msa-payment-service
+
+  profiles:
+    active: local
   datasource:
     url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres
     driver-class-name: org.postgresql.Driver
@@ -13,6 +16,9 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+order:
+  service:
+    url: http://msa-order-service
 
 management:
   endpoints:
