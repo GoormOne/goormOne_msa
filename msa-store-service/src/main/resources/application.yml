@@ -12,6 +12,14 @@ spring:
 #    password: password
     username: postgres
     password: Goorm1!!
+  data:
+    mongodb:
+      host: mongodb+srv://ksm3255:!4786buch@team1mongodb.oh0o0np.mongodb.net/?retryWrites=true&w=majority&appName=Team1Mongodb
+      port: 27017
+      database: ai_service_db
+      username: ksm3255
+      password: !478buch
+
   jpa:
     hibernate:
       ddl-auto: none           # ?? ? update/validate ?
