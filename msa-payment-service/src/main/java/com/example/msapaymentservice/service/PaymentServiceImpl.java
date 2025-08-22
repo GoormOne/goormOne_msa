@@ -12,7 +12,9 @@ import com.example.common.entity.PaymentStatus;
 import com.example.msapaymentservice.client.OrderClient;
 import com.example.msapaymentservice.client.TossPaymentClient;
 import com.example.msapaymentservice.dto.TossPaymentRes;
+import com.example.msapaymentservice.entity.PaymentAuditEntity;
 import com.example.msapaymentservice.entity.PaymentEntity;
+import com.example.msapaymentservice.repository.PaymentAuditRepository;
 import com.example.msapaymentservice.repository.PaymentRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class PaymentServiceImpl implements PaymentService {
 	private final OrderClient orderClient;
 	private final PaymentRepository paymentRepository;
 	private final TossPaymentClient tossPaymentClient;
+	private final PaymentAuditRepository paymentAuditRepository;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -49,6 +52,12 @@ public class PaymentServiceImpl implements PaymentService {
 
 		payment.setStatus("REFUNDED");
 		paymentRepository.save(payment);
+
+		paymentAuditRepository.findById(payment.getPaymentId())
+				.ifPresentOrElse(audit ->{
+					audit.setUpdatedAt(OffsetDateTime.now());
+					audit.setUpdatedBy(customerId);
+				}, () -> {});
 
 		orderClient.updateOrderStatus(payment.getOrderId(), customerId, PaymentStatus.REFUNDED);
 
@@ -105,6 +114,13 @@ public class PaymentServiceImpl implements PaymentService {
 			.build();
 		paymentRepository.save(ok);
 
+		PaymentAuditEntity audit = PaymentAuditEntity.builder()
+			.payment(ok)
+			.createdAt(OffsetDateTime.now())
+			.createdBy(customerId)
+			.build();
+		paymentAuditRepository.save(audit);
+
 		orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.PAID);
 	}
 
@@ -121,6 +137,13 @@ public class PaymentServiceImpl implements PaymentService {
 			.requestedAt(OffsetDateTime.now())
 			.build();
 		paymentRepository.save(fail);
+
+		PaymentAuditEntity audit = PaymentAuditEntity.builder()
+			.payment(fail)
+			.createdAt(OffsetDateTime.now())
+			.createdBy(customerId)
+			.build();
+		paymentAuditRepository.save(audit);
 
 		orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.FAILED);
 	}
