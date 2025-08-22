@@ -42,16 +42,20 @@
             "volumesFrom": [],
             "user": "0",
             "logConfiguration": {
-                "logDriver": "awsfirelens",
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/firelens-log-router",
+                    "awslogs-region": "ap-northeast-2",
+                    "awslogs-create-group": "true",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "firelensConfiguration": {
+                "type": "fluentbit",
                 "options": {
                     "config-file-type": "file",
-                    "config-file-value": "Labels job=firelens, cluster=${ECS_CLUSTER_NAME}, service=${ECS_SERVICE_NAME}"
-                },
-                "secretOptions": []
-            },
-            "systemControls": [],
-            "firelensConfiguration": {
-                "type": "fluentbit"
+                    "config-file-value": "[OUTPUT]\n    Name loki\n    Match *\n    Host loki-service.msa-service\n    Port 3100\n    URI /loki/api/v1/push\n    Labels job=firelens, cluster=${ECS_CLUSTER_NAME}, service=${ECS_SERVICE_NAME}\n"
+                }
             }
         }
     ],
