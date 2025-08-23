@@ -78,3 +78,10 @@ eureka:
 order:
   service:
     url: http://msa-order-service:8080 # 클라우드 orderservice url
+
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO

@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:ap-northeast-2:490913547024:task-definition/store-service-td:30",
+    "taskDefinitionArn": "arn:aws:ecs:ap-northeast-2:490913547024:task-definition/store-service-td:37",
     "containerDefinitions": [
         {
             "name": "msa-store-service",
@@ -25,8 +25,12 @@
             "volumesFrom": [],
             "logConfiguration": {
                 "logDriver": "awsfirelens",
-                "options": {},
-                "secretOptions": []
+                "options": {
+                    "Host": "loki-service.msa-service",
+                    "Labels": "job=store-service, cluster=DevCluster, service=store-service",
+                    "Name": "loki",
+                    "Port": "3100"
+                }
             },
             "systemControls": []
         },
@@ -45,16 +49,16 @@
                 "logDriver": "awslogs",
                 "options": {
                     "awslogs-group": "/ecs/firelens-log-router",
-                    "awslogs-region": "ap-northeast-2",
                     "awslogs-create-group": "true",
+                    "awslogs-region": "ap-northeast-2",
                     "awslogs-stream-prefix": "ecs"
                 }
             },
+            "systemControls": [],
             "firelensConfiguration": {
                 "type": "fluentbit",
                 "options": {
-                    "config-file-type": "file",
-                    "config-file-value": "[OUTPUT]\n    Name loki\n    Match *\n    Host loki-service.msa-service\n    Port 3100\n    URI /loki/api/v1/push\n    Labels job=firelens, cluster=${ECS_CLUSTER_NAME}, service=${ECS_SERVICE_NAME}\n"
+                    "enable-ecs-log-metadata": "true"
                 }
             }
         }
@@ -63,18 +67,15 @@
     "taskRoleArn": "arn:aws:iam::490913547024:role/ecs-task-role-store-service",
     "executionRoleArn": "arn:aws:iam::490913547024:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 30,
+    "revision": 37,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
         {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
             "name": "com.amazonaws.ecs.capability.ecr-auth"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
-        },
-        {
-            "name": "ecs.capability.firelens.fluentbit"
         },
         {
             "name": "com.amazonaws.ecs.capability.docker-remote-api.1.17"
@@ -96,6 +97,18 @@
         },
         {
             "name": "ecs.capability.task-eni"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "ecs.capability.firelens.fluentbit"
         }
     ],
     "placementConstraints": [],
@@ -112,7 +125,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2025-08-22T05:49:57.022Z",
+    "registeredAt": "2025-08-22T06:41:09.281Z",
     "registeredBy": "arn:aws:iam::490913547024:user/user1",
     "tags": []
 }

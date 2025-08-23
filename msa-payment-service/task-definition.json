@@ -1,13 +1,11 @@
-
 {
-  "taskDefinitionArn": "arn:aws:ecs:ap-northeast-2:490913547024:task-definition/payment-service-td:1",
+  "taskDefinitionArn": "arn:aws:ecs:ap-northeast-2:490913547024:task-definition/payment-service-td:19",
   "containerDefinitions": [
     {
       "name": "msa-payment-service",
       "image": "<IMAGE1_NAME>",
       "cpu": 0,
       "portMappings": [
-
         {
           "name": "port-8080",
           "containerPort": 8080,
@@ -26,28 +24,53 @@
       "mountPoints": [],
       "volumesFrom": [],
       "logConfiguration": {
+        "logDriver": "awsfirelens",
+        "options": {
+          "Host": "loki-service.msa-service",
+          "Labels": "job=payment-service, cluster=DevCluster, service=payment-service",
+          "Name": "loki",
+          "Port": "3100"
+        }
+      },
+      "systemControls": []
+    },
+    {
+      "name": "log_router",
+      "image": "public.ecr.aws/aws-observability/aws-for-fluent-bit:stable",
+      "cpu": 0,
+      "memoryReservation": 51,
+      "portMappings": [],
+      "essential": false,
+      "environment": [],
+      "mountPoints": [],
+      "volumesFrom": [],
+      "user": "0",
+      "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/payment-service-td",
+          "awslogs-group": "/ecs/firelens-log-router",
           "awslogs-create-group": "true",
           "awslogs-region": "ap-northeast-2",
           "awslogs-stream-prefix": "ecs"
         }
       },
-      "systemControls": []
+      "systemControls": [],
+      "firelensConfiguration": {
+        "type": "fluentbit",
+        "options": {
+          "enable-ecs-log-metadata": "true"
+        }
+      }
     }
   ],
   "family": "payment-service-td",
   "taskRoleArn": "arn:aws:iam::490913547024:role/ecs-task-role-store-service",
   "executionRoleArn": "arn:aws:iam::490913547024:role/ecsTaskExecutionRole",
   "networkMode": "awsvpc",
-  "revision": 1,
+  "revision": 19,
   "volumes": [],
   "status": "ACTIVE",
   "requiresAttributes": [
-    {
-      "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
-    },
     {
       "name": "ecs.capability.execution-role-awslogs"
     },
@@ -55,7 +78,13 @@
       "name": "com.amazonaws.ecs.capability.ecr-auth"
     },
     {
-      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.17"
+    },
+    {
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
+    },
+    {
+      "name": "com.amazonaws.ecs.capability.logging-driver.awsfirelens"
     },
     {
       "name": "com.amazonaws.ecs.capability.task-iam-role"
@@ -71,6 +100,15 @@
     },
     {
       "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+    },
+    {
+      "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+    },
+    {
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+    },
+    {
+      "name": "ecs.capability.firelens.fluentbit"
     }
   ],
   "placementConstraints": [],
@@ -87,7 +125,7 @@
     "cpuArchitecture": "X86_64",
     "operatingSystemFamily": "LINUX"
   },
-  "registeredAt": "2025-08-19T09:31:36.069Z",
-  "registeredBy": "arn:aws:sts::490913547024:assumed-role/gitactionToECR/GitHubActions",
+  "registeredAt": "2025-08-23T08:40:29.234Z",
+  "registeredBy": "arn:aws:iam::490913547024:user/user1",
   "tags": []
 }
