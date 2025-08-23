@@ -53,11 +53,13 @@ spring:
   config:
     activate:
       on-profile: dev
+    import: ["aws-secretsmanager:dev"]
+
   datasource:
-    url: jdbc:postgresql://postgres.cpug0kggoegu.ap-northeast-2.rds.amazonaws.com/postgres
+    url: jdbc:postgresql://${db_host}:5432/postgres # DB 주소도 변수로 관리
     driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: Goorm1!!
+    username: ${db_username}
+    password: ${db_password}
   jpa:
     hibernate:
       ddl-auto: none
