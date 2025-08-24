@@ -180,6 +180,10 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
+	@Cacheable(
+			value = "myOrderDetail",
+			key = "#customerId + '_' + #orderId"
+	)
 	@Transactional(readOnly = true)
 	public CustomerOrderDetailRes getMyOrderDetail(UUID customerId, UUID orderId) {
 		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)
