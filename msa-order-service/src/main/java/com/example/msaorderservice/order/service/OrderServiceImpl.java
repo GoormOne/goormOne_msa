@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,7 @@ import com.example.msaorderservice.cart.service.MenuClient;
 
 import lombok.RequiredArgsConstructor;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -125,7 +128,10 @@ public class OrderServiceImpl implements OrderService {
 
 	@Override
 	@Transactional(readOnly = true)
+	@Cacheable(value = "orders", key = "'customer:' + #customerId + ':page:' + #pageable.pageNumber + ':' + #pageable.pageSize")
 	public Page<OrderSummaryRes> getMyOrders(UUID customerId, Pageable pageable) {
+		log.info(" 데이터베이스에서 사장님 주문 목록 조회 중... Store ID: {}, Page: {}", customerId, pageable.getPageNumber());
+
 		Page<OrderEntity> page = orderRepository.findByCustomerId(customerId, pageable);
 
 		List<UUID> orderIds = page.stream().map(OrderEntity::getOrderId).toList();
