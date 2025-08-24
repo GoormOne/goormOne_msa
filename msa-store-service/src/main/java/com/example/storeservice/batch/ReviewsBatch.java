@@ -104,20 +104,20 @@ public class ReviewsBatch {
      * - 조회가 없거나 비어있으면 null 반환해서 writer로 가지 않게 함.
      * - @Transactional(readOnly=true)로 묶어 주면 JPA 2차 캐시/연결 이점 약간 있음.
      */
-    @Bean
-    @StepScope
-    @Transactional(readOnly = true)
-    public ItemProcessor<UUID, AiDocumentEntity> storeToDocProcessor() {
-        return storeId -> {
-            // 기존 네 JPQL 메서드 재사용: 단일 storeId로 조회
-            List<AiFlatRow> rows = storeBatchQueryRepository.findFlatRows(List.of(storeId));
-            if (rows == null || rows.isEmpty()) {
-                return null; // 스킵
-            }
-            // 플랫 로우들을 스토어 문서로 집계
-            return AiDocumentEntity.fromFlatRows(storeId, rows);
-        };
-    }
+//    @Bean
+//    @StepScope
+//    @Transactional(readOnly = true)
+//    public ItemProcessor<UUID, AiDocumentEntity> storeToDocProcessor() {
+//        return storeId -> {
+//            // 기존 네 JPQL 메서드 재사용: 단일 storeId로 조회
+//            List<AiFlatRow> rows = storeBatchQueryRepository.findFlatRows(List.of(storeId));
+//            if (rows == null || rows.isEmpty()) {
+//                return null; // 스킵
+//            }
+//            // 플랫 로우들을 스토어 문서로 집계
+//            return AiDocumentEntity.fromFlatRows(storeId, rows);
+//        };
+//    }
 
     /**
      * Writer: MongoRepository.save(...) → upsert 동작 (id가 같으면 덮어쓰기)

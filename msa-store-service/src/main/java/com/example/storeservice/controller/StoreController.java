@@ -42,20 +42,20 @@ public class StoreController {
     private final StoreBatchQueryRepository storeBatchQueryRepository;
     private final AiDocumentService aiDocumentService;
 
-    @GetMapping("/test")
-    public ResponseEntity<ApiResponse> test() {
-
-        Pageable pageable = PageRequest.of(0, 100);
-        Page<UUID> idPage = storeService.findAllStoreIds(pageable);
-        List<UUID> storeIds = idPage.getContent();
-        List<AiFlatRow> aiFlatRowPage = storeBatchQueryRepository.findFlatRows(storeIds);
-        List<AiDocumentEntity> aiDocumentEntities = storeService.toDocuments(aiFlatRowPage);
-        List<AiDocumentEntity>list =  aiDocumentService.saveAll(aiDocumentEntities);
-        for (AiDocumentEntity aiDocumentEntity : list) {
-            log.info("test aiDocumentEntity:{}", aiDocumentEntity.toString());
-        }
-        return ResponseEntity.ok(ApiResponse.success(aiDocumentEntities));
-    }
+//    @GetMapping("/test")
+//    public ResponseEntity<ApiResponse> test() {
+//
+//        Pageable pageable = PageRequest.of(0, 100);
+//        Page<UUID> idPage = storeService.findAllStoreIds(pageable);
+//        List<UUID> storeIds = idPage.getContent();
+//        List<AiFlatRow> aiFlatRowPage = storeBatchQueryRepository.findFlatRows(storeIds);
+//        List<AiDocumentEntity> aiDocumentEntities = storeService.toDocuments(aiFlatRowPage);
+//        List<AiDocumentEntity>list =  aiDocumentService.saveAll(aiDocumentEntities);
+//        for (AiDocumentEntity aiDocumentEntity : list) {
+//            log.info("test aiDocumentEntity:{}", aiDocumentEntity.toString());
+//        }
+//        return ResponseEntity.ok(ApiResponse.success(aiDocumentEntities));
+//    }
 
     // todo - 스토어 상세조회  : 메뉴카테고리, 메뉴, 리전, 오너까지 반환 추가
     @GetMapping("/{storeId}")

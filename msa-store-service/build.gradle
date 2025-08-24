@@ -30,10 +30,34 @@ dependencies {
 }
 
 // queryDSL의 Q class가 생기는 위치를 통일
-def generated = 'src/main/generated'
-tasks.withType(JavaCompile).configureEach {
-	options.getGeneratedSourceOutputDirectory().set(file(generated))
+
+//def generated = 'src/main/generated'
+//
+//tasks.withType(JavaCompile).configureEach {
+//	options.getGeneratedSourceOutputDirectory().set(file(generated))
+//}
+//
+//clean {
+//	delete file(generated)
+//}
+
+def querydslSrcDir = 'src/main/generated'
+sourceSets {
+	main {
+		java {
+			srcDirs += [ querydslSrcDir ]
+		}
+	}
 }
-clean{
-	delete file(generated)
+
+compileJava {
+	options.compilerArgs << '-Aquerydsl.generatedAnnotationClass=jakarta.annotation.Generated'
+}
+
+tasks.withType(JavaCompile) {
+	options.generatedSourceOutputDirectory = file(querydslSrcDir)
+}
+
+clean {
+	delete file(querydslSrcDir)
 }
