@@ -281,7 +281,12 @@ public class OrderServiceImpl implements OrderService {
 		return PageCache.fromPage(mappedPage);
 	}
 
+
 	@Override
+	@Cacheable(
+			value = "ownerOrderDetail",
+			key = "#ownerId + '_' + #storeId"
+	)
 	@Transactional(readOnly = true)
 	public OwnerOrderDetailRes getOwnerOrderDetail(UUID orderId, UUID storeId, UUID ownerId) {
 
