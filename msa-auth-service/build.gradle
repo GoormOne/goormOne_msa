@@ -20,6 +20,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
+
+    implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.1.1")
+    implementation "io.awspring.cloud:spring-cloud-aws-starter"
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
+    implementation "io.awspring.cloud:spring-cloud-aws-starter-secrets-manager"
+
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
