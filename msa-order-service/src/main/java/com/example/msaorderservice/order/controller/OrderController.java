@@ -57,11 +57,11 @@ public class OrderController {
 
 	@GetMapping("/owner")
 	public Page<OrderSummaryRes> getOwnerOrders(
-		@RequestHeader("X-User-Id") UUID ownerId,
-		@RequestParam("storeId") UUID storeId,
-		Pageable pageable
+			@RequestHeader("X-User-Id") UUID ownerId,
+			@RequestParam("storeId") UUID storeId,
+			Pageable pageable
 	) {
-		return orderService.getOwnerOrders(ownerId, storeId, pageable);
+		return orderService.getOwnerOrdersCache(ownerId, storeId, pageable).toPage();
 	}
 
 	@GetMapping("/owner/{orderId}")

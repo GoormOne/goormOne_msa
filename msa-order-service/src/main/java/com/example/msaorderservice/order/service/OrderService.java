@@ -17,8 +17,8 @@ public interface OrderService {
 	PageCache<OrderSummaryRes> getMyOrdersCache(UUID customerId, Pageable pageable);
 	CustomerOrderDetailRes getMyOrderDetail(UUID customerId, UUID orderId);
 
-	Page<OrderSummaryRes> getOwnerOrders(UUID ownerId, UUID storeId, Pageable pageable);
-
+	PageCache<OrderSummaryRes> getOwnerOrders(UUID ownerId, UUID storeId, Pageable pageable);
+	PageCache<OrderSummaryRes> getOwnerOrdersCache(UUID ownerId, UUID storeId, Pageable pageable);
 	OwnerOrderDetailRes getOwnerOrderDetail(UUID orderId, UUID storeId, UUID ownerId);
 
 	OwnerOrderDetailRes updateOrderStatusByOwner(UUID ownerId, UUID orderId, OrderStatus newStatus);

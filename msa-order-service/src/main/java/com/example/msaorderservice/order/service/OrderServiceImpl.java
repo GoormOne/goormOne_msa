@@ -218,49 +218,68 @@ public class OrderServiceImpl implements OrderService {
 
 
 	@Override
+	public PageCache<OrderSummaryRes> getOwnerOrders(UUID ownerId, UUID storeId, Pageable pageable) {
+		return getOwnerOrdersCache(ownerId, storeId, pageable);
+	}
+
+	@Cacheable(
+			value = "ownerOrder",
+			key = "#ownerId + '_' + #storeId + '_' + #pageable.pageNumber + '_' + #pageable.pageSize"
+	)
 	@Transactional(readOnly = true)
-	public Page<OrderSummaryRes> getOwnerOrders(UUID ownerId, UUID storeId, Pageable pageable) {
+	public PageCache<OrderSummaryRes> getOwnerOrdersCache(UUID ownerId, UUID storeId, Pageable pageable) {
+
 
 		StoreLookUp store = storeClient.getStoreDetail(storeId);
+
 
 		UUID ownerFromStore = store.getOwnerId();
 		if (ownerFromStore != null && !ownerFromStore.equals(ownerId)) {
 			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
 		}
 
-		Page<OrderEntity> page = orderRepository.findByStoreIdIn(List.of(storeId), pageable);
 
-		List<UUID> orderIds = page.stream().map(OrderEntity::getOrderId).toList();
+		Page<OrderEntity> page = orderRepository.findByStoreIdIn(List.of(storeId), pageable);
+		List<UUID> orderIds = page.stream()
+				.map(OrderEntity::getOrderId)
+				.toList();
+
 
 		Map<UUID, List<OrderItemEntity>> itemsByOrderId = orderItemRepository
-			.findByOrderId_OrderIdIn(orderIds).stream()
-			.collect(Collectors.groupingBy(it -> it.getOrderId().getOrderId()));
+				.findByOrderId_OrderIdIn(orderIds)
+				.stream()
+				.collect(Collectors.groupingBy(it -> it.getOrderId().getOrderId()));
+
 
 		Map<UUID, OffsetDateTime> createdAtByOrderId = orderAuditRepository
-			.findAllById(orderIds).stream()
-			.collect(Collectors.toMap(OrderAuditEntity::getAuditId, OrderAuditEntity::getCreatedAt));
+				.findAllById(orderIds)
+				.stream()
+				.collect(Collectors.toMap(OrderAuditEntity::getAuditId, OrderAuditEntity::getCreatedAt));
 
 		final String storeName = store.getStoreName();
 
-		return page.map(o -> {
+
+		Page<OrderSummaryRes> mappedPage = page.map(o -> {
 			List<OrderItemEntity> items = itemsByOrderId.getOrDefault(o.getOrderId(), List.of());
 			String first = items.isEmpty() ? "-" : items.get(0).getMenuName();
 			int extra = Math.max(0, items.size() - 1);
 			String preview = items.isEmpty() ? "-" : (extra > 0 ? first + " 외 " + extra + "개" : first);
 
 			return OrderSummaryRes.builder()
-				.orderId(o.getOrderId())
-				.storeId(o.getStoreId())
-				.storeName(storeName)
-				.orderStatus(o.getOrderStatus())
-				.totalPrice(o.getTotalPrice())
-				.createdAt(createdAtByOrderId.get(o.getOrderId()))
-				.summaryTitle(preview)
-				.itemCount(items.size())
-				.build();
+					.orderId(o.getOrderId())
+					.storeId(o.getStoreId())
+					.storeName(storeName)
+					.orderStatus(o.getOrderStatus())
+					.totalPrice(o.getTotalPrice())
+					.createdAt(createdAtByOrderId.get(o.getOrderId()))
+					.summaryTitle(preview)
+					.itemCount(items.size())
+					.build();
 		});
-	}
 
+
+		return PageCache.fromPage(mappedPage);
+	}
 
 	@Override
 	@Transactional(readOnly = true)
