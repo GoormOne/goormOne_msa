@@ -14,10 +14,10 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
 
 
-
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     //redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-
+    implementation 'org.springframework.boot:spring-boot-starter-hateoas'
     // Redisson 클라이언트를 사용하기 위한 의존성 (이것도 그대로 유지)
     implementation 'org.redisson:redisson-spring-boot-starter:3.50.0'
 

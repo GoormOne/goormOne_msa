@@ -43,7 +43,9 @@ management:
     health:
       show-details: when_authorized
 
-
+logging:
+  level:
+    org.springframework.cache.interceptor: DEBUG
 ---
 spring:
   config:
