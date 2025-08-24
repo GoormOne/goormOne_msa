@@ -1,10 +1,9 @@
-package com.example.storeservice.service;
+package com.example.storeservice.mongoDB;
 
-import com.example.storeservice.entity.AiDocumentEntity;
-import com.example.storeservice.repository.AiDocumentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,8 +13,9 @@ public class AiDocumentService {
 
     private final AiDocumentRepository repository;
 
-    public AiDocumentEntity save(AiDocumentEntity entity) {
-        return repository.save(entity);
+    public List<AiDocumentEntity> saveAll(List<AiDocumentEntity> entities) {
+        // save는 @Id(storeId) 없으면 insert, 있으면 replace 수행함.
+        return repository.saveAll(entities);
     }
 
     public Optional<AiDocumentEntity> findById(UUID id) {

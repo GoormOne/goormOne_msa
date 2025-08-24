@@ -1,6 +1,5 @@
-package com.example.storeservice.repository;
+package com.example.storeservice.mongoDB;
 
-import com.example.storeservice.entity.AiDocumentEntity;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.UUID;

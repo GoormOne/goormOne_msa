@@ -21,6 +21,9 @@ spring:
       connection-timeout: 30000
       validation-timeout: 3000
       auto-commit: false
+  batch:
+    jdbc:
+      initialize-schema: always   # 메타테이블 생성 : 최초 한번만
 
   data:
     mongodb:

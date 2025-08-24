@@ -2,17 +2,13 @@ package com.example.storeservice.controller;
 
 
 import com.example.common.dto.ApiResponse;
-import com.example.common.exception.CommonCode;
 import com.example.storeservice.dto.AiFlatRow;
 import com.example.storeservice.dto.StoreDto;
 import com.example.storeservice.dto.StoreRegisterDto;
-import com.example.storeservice.entity.AiDocumentEntity;
-import com.example.storeservice.entity.StoreAudit;
-import com.example.storeservice.exception.StoreAlreadyDeletedException;
+import com.example.storeservice.mongoDB.AiDocumentEntity;
 import com.example.storeservice.interceptor.RequireStoreOwner;
-import com.example.storeservice.repository.StoreBatchQueryRepository;
-import com.example.storeservice.service.OutboxService;
-import com.example.storeservice.service.StoreAuditService;
+import com.example.storeservice.mongoDB.AiDocumentService;
+import com.example.storeservice.mongoDB.StoreBatchQueryRepository;
 import com.example.storeservice.service.StoreService;
 import com.example.storeservice.entity.Store;
 import jakarta.validation.Valid;
@@ -24,7 +20,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,6 +40,7 @@ import java.util.UUID;
 public class StoreController {
     private final StoreService storeService;
     private final StoreBatchQueryRepository storeBatchQueryRepository;
+    private final AiDocumentService aiDocumentService;
 
     @GetMapping("/test")
     public ResponseEntity<ApiResponse> test() {
@@ -54,7 +50,10 @@ public class StoreController {
         List<UUID> storeIds = idPage.getContent();
         List<AiFlatRow> aiFlatRowPage = storeBatchQueryRepository.findFlatRows(storeIds);
         List<AiDocumentEntity> aiDocumentEntities = storeService.toDocuments(aiFlatRowPage);
-
+        List<AiDocumentEntity>list =  aiDocumentService.saveAll(aiDocumentEntities);
+        for (AiDocumentEntity aiDocumentEntity : list) {
+            log.info("test aiDocumentEntity:{}", aiDocumentEntity.toString());
+        }
         return ResponseEntity.ok(ApiResponse.success(aiDocumentEntities));
     }
 

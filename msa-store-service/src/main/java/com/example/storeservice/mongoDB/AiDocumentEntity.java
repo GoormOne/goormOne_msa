@@ -1,14 +1,10 @@
-package com.example.storeservice.entity;
+package com.example.storeservice.mongoDB;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,7 +12,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Document(collection = "review_denorm")  // MongoDB collection 이름
+@Document(collection = "reviews_denorm")  // MongoDB collection 이름
+@ToString
 public class AiDocumentEntity {
 
     @Id
