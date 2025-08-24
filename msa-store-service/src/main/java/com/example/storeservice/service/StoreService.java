@@ -98,63 +98,7 @@ public class StoreService {
         return store.getStoreId();
     }
 
-    public Page<UUID> findAllStoreIds(Pageable pageable) {
-        return storeRepository.findStoreIdPage(pageable);
-    }
 
-    public List<AiDocumentEntity> toDocuments(List<AiFlatRow> rows) {
-        List<AiDocumentEntity> result = new ArrayList<>();
-        if (rows == null || rows.isEmpty()) return result;
-
-        // storeId -> 완성 중인 문서
-        Map<UUID, AiDocumentEntity> storeMap = new LinkedHashMap<>();
-        // storeId -> (menuId -> 메뉴)
-        Map<UUID, Map<UUID, AiDocumentEntity.Menus>> menuMapByStore = new LinkedHashMap<>();
-
-        for (AiFlatRow r : rows) {
-            UUID storeId  = r.getStoreId();
-            UUID menuId   = r.getMenuId();
-            UUID reviewId = r.getReviewId();
-
-            // 1) 스토어 문서 확보/생성
-            AiDocumentEntity storeDoc = storeMap.get(storeId);
-            if (storeDoc == null) {
-                storeDoc = AiDocumentEntity.builder()
-                        .storeId(storeId)
-                        .storeName(r.getStoreName())
-                        .menus(new ArrayList<>())
-                        .updateAt(LocalDateTime.now())
-                        .build();
-                storeMap.put(storeId, storeDoc);
-                menuMapByStore.put(storeId, new LinkedHashMap<>());
-            }
-
-            // 2) 메뉴 확보/생성 + 스토어에 연결
-            Map<UUID, AiDocumentEntity.Menus> menusOfStore = menuMapByStore.get(storeId);
-            AiDocumentEntity.Menus menuDoc = menusOfStore.get(menuId);
-            if (menuDoc == null) {
-                menuDoc = AiDocumentEntity.Menus.builder()
-                        .menuId(menuId)
-                        .menuName(r.getMenuName())
-                        .reviews(new ArrayList<>())
-                        .build();
-                menusOfStore.put(menuId, menuDoc);
-                storeDoc.getMenus().add(menuDoc);
-            }
-
-            // 3) 리뷰 추가
-            AiDocumentEntity.Reviews reviewDoc = AiDocumentEntity.Reviews.builder()
-                    .reviewId(reviewId)
-                    .text(r.getComment())
-                    .createAt(r.getCreatedAt())
-                    .build();
-
-            menuDoc.getReviews().add(reviewDoc);
-        }
-
-        // 최종 문서 리스트 반환
-        return new ArrayList<>(storeMap.values());
-    }
 
 
 }

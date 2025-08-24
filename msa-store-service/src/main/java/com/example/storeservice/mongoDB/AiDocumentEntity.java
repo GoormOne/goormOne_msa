@@ -3,6 +3,7 @@ package com.example.storeservice.mongoDB;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,32 +18,29 @@ import java.util.UUID;
 public class AiDocumentEntity {
 
     @Id
-    private UUID storeId;
+    private String id;
+
+    @Field("store_name")
     private String storeName;
-    @Builder.Default
-    private List<Menus> menus = List.of();  // 빌더가 null 안 넣고 기본값 유지 => null값 방지용
+
+    @Field("updated_at")
     private LocalDateTime updateAt;
 
-    public AiDocumentEntity(UUID storeId, String storeName, LocalDateTime updateAt) {
-        this.storeId = storeId;
-        this.storeName = storeName;
-        this.updateAt = updateAt;
-    }
+    @Builder.Default
+    private List<Menus> menus = List.of();  // 빌더가 null 안 넣고 기본값 유지 => null값 방지용
+
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
     public static class Menus{
-        private UUID menuId;
+        @Field("menu_id")
+        private String menuId;
+        @Field("menu_name")
         private String menuName;
         @Builder.Default
         private List<Reviews> reviews = List.of();
-
-        public Menus(UUID menuId, String menuName) {
-            this.menuId = menuId;
-            this.menuName = menuName;
-        }
 
     }
     @Data
@@ -50,9 +48,13 @@ public class AiDocumentEntity {
     @NoArgsConstructor
     @Builder
     public static class Reviews{
-        private UUID reviewId;
+        @Field("review_id")
+        private String reviewId;
+        @Field("text")
         private String text;
-        private LocalDateTime createAt;
+        @Field("created_at")
+        private LocalDateTime createdAt;
 
     }
+
 }

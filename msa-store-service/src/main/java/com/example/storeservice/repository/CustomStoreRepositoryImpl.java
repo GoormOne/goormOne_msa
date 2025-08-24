@@ -2,9 +2,12 @@ package com.example.storeservice.repository;
 
 
 import com.example.storeservice.dto.AiFlatRow;
+import com.example.storeservice.entity.QMenu;
+import com.example.storeservice.entity.QReview;
 import com.example.storeservice.entity.QStore;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+
 import lombok.RequiredArgsConstructor;
 import java.util.Collection;
 import java.util.List;
@@ -53,14 +56,4 @@ public class CustomStoreRepositoryImpl implements CustomStoreRepository {
         return findFlatRows(storeIds);
     }
 
-    @Override
-    public long countActiveStores() {
-        QStore s = QStore.store;
-        Long cnt = queryFactory
-                .select(s.count())
-                .from(s)
-                .where(s.isDeleted.isFalse())
-                .fetchOne();
-        return cnt == null ? 0L : cnt;
-    }
 }

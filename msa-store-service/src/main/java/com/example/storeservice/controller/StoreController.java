@@ -2,25 +2,17 @@ package com.example.storeservice.controller;
 
 
 import com.example.common.dto.ApiResponse;
-import com.example.storeservice.dto.AiFlatRow;
 import com.example.storeservice.dto.StoreDto;
 import com.example.storeservice.dto.StoreRegisterDto;
-import com.example.storeservice.mongoDB.AiDocumentEntity;
 import com.example.storeservice.interceptor.RequireStoreOwner;
-import com.example.storeservice.mongoDB.AiDocumentService;
-import com.example.storeservice.mongoDB.StoreBatchQueryRepository;
 import com.example.storeservice.service.StoreService;
 import com.example.storeservice.entity.Store;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 /*
@@ -39,23 +31,13 @@ import java.util.UUID;
 @Slf4j
 public class StoreController {
     private final StoreService storeService;
-    private final StoreBatchQueryRepository storeBatchQueryRepository;
-    private final AiDocumentService aiDocumentService;
 
-//    @GetMapping("/test")
-//    public ResponseEntity<ApiResponse> test() {
-//
-//        Pageable pageable = PageRequest.of(0, 100);
-//        Page<UUID> idPage = storeService.findAllStoreIds(pageable);
-//        List<UUID> storeIds = idPage.getContent();
-//        List<AiFlatRow> aiFlatRowPage = storeBatchQueryRepository.findFlatRows(storeIds);
-//        List<AiDocumentEntity> aiDocumentEntities = storeService.toDocuments(aiFlatRowPage);
-//        List<AiDocumentEntity>list =  aiDocumentService.saveAll(aiDocumentEntities);
-//        for (AiDocumentEntity aiDocumentEntity : list) {
-//            log.info("test aiDocumentEntity:{}", aiDocumentEntity.toString());
-//        }
-//        return ResponseEntity.ok(ApiResponse.success(aiDocumentEntities));
-//    }
+    @GetMapping("/test")
+    public ResponseEntity<ApiResponse> test() {
+
+
+        return ResponseEntity.ok(ApiResponse.success());
+    }
 
     // todo - 스토어 상세조회  : 메뉴카테고리, 메뉴, 리전, 오너까지 반환 추가
     @GetMapping("/{storeId}")

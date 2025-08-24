@@ -8,16 +8,19 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface StoreRepository extends JpaRepository<Store, UUID> {
+public interface StoreRepository extends JpaRepository<Store, UUID>, CustomStoreRepository {
 
     Optional<Store> findByStoreIdAndIsDeletedFalse(UUID storeId);
 
-    @Query("select s.storeId from Store s where s.isDeleted = false order by s.storeId")
-    Page<UUID> findStoreIdPage(Pageable pageable);
+    List<AiFlatRow> findFlatRows(Collection<UUID> storeIds);
 
-    Store findByOwnerId(UUID ownerId);
+    List<AiFlatRow> findFlatRowsPage(int page, int size);
+
+
 }
