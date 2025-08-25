@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8881
 
 spring:
   application:
@@ -12,12 +12,35 @@ spring:
 #    password: password
     username: postgres
     password: Goorm1!!
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 2
+      idle-timeout: 300000        # 5m
+      max-lifetime: 1500000       # 25m
+      keepalive-time: 1200000     # 20m
+      connection-timeout: 30000
+      validation-timeout: 3000
+      auto-commit: false
+  batch:
+    jdbc:
+      initialize-schema: never   # 메타테이블 생성 : 최초 한번만
+    job:
+      enabled: true              # 앱 실행시 job 자동 실행
+
+  data:
+    mongodb:
+      uri: mongodb+srv://ksm3255:!4786buch@team1mongodb.oh0o0np.mongodb.net/?retryWrites=true&w=majority&appName=Team1Mongodb
+#      port: 27017
+      database: ai_service_db
+
   jpa:
     hibernate:
-      ddl-auto: none           # ?? ? update/validate ?
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
   cloud:
     aws:
       credentials:

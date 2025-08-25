@@ -42,7 +42,6 @@ public class StoreAuditService {
         if (storeAudit.getDeletedAt() != null) {
             throw new StoreAlreadyDeletedException("이미 삭제된 상점입니다. ");
         }
-        //TODO -- 검색이 안될 시
 
         storeAudit.setDeletedBy(deleterId);
         storeAudit.setDeletedAt(LocalDateTime.now());
