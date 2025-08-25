@@ -126,7 +126,9 @@ public class OrderServiceImpl implements OrderService {
 		return null;
 	}
 
-	@Cacheable(value = "myOrders", key = "#customerId + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
+	@Cacheable(
+			value = "myOrders",
+			key = "#customerId + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
 	@Transactional(readOnly = true)
 	public PageCache<OrderSummaryRes> getMyOrdersCache(UUID customerId, Pageable pageable) {
 
