@@ -68,8 +68,7 @@ public class CartServiceImpl implements CartService {
 	@Override
 	@Cacheable(
 			value = "myCartItem",
-			key = "#customerId + '::' + #page + '::' + #size"
-	)
+			key = "#customerId + '::' + #page + '::' + #size")
 	@Transactional(readOnly = true)
 	public CartItemsPageRes getMyCartItemsPage(UUID customerId, Integer page, Integer size) {
 		int p = (page == null || page < 0) ? 0 : page;
