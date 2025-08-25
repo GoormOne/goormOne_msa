@@ -85,5 +85,4 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"
   level:
     root: INFO
-    org.springframework.web.servlet.DispatcherServlet: DEBUG
-    org.springframework.web: DEBUG
+    org.springframework.web.servlet.DispatcherServlet: TRACE
