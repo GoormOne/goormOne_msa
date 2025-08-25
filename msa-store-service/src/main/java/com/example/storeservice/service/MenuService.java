@@ -3,6 +3,7 @@ package com.example.storeservice.service;
 
 import com.example.storeservice.dto.MenuDto;
 import com.example.storeservice.entity.Menu;
+import com.example.storeservice.repository.MenuInventoryRepository;
 import com.example.storeservice.repository.MenuRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MenuService {
     private final MenuRepository menuRepository;
+    private final MenuInventoryRepository menuInventoryRepository;
     private final MenuInventoryService menuInventoryService;
 
     public Menu getMenu(UUID menuId, UUID storeId){
@@ -36,6 +38,7 @@ public class MenuService {
     public Menu deleteMenu(UUID menuId, UUID storeId){
         Menu menu =  getMenu(menuId, storeId);
         menu.setIsDeleted(true);
+        menuInventoryRepository.deleteById(menuId);
         return menu;
     }
 
