@@ -107,7 +107,7 @@ public class AuthService {
         Owner saved = ownerRepository.save(owner);
 
         cognitoService.createUserAndSetPasswordAndGroup(
-                req.getUsername(), req.getPassword(), req.getEmail(), req.getName(), req.getBirth(), "CUSTOMER"
+                req.getUsername(), req.getPassword(), req.getEmail(), req.getName(), req.getBirth(), "OWNER"
         );
 
         return new RegisterRes(saved.getOwnerId(), saved.getUsername());
