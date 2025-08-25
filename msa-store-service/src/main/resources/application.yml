@@ -1,23 +1,47 @@
-server:
-  port: 8081
-
 spring:
   application:
-   name: msa-store-service
+    name: msa-store-service
+  profiles:
+    active: local
+
+  data:
+
+    redis:
+      host: localhost
+      port: 6379
+      clientName: ksy
+
+    cache:
+      type: redis
+      redisson:
+        file: classpath:redisson-config.yaml
+
   datasource:
-    url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres
-#    url: jdbc:postgresql://localhost/sample
+    url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres #우리 디비로 바꾸기
     driver-class-name: org.postgresql.Driver
-#    username: user
-#    password: password
     username: postgres
     password: Goorm1!!
   jpa:
     hibernate:
-      ddl-auto: none           # ?? ? update/validate ?
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
   cloud:
     aws:
       credentials:
@@ -29,15 +53,8 @@ spring:
         static: ap-northeast-2
       stack:
         auto: false
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-  endpoint:
-    health:
-      show-details: when_authorized
+server:
+  port: 8081
 
 eureka:
   instance:
@@ -52,3 +69,49 @@ logging:
   level:
     org.springframework.cloud.loadbalancer: DEBUG
     org.springframework.cloud.gateway.server.mvc: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+    import: ["aws-secretsmanager:dev"]
+
+  datasource:
+    url: jdbc:postgresql://${db_host}:5432/postgres
+    driver-class-name: org.postgresql.Driver
+    username: ${db_username}
+    password: ${db_password}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  cloud:
+    loadbalancer:
+      enabled: false
+    aws:
+      credentials:
+        accessKey: AKIAXETF2IMIEZGTIAVC
+        secretKey: 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
+      s3:
+        bucket: ${s3_bucket_name}
+      region:
+        static: ap-northeast-2
+      stack:
+        auto: false
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    enabled: false
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+    org.springframework.web.servlet.DispatcherServlet: TRACE

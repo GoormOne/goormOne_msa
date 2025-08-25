@@ -1,0 +1,7 @@
+singleServerConfig:
+  address: "redis://127.0.0.1:6379"
+  # password: "your-password"
+  connectionPoolSize: 16
+  connectionMinimumIdleSize: 4
+threads: 8
+nettyThreads: 32
