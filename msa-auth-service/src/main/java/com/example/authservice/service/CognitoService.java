@@ -2,31 +2,16 @@ package com.example.authservice.service;
 
 import com.example.authservice.exception.CognitoCreateException;
 import com.example.authservice.properties.CognitoProperties;
+import com.example.authservice.util.SecretHash;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserResponse;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminDeleteUserRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminInitiateAuthRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminInitiateAuthResponse;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminSetUserPasswordRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUserGlobalSignOutRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AuthFlowType;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidPasswordException;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.MessageActionType;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.ResourceNotFoundException;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.UsernameExistsException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -139,39 +124,114 @@ public class CognitoService {
         }
     }
 
-    // ===== 운영/테스트용 API 유지 =====
+    public AuthenticationResultType login(String username, String password) {
+        Map<String, String> authParams = new HashMap<>();
+        authParams.put("USERNAME", username);
+        authParams.put("PASSWORD", password);
+        String secretHash = SecretHash.calculate(username, props.getAppClientId(), props.getAppClientSecret());
+        if (secretHash != null) authParams.put("SECRET_HASH", secretHash);
 
-    public AdminInitiateAuthResponse loginByAdminNoSrp(String username, String password) {
-        log.info("[COGNITO] login start username={}", username);
-        return client.adminInitiateAuth(AdminInitiateAuthRequest.builder()
+        AdminInitiateAuthRequest req = AdminInitiateAuthRequest.builder()
                 .userPoolId(props.getUserPoolId())
                 .clientId(props.getAppClientId())
                 .authFlow(AuthFlowType.ADMIN_NO_SRP_AUTH)
-                .authParameters(Map.of("USERNAME", username, "PASSWORD", password))
-                .build());
+                .authParameters(authParams)
+                .build();
+
+        AdminInitiateAuthResponse res = client.adminInitiateAuth(req);
+
+//        if (res.challengeName() != null && res.challengeName() != ChallengeNameType.UNKNOWN_TO_SDK_VERSION) {
+//            // NEW_PASSWORD_REQUIRED 등 대응 필요 시 여기에 처리
+//            throw new NotAuthorizedException("Unsupported challenge: " + res.challengeName(), null);
+//        }
+
+        return res.authenticationResult();
     }
 
-    public AdminInitiateAuthResponse login(String username, String password) {
-        log.info("[COGNITO] login start username={}", username);
-        return client.adminInitiateAuth(AdminInitiateAuthRequest.builder()
+    public AuthenticationResultType refresh(String username, String refreshToken) {
+        Map<String, String> authParams = new HashMap<>();
+        authParams.put("REFRESH_TOKEN", refreshToken);
+        String secretHash = SecretHash.calculate(username, props.getAppClientId(), props.getAppClientSecret());
+        if (secretHash != null) authParams.put("SECRET_HASH", secretHash);
+
+        AdminInitiateAuthRequest req = AdminInitiateAuthRequest.builder()
                 .userPoolId(props.getUserPoolId())
                 .clientId(props.getAppClientId())
-                .authFlow(AuthFlowType.ADMIN_NO_SRP_AUTH)
-                .authParameters(Map.of("USERNAME", username, "PASSWORD", password))
-                .build());
+                .authFlow(AuthFlowType.REFRESH_TOKEN_AUTH) // Admin API도 지원
+                .authParameters(authParams)
+                .build();
+
+        AdminInitiateAuthResponse res = client.adminInitiateAuth(req);
+        return res.authenticationResult();
     }
 
     public void globalSignOut(String username) {
-        client.adminUserGlobalSignOut(AdminUserGlobalSignOutRequest.builder()
+        AdminUserGlobalSignOutRequest req = AdminUserGlobalSignOutRequest.builder()
                 .userPoolId(props.getUserPoolId())
                 .username(username)
-                .build());
+                .build();
+        client.adminUserGlobalSignOut(req);
+        log.info("[Cognito] AdminUserGlobalSignOut ok, username={}", username);
     }
 
-    public void deleteUser(String username) {
-        client.adminDeleteUser(AdminDeleteUserRequest.builder()
-                .userPoolId(props.getUserPoolId())
-                .username(username)
-                .build());
+    public static String[] extractGroups(String idToken) {
+        // 토큰 파싱은 GW에서 검증/파싱하지만, 개발단계 편의를 위해 클레임만 간단 파싱 (Base64 JSON)
+        try {
+            String[] parts = idToken.split("\\.");
+            if (parts.length < 2) return new String[0];
+            String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]));
+            // 매우 간단한 파싱 (정식 JSON 파서 사용 권장)
+            int idx = payloadJson.indexOf("\"cognito:groups\"");
+            if (idx < 0) return new String[0];
+            int start = payloadJson.indexOf("[", idx);
+            int end   = payloadJson.indexOf("]", start);
+            if (start < 0 || end < 0) return new String[0];
+            String arr = payloadJson.substring(start+1, end);
+            String[] raw = arr.split(",");
+            List<String> groups = new ArrayList<>();
+            for (String s : raw) {
+                String g = s.trim().replaceAll("^\"|\"$", "");
+                if (!g.isEmpty()) groups.add(g);
+            }
+            return groups.toArray(new String[0]);
+        } catch (Exception e) {
+            return new String[0];
+        }
     }
+
+    // ===== 운영/테스트용 API 유지 =====
+
+//    public AdminInitiateAuthResponse loginByAdminNoSrp(String username, String password) {
+//        log.info("[COGNITO] login start username={}", username);
+//        return client.adminInitiateAuth(AdminInitiateAuthRequest.builder()
+//                .userPoolId(props.getUserPoolId())
+//                .clientId(props.getAppClientId())
+//                .authFlow(AuthFlowType.ADMIN_NO_SRP_AUTH)
+//                .authParameters(Map.of("USERNAME", username, "PASSWORD", password))
+//                .build());
+//    }
+//
+//    public AdminInitiateAuthResponse login(String username, String password) {
+//        log.info("[COGNITO] login start username={}", username);
+//        return client.adminInitiateAuth(AdminInitiateAuthRequest.builder()
+//                .userPoolId(props.getUserPoolId())
+//                .clientId(props.getAppClientId())
+//                .authFlow(AuthFlowType.ADMIN_NO_SRP_AUTH)
+//                .authParameters(Map.of("USERNAME", username, "PASSWORD", password))
+//                .build());
+//    }
+//
+//    public void globalSignOut(String username) {
+//        client.adminUserGlobalSignOut(AdminUserGlobalSignOutRequest.builder()
+//                .userPoolId(props.getUserPoolId())
+//                .username(username)
+//                .build());
+//    }
+//
+//    public void deleteUser(String username) {
+//        client.adminDeleteUser(AdminDeleteUserRequest.builder()
+//                .userPoolId(props.getUserPoolId())
+//                .username(username)
+//                .build());
+//    }
 }

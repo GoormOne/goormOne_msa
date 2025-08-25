@@ -1,5 +1,5 @@
 server:
-  port: 8089
+  port: 8090
 
 spring:
   application:
@@ -86,6 +86,10 @@ aws:
     user-pool-id: ${AWS_COGNITO_USER_POOL_ID}
     app-client-id: ${AWS_COGNITO_APP_CLIENT_ID}
     app-client-secret: ${AWS_COGNITO_APP_CLIENT_SECRET}
+    groups:
+      admin: admin
+      owner: owner
+      customer: customer
   credentials:
     access-key: ${AWS_ACCESS_KEY_ID}
     secret-key: ${AWS_SECRET_ACCESS_KEY}

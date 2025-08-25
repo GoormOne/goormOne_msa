@@ -19,6 +19,7 @@ public class AuthController {
 
     private final AuthService authService;
 
+    // === 고객/사장 회원가입 ===
     @PostMapping("/customers/register")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<RegisterRes> registerCustomer(@Valid @RequestBody RegisterCustomerReq req) {
@@ -29,6 +30,24 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<RegisterRes> registerOwner(@Valid @RequestBody RegisterOwnerReq req) {
         return ApiResponse.success(authService.registerOwner(req));
+    }
+
+
+    // === 로그인 / 리프레시 / 로그아웃 ===
+    @PostMapping("/login")
+    public ApiResponse<LoginRes> login(@Valid @RequestBody LoginReq req) {
+        return ApiResponse.success(authService.login(req));
+    }
+
+    @PostMapping("/token/refresh")
+    public ApiResponse<RefreshRes> refresh(@Valid @RequestBody RefreshReq req) {
+        return ApiResponse.success(authService.refresh(req));
+    }
+
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void logout(@Valid @RequestBody LogoutReq req) {
+        authService.logout(req);
     }
 
 //    private final AuthService authService;
