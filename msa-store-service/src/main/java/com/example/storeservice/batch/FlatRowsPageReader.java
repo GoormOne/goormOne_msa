@@ -7,6 +7,7 @@ import org.springframework.batch.item.ItemStreamReader;
 
 import java.util.List;
 
+
 public class FlatRowsPageReader implements ItemStreamReader<List<AiFlatRow>> {
 
     private final StoreRepository repo;

@@ -27,7 +27,7 @@ import java.util.*;
  **/
 @Configuration
 @RequiredArgsConstructor
-public class ReviewsBatch {
+public class ReviewsJob {
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
@@ -39,7 +39,6 @@ public class ReviewsBatch {
     public Job reviewsDenormJob() {
         return new JobBuilder("reviewsDenormJob", jobRepository)
                 .start(reviewsDenormStep())
-
                 .build();
     }
 
