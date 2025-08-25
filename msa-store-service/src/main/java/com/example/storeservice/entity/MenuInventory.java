@@ -46,7 +46,7 @@ public class MenuInventory {
 	private Long version;
 
 	public boolean isSoldOut() {
-		if (Boolean.TRUE.equals(isInfiniteStock)) return false;
-		return reservedQty <= 0;
+		if (isInfiniteStock) return false;
+		return availableQty <= 0;
 	}
 }

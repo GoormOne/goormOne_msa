@@ -4,7 +4,7 @@ import com.example.common.exception.BusinessException;
 import com.example.common.exception.CommonCode;
 
 public class InvalidQuantityException extends BusinessException {
-	public InvalidQuantityException() {
-		super(CommonCode.INVENTORY_NOT_FOUND);
+	public InvalidQuantityException(String detail) {
+		super(CommonCode.BAD_REQUEST, detail);
 	}
 }
