@@ -5,12 +5,9 @@ import lombok.*;
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
-public class LoginRes {
+public class RefreshRes {
     private String idToken;
     private String accessToken;
-    private String refreshToken;
-    private Long expiresIn;
+    private Long   expiresIn;
     private String tokenType;
-    private String[] groups;
-    private String username;
 }

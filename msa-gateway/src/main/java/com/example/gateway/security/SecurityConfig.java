@@ -38,9 +38,7 @@ public class SecurityConfig {
                 .authorizeExchange(reg -> reg
                         // 회원가입/로그인 등 auth-service의 일부 공개 엔드포인트는 게이트웨이에서도 열어둠
                         .pathMatchers(
-                                "/auth/customers/**",
-                                "/auth/owners/**",
-                                "/auth/health/**"
+                                "/auth/**"
                         ).permitAll()
                         // 내부 조회 API는 인증 필요(게이트웨이 자체에서 호출하므로 통과됨)
                         .pathMatchers("/internal/**").authenticated()

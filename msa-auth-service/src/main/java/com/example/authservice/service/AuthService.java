@@ -18,6 +18,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminInitiateAuthResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AuthenticationResultType;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -39,7 +40,7 @@ public class AuthService {
     private final JdbcTemplate jdbcTemplate;
     private final CognitoProperties props;
 
-    // === Customer ===
+    // === Register ===
     @Transactional
     public RegisterRes registerCustomer(RegisterCustomerReq req) {
         // 중복 검사
@@ -113,53 +114,82 @@ public class AuthService {
         return new RegisterRes(saved.getOwnerId(), saved.getUsername());
     }
 
-    public LoginRes loginCustomer(LoginReq req) {
-        AdminInitiateAuthResponse resp = cognitoService.login(req.getUsername(), req.getPassword());
-        var authRes = resp.authenticationResult();
-        return new LoginRes(authRes.idToken(), authRes.accessToken(), authRes.refreshToken(),
-                authRes.expiresIn(), authRes.tokenType());
+    // === Login ===
+    public LoginRes login(LoginReq req) {
+        AuthenticationResultType ar = cognitoService.login(req.getUsername(), req.getPassword());
+        String[] groups = cognitoService.extractGroups(ar.idToken());
+
+        return LoginRes.builder()
+                .idToken(ar.idToken())
+                .accessToken(ar.accessToken())
+                .refreshToken(ar.refreshToken())
+                .expiresIn(ar.expiresIn() != null ? ar.expiresIn().longValue() : null)
+                .tokenType(ar.tokenType())
+                .groups(groups)
+                .username(req.getUsername())
+                .build();
     }
 
-    public LoginRes loginOwner(LoginReq req) {
-        AdminInitiateAuthResponse resp = cognitoService.login(req.getUsername(), req.getPassword());
-        var authRes = resp.authenticationResult();
-        return new LoginRes(authRes.idToken(), authRes.accessToken(), authRes.refreshToken(),
-                authRes.expiresIn(), authRes.tokenType());
+    public RefreshRes refresh(RefreshReq req) {
+        var ar = cognitoService.refresh(req.getUsername(), req.getRefreshToken());
+        return RefreshRes.builder()
+                .idToken(ar.idToken())           // 환경에 따라 null일 수 있음
+                .accessToken(ar.accessToken())
+                .expiresIn(ar.expiresIn() != null ? ar.expiresIn().longValue() : null)
+                .tokenType(ar.tokenType())
+                .build();
     }
 
-    @Transactional
-    public void deleteMeCustomer(UUID customerId, String reason) {
-        Customer c = customerRepository.findById(customerId).orElseThrow();
-        c.setBanned(true);
-        customerRepository.save(c);
-
-        CustomerAudit audit = customerAuditRepository.findById(customerId).orElseThrow();
-        audit.setDeletedAt(OffsetDateTime.now());
-        audit.setDeletedBy(customerId);
-        audit.setDeletedRs(reason);
-        customerAuditRepository.save(audit);
-
-        cognitoService.deleteUser(c.getUsername());
+    public void logout(LogoutReq req) {
+        cognitoService.globalSignOut(req.getUsername());
     }
+//    public LoginRes loginCustomer(LoginReq req) {
+//        AdminInitiateAuthResponse resp = cognitoService.login(req.getUsername(), req.getPassword());
+//        var authRes = resp.authenticationResult();
+//        return new LoginRes(authRes.idToken(), authRes.accessToken(), authRes.refreshToken(),
+//                authRes.expiresIn(), authRes.tokenType());
+//    }
+//
+//    public LoginRes loginOwner(LoginReq req) {
+//        AdminInitiateAuthResponse resp = cognitoService.login(req.getUsername(), req.getPassword());
+//        var authRes = resp.authenticationResult();
+//        return new LoginRes(authRes.idToken(), authRes.accessToken(), authRes.refreshToken(),
+//                authRes.expiresIn(), authRes.tokenType());
+//    }
 
-    @Transactional
-    public void deleteMeOwner(UUID ownerId, String reason) {
-        Owner o = ownerRepository.findById(ownerId).orElseThrow();
-        o.setBanned(true);
-        ownerRepository.save(o);
+//    @Transactional
+//    public void deleteMeCustomer(UUID customerId, String reason) {
+//        Customer c = customerRepository.findById(customerId).orElseThrow();
+//        c.setBanned(true);
+//        customerRepository.save(c);
+//
+//        CustomerAudit audit = customerAuditRepository.findById(customerId).orElseThrow();
+//        audit.setDeletedAt(OffsetDateTime.now());
+//        audit.setDeletedBy(customerId);
+//        audit.setDeletedRs(reason);
+//        customerAuditRepository.save(audit);
+//
+//        cognitoService.deleteUser(c.getUsername());
+//    }
+//
+//    @Transactional
+//    public void deleteMeOwner(UUID ownerId, String reason) {
+//        Owner o = ownerRepository.findById(ownerId).orElseThrow();
+//        o.setBanned(true);
+//        ownerRepository.save(o);
+//
+//        OwnerAudit audit = ownerAuditRepository.findById(ownerId).orElseThrow();
+//        audit.setDeletedAt(OffsetDateTime.now());
+//        audit.setDeletedBy(ownerId);
+//        audit.setDeletedRs(reason);
+//        ownerAuditRepository.save(audit);
+//
+//        cognitoService.deleteUser(o.getUsername());
+//    }
 
-        OwnerAudit audit = ownerAuditRepository.findById(ownerId).orElseThrow();
-        audit.setDeletedAt(OffsetDateTime.now());
-        audit.setDeletedBy(ownerId);
-        audit.setDeletedRs(reason);
-        ownerAuditRepository.save(audit);
-
-        cognitoService.deleteUser(o.getUsername());
-    }
-
-    public void logout(String username) {
-        cognitoService.globalSignOut(username);
-    }
+//    public void logout(String username) {
+//        cognitoService.globalSignOut(username);
+//    }
 
     // 게이트웨이 내부용: username + principalType -> userId, name
     public ResolveRes resolve(String principalType, String username) {

@@ -36,6 +36,9 @@ public class SecurityConfig {
                                 "/auth/health/**",
                                 "/auth/customers/**",
                                 "/auth/owners/**",
+                                "/auth/login",
+                                "/auth/token/refresh",
+                                "/auth/logout",
                                 "/actuator/health")
                         .permitAll()
                         .requestMatchers("/internal/auth/**").permitAll() // 게이트웨이 내부용 조회. (필요 시 추가 보안 적용)
