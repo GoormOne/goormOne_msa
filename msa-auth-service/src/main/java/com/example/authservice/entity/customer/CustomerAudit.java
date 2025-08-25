@@ -4,7 +4,6 @@ import com.example.common.entity.AuditBaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Getter @Setter

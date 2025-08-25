@@ -1,9 +1,7 @@
 package com.example.authservice.entity.owner;
 
-import com.example.authservice.entity.customer.CustomerAudit;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -12,9 +10,9 @@ import java.util.UUID;
 @NoArgsConstructor @AllArgsConstructor @Builder
 @Entity @Table(name = "p_owners")
 public class Owner {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "owner_id", columnDefinition = "uuid")
+    @Column(name = "owner_id", columnDefinition = "uuid", nullable = false)
     private UUID ownerId;
 
     @Column(name = "username", length = 10, nullable = false, unique = true)

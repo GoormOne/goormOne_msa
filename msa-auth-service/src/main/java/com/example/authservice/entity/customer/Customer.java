@@ -2,7 +2,6 @@ package com.example.authservice.entity.customer;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -11,9 +10,9 @@ import java.util.UUID;
 @NoArgsConstructor @AllArgsConstructor @Builder
 @Entity @Table(name = "p_customers")
 public class Customer {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "customer_id", columnDefinition = "uuid")
+    @Column(name = "customer_id", columnDefinition = "uuid", nullable = false)
     private UUID customerId;
 
     @Column(name = "username", length = 10, nullable = false, unique = true)

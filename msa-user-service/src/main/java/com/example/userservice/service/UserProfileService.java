@@ -36,15 +36,15 @@ public class UserProfileService {
 
         c.setName(req.getName());
         c.setEmail(req.getEmail());
-        c.setUpdatedBy(customerId);  // 감사 주체 기록
+//        c.setUpdatedBy(customerId);  // 감사 주체 기록
         return toCustomerRes(c.getCustomerId(), c.getUsername(), c.getName(), c.getEmail(), c.getIsBanned(), c.getEmailVerified());
     }
 
     @Transactional
     public void deleteCustomer(UUID customerId, String reason) {
         var c = customerRepository.findByCustomerId(customerId).orElseThrow(ServiceException::notFound);
-        c.setDeletedBy(customerId);
-        c.setDeletedRs(reason);
+//        c.setDeletedBy(customerId);
+//        c.setDeletedRs(reason);
         // @PreRemove 대신 soft delete -> deleted_at/by/rs 세팅 (AuditBaseEntity에 로직이 있으면 따라감)
     }
 
@@ -62,15 +62,15 @@ public class UserProfileService {
 
         o.setName(req.getName());
         o.setEmail(req.getEmail());
-        o.setUpdatedBy(ownerId);
+//        o.setUpdatedBy(ownerId);
         return toOwnerRes(o.getOwnerId(), o.getUsername(), o.getName(), o.getEmail(), o.getIsBanned(), o.getEmailVerified());
     }
 
     @Transactional
     public void deleteOwner(UUID userId, String reason) {
         var o = ownerRepository.findByOwnerId(userId).orElseThrow(ServiceException::notFound);
-        o.setDeletedBy(userId);
-        o.setDeletedRs(reason);
+//        o.setDeletedBy(userId);
+//        o.setDeletedRs(reason);
     }
 
     private CustomerProfileRes toCustomerRes(UUID id, String username, String name, String email, Boolean banned, Boolean emailVerified) {

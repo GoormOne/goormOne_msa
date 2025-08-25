@@ -1,38 +1,97 @@
 package com.example.authservice.controller;
 
-import com.example.authservice.dto.CustomerRegisterReq;
-import com.example.authservice.dto.CustomerRegisterRes;
-import com.example.authservice.dto.OwnerRegisterReq;
-import com.example.authservice.dto.OwnerRegisterRes;
+import com.example.authservice.dto.*;
 import com.example.authservice.service.AuthService;
 import com.example.common.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
-//    •	POST /auth/register (username/password)
-//	  •	POST /auth/login → JWT
-//	  •	POST /auth/password/change
-//	  •	POST /auth/token/revoke
+
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     private final AuthService authService;
 
-    @PostMapping("/register/customer")
-    public ResponseEntity<ApiResponse<CustomerRegisterRes>> registerCustomer(@Valid @RequestBody CustomerRegisterReq req) {
-        var res = authService.registerCustomer(req);
-        return ResponseEntity.status(201).body(ApiResponse.success(res));
+    @PostMapping("/customers/register")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<RegisterRes> registerCustomer(@Valid @RequestBody RegisterCustomerReq req) {
+        return ApiResponse.success(authService.registerCustomer(req));
     }
 
-    @PostMapping("/register/owner")
-    public ResponseEntity<ApiResponse<OwnerRegisterRes>> registerOwner(@Valid @RequestBody OwnerRegisterReq req) {
-        var res = authService.registerOwner(req);
-        return ResponseEntity.status(201).body(ApiResponse.success(res));
+    @PostMapping("/owners/register")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<RegisterRes> registerOwner(@Valid @RequestBody RegisterOwnerReq req) {
+        return ApiResponse.success(authService.registerOwner(req));
     }
+
+//    private final AuthService authService;
+//
+//    // === 회원가입 ===
+//    @PostMapping("/customers/register")
+//    public ResponseEntity<RegisterRes> registerCustomer(@Valid @RequestBody RegisterCustomerReq req) {
+//        return ResponseEntity.ok(authService.registerCustomer(req));
+//    }
+//
+//    @PostMapping("/owners/register")
+//    public ResponseEntity<RegisterRes> registerOwner(@Valid @RequestBody RegisterOwnerReq req) {
+//        return ResponseEntity.ok(authService.registerOwner(req));
+//    }
+//
+//    // === 로그인 ===
+//    @PostMapping("/customers/login")
+//    public ResponseEntity<LoginRes> loginCustomer(@Valid @RequestBody LoginReq req) {
+//        return ResponseEntity.ok(authService.loginCustomer(req));
+//    }
+//
+//    @PostMapping("/owners/login")
+//    public ResponseEntity<LoginRes> loginOwner(@Valid @RequestBody LoginReq req) {
+//        return ResponseEntity.ok(authService.loginOwner(req));
+//    }
+//
+//    // === 로그아웃 === (게이트웨이 통해 인증 후, 헤더 기반 이중 체크)
+//    @PostMapping("/logout")
+//    @PreAuthorize("hasAnyRole('CUSTOMER','OWNER','ADMIN')")
+//    public ResponseEntity<Void> logout(@RequestHeader(name = "X-User-Name", required = false) String username) {
+//        if (StringUtils.hasText(username)) {
+//            authService.logout(username);
+//        }
+//        return ResponseEntity.noContent().build();
+//    }
+//
+//    // === 고객/사장 탈퇴 === (PK 기준, 컨트롤러/서비스 모두 이중 체크)
+//    @DeleteMapping("/customers/me")
+//    @PreAuthorize("hasRole('CUSTOMER')")
+//    public ResponseEntity<DeleteRes> deleteMeCustomer(
+//            @RequestHeader("X-User-Id") UUID customerId,
+//            @RequestParam(name = "reason", required = false) String reason
+//    ) {
+//        authService.deleteMeCustomer(customerId, reason);
+//        return ResponseEntity.ok(new DeleteRes(true));
+//    }
+//
+//    @DeleteMapping("/owners/me")
+//    @PreAuthorize("hasRole('OWNER')")
+//    public ResponseEntity<DeleteRes> deleteMeOwner(
+//            @RequestHeader("X-User-Id") UUID ownerId,
+//            @RequestParam(name = "reason", required = false) String reason
+//    ) {
+//        authService.deleteMeOwner(ownerId, reason);
+//        return ResponseEntity.ok(new DeleteRes(true));
+//    }
+//
+//    // === 게이트웨이 내부용: username + principalType -> userId/name ===
+//    @GetMapping("/internal/auth/resolve")
+//    public ResponseEntity<ResolveRes> resolve(
+//            @RequestParam String principalType,
+//            @RequestParam String username
+//    ) {
+//        return ResponseEntity.ok(authService.resolve(principalType, username));
+//    }
 }

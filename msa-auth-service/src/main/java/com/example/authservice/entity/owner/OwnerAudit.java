@@ -13,10 +13,10 @@ public class OwnerAudit extends AuditBaseEntity {
 
     @Id
     @Column(name = "audit_id", columnDefinition = "uuid")
-    private UUID auditId;
+    private UUID auditId; // = owner_id (공유 PK)
 
     @OneToOne(fetch = FetchType.LAZY)
-    @MapsId // auditId = customer.customerId
+    @MapsId // auditId = owner.ownerId
     @JoinColumn(name = "audit_id")
     private Owner owner;
 }

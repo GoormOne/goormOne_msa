@@ -21,15 +21,15 @@ public class SignupRequestDto {
     @NotNull @Past private LocalDate birth;
     @NotBlank @Email private String email;
 
-    public Customer toEntity() {
-        return Customer.builder()
-                // id는 넣지 않음 (JPA/DB가 생성)
-                .username(this.username)
-                .password(this.password) // pw encoding은 Service에서
-                .name(this.name)
-                .birth(this.birth)
-                .email(this.email)
-                .isBanned(false)
-                .build();
-    }
+//    public Customer toEntity() {
+//        return Customer.builder()
+//                // id는 넣지 않음 (JPA/DB가 생성)
+//                .username(this.username)
+//                .password(this.password) // pw encoding은 Service에서
+//                .name(this.name)
+//                .birth(this.birth)
+//                .email(this.email)
+//                .isBanned(false)
+//                .build();
+//    }
 }
