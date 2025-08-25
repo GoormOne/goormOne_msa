@@ -49,6 +49,7 @@ public class OrderServiceImpl implements OrderService {
 	private final OrderAuditRepository orderAuditRepository;
 	private final MenuClient menuClient;
 	private final StoreClient storeClient;
+	private final MenuInventoryClient menuInventoryClient;
 
 	@Override
 	@Transactional
@@ -98,6 +99,22 @@ public class OrderServiceImpl implements OrderService {
 				unitPrice
 			));
 		}
+
+		List<OrderItemEntity> reserved = new ArrayList<>();
+		try{
+			for (OrderItemEntity item : toSave) {
+				menuInventoryClient.reserve(item.getMenuId(), item.getQuantity());
+				reserved.add(item);
+			}
+		} catch(Exception e){
+			for (OrderItemEntity item : reserved) {
+				try {
+					menuInventoryClient.release(item.getMenuId(), item.getQuantity());
+				} catch (Exception ignore) {}
+			}
+			throw new IllegalStateException("재고 예약에 실패했습니다. 다시 시도해주세요.");
+		}
+
 		order.setTotalPrice(total);
 
 		order = orderRepository.save(order);
