@@ -18,6 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MenuService {
     private final MenuRepository menuRepository;
+    private final MenuInventoryService menuInventoryService;
 
     public Menu getMenu(UUID menuId, UUID storeId){
         Menu menu =  menuRepository.findByMenuIdAndIsDeletedFalse(menuId).orElseThrow(()-> new EntityNotFoundException("없는 메뉴입니다."));
@@ -62,7 +63,12 @@ public class MenuService {
 
 
 
-    public Menu insertMenu(Menu menu) {
-        return menuRepository.save(menu);
+    @Transactional
+    public Menu insertMenu(Menu menu, int initialQty, boolean infinite) {
+        Menu saved = menuRepository.save(menu);
+
+        menuInventoryService.initInventory(saved.getMenuId(), initialQty, infinite);
+
+        return saved;
     }
 }

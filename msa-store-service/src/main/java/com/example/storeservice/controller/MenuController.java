@@ -96,7 +96,7 @@ public class MenuController {
         storeAuditService.insertStoreAudit(new StoreAudit(ownerId,pk));
         menu.setMenuId(pk);
 
-        Menu result = menuService.insertMenu(menu);
+        Menu result = menuService.insertMenu(menu, menuDto.getInitialQty(), menuDto.getInfinite());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(result.getMenuId()));
     }

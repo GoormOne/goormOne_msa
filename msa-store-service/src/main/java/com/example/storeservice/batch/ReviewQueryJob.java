@@ -1,30 +1,19 @@
 package com.example.storeservice.batch;
 
 
-import com.example.storeservice.dto.AiFlatRow;
-import com.example.storeservice.entity.ReviewQuery;
-import com.example.storeservice.mongoDB.AiDocumentEntity;
-import com.example.storeservice.mongoDB.ReviewQueryEntity;
-import com.example.storeservice.mongoDB.ReviewQueryRepository;
+import com.example.storeservice.mongoDB.ReviewQueryMongoRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
-import org.springframework.batch.core.job.builder.JobBuilder;
+
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
-
-import java.time.LocalDateTime;
-import java.util.*;
 
 @Configuration
 @RequiredArgsConstructor
 public class ReviewQueryJob {
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
-    private final ReviewQueryRepository  reviewQueryRepository;
+    private final ReviewQueryMongoRepository reviewQueryRepository;
 
 //    @Bean
 //    public Job reviewQueryJob() {
