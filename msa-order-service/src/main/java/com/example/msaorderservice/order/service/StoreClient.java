@@ -14,7 +14,6 @@ import com.example.msaorderservice.order.dto.StoreLookUp;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StoreClient {
@@ -26,9 +25,6 @@ public class StoreClient {
 		ParameterizedTypeReference<ApiResponse<StoreLookUp>> typeRef = new ParameterizedTypeReference<>() {};
 		ResponseEntity<ApiResponse<StoreLookUp>> resp =
 			restTemplate.exchange(url, HttpMethod.GET, null, typeRef, storeId.toString());
-
-		log.info("store-service raw response={}", resp);
-		log.info("store-service body={}", resp.getBody());
 
 		if (!resp.getStatusCode().is2xxSuccessful() ||
 		resp.getBody() == null ||

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -318,8 +319,23 @@ public class OrderServiceImpl implements OrderService {
 			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
 		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
-		if (!store.getOwnerId().equals(ownerId)) {
+
+		UUID ownerFromStore = store.getOwnerId();
+		if (Objects.equals(ownerFromStore, ownerId)) {
 			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+		}
+
+		OrderStatus oldStatus = order.getOrderStatus();
+		PaymentStatus nowPaymentStatus = order.getPaymentStatus();
+
+		if (newStatus == OrderStatus.COOKING
+			&& oldStatus == OrderStatus.CONFIRMED
+			&& nowPaymentStatus == PaymentStatus.PAID) {
+			var items = orderItemRepository.findByOrderId_OrderId(orderId);
+
+			for (OrderItemEntity item : items) {
+				menuInventoryClient.confirm(item.getMenuId(), item.getQuantity());
+			}
 		}
 
 		order.setOrderStatus(newStatus);
