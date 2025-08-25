@@ -20,25 +20,14 @@ import java.time.Duration;
 import java.util.UUID;
 
 @Service
-//@RequiredArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class AwsS3Service {
-//    private final S3Client s3Client;
-//    @Value("${spring.cloud.aws.s3.bucket}")
-//    private String bucketName;
-//    private final S3Presigner s3Presigner;
-
     private final S3Client s3Client;
+    @Value("${spring.cloud.aws.s3.bucket}")
+    private String bucketName;
     private final S3Presigner s3Presigner;
-    private final String bucketName;
 
-    // ★★★ Spring이 자동으로 만들어준 S3Client와 S3Presigner를 직접 주입받습니다 ★★★
-    public AwsS3Service(S3Client s3Client, S3Presigner s3Presigner,
-                        @Value("${spring.cloud.aws.s3.bucket}") String bucketName) {
-        this.s3Client = s3Client;
-        this.s3Presigner = s3Presigner;
-        this.bucketName = bucketName;
-    }
 
     public String uploadFile(MultipartFile multipartFile) {
 
