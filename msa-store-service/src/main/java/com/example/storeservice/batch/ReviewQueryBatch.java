@@ -95,7 +95,7 @@ public class ReviewQueryBatch {
                 storeDoc.getMenus().add(menuDoc);
             }
 
-            // 3) 리뷰 추가
+            // 3) 리뷰쿼리 연결
             ReviewQueryEntity.Questions questionsDoc = ReviewQueryEntity.Questions.builder()
                     .requestId(requestId.toString())
                     .question(r.getQuestion())

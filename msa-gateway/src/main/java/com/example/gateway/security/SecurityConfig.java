@@ -41,7 +41,8 @@ public class SecurityConfig {
                                 "/auth/customers/register",
                                 "/auth/owners/register",
                                 "/auth/customers/login",
-                                "/auth/owners/login"
+                                "/auth/owners/login",
+                                "/stores/**"
                         ).permitAll()
                         // 내부 조회 API는 인증 필요(게이트웨이 자체에서 호출하므로 통과됨)
                         .pathMatchers("/internal/**").authenticated()
