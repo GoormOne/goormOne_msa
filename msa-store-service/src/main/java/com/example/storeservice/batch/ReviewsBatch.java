@@ -1,10 +1,13 @@
 package com.example.storeservice.batch;
 
 import com.example.storeservice.dto.AiFlatRow;
+import com.example.storeservice.dto.ReviewQueryFlatRow;
 import com.example.storeservice.mongoDB.AiDocumentEntity;
 import com.example.storeservice.mongoDB.AiDocumentRepository;
+import com.example.storeservice.mongoDB.ReviewQueryEntity;
 import com.example.storeservice.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -27,7 +30,9 @@ import java.util.*;
  **/
 @Configuration
 @RequiredArgsConstructor
-public class ReviewsJob {
+@Slf4j
+public class ReviewsBatch {
+    //TODO 청크 ex)50개의 상점에 대해, 청크안에 모든 상점이 리뷰가 없다면 거기서 끊김
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
