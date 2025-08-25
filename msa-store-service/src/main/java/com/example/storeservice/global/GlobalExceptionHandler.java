@@ -2,6 +2,7 @@ package com.example.storeservice.global;
 
 
 import com.example.common.dto.ApiResponse;
+import com.example.common.exception.BusinessException;
 import com.example.common.exception.CommonCode;
 import com.example.storeservice.exception.StoreAlreadyDeletedException;
 import jakarta.persistence.EntityNotFoundException;
@@ -87,6 +88,25 @@ public class GlobalExceptionHandler {
         log.error("Unexpected error", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.fail(CommonCode.INTERNAL_SERVER_ERROR));
+    }
+
+    // 비즈니스 예외 공통 처리
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiResponse<?>> handleBusiness(BusinessException ex) {
+        log.warn("BusinessException: code={}, detail={}", ex.getCode(), ex.getDetail());
+        var code = ex.getCode();
+        String msg = ex.getDetail() != null ? ex.getDetail() : code.getMessage();
+        return ResponseEntity.status(code.getHttpStatus())
+            .body(ApiResponse.fail(code, msg));
+    }
+
+    // 낙관적 락 충돌 → 409
+    @ExceptionHandler({jakarta.persistence.OptimisticLockException.class,
+        org.hibernate.StaleObjectStateException.class})
+    public ResponseEntity<ApiResponse<?>> handleOptimisticLock(Exception ex) {
+        log.warn("Optimistic lock conflict: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(ApiResponse.fail(CommonCode.CONCURRENCY_CONFLICT));
     }
 
     private CommonCode mapStatusToCommonCode(HttpStatus status) {
