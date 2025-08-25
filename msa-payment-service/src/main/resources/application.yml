@@ -1,7 +1,6 @@
 spring:
   application:
     name: msa-payment-service
-
   profiles:
     active: local
 
