@@ -50,6 +50,10 @@ public class MenuService {
         if (dto.getIsPublic() != null) menu.setIsPublic(dto.getIsPublic());
         if (dto.getIsPublicPhoto() != null) menu.setIsPublicPhoto(dto.getIsPublicPhoto());
         if (dto.getMenuPhotoUrl() != null) menu.setMenuPhotoUrl(dto.getMenuPhotoUrl());
+        if (dto.getInfinite() != null) menuInventoryService.setInfinite(menuId, dto.getInfinite());
+        if (Boolean.FALSE.equals(dto.getInfinite()) && dto.getNewAvailableQty() != null) {
+            menuInventoryService.adjust(menuId, dto.getNewAvailableQty());
+        }
 
 
         return MenuDto.from(menu);
