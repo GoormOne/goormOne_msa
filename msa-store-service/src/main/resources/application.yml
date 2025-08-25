@@ -79,6 +79,9 @@ spring:
     loadbalancer:
       enabled: false
     aws:
+      credentials:
+        accessKey: ${credentials_accessKey}
+        secretKey: ${credentials_secretKey}
       s3:
         bucket: ${s3_bucket_name}
       region:
