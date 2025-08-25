@@ -25,5 +25,6 @@ include(
         "msa-auth-service",
         "msa-user-service",
         "msa-store-service",
-        "msa-order-service"
+        "msa-order-service",
+        "msa-payment-service"
 )

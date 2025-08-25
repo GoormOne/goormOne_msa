@@ -18,21 +18,6 @@ BEGIN
         CREATE TYPE payment_status AS ENUM ('PENDING', 'PAID', 'FAILED', 'REFUNDED');
     END IF;
 
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'order_status') THEN
-        CREATE TYPE order_status AS ENUM ('PENDING', 'CONFIRMED', 'COOKING', 'DELIVERING', 'COMPLETED', 'CANCELED');
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_status') THEN
-        CREATE TYPE payment_status AS ENUM ('PENDING', 'PAID', 'FAILED', 'REFUNDED');
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_method') THEN
-        CREATE TYPE payment_method AS ENUM ('CARD');
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_result') THEN
-        CREATE TYPE payment_result AS ENUM ('SUCCESS', 'CANCELED', 'FAILED');
-    END IF;
 END$$;
 
 -- =====================
@@ -235,15 +220,29 @@ CREATE TABLE IF NOT EXISTS p_review_average (
 -- PAYMENT DOMAIN
 -- =====================
 CREATE TABLE IF NOT EXISTS p_payments (
-                                          payment_id     uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-                                          order_id       uuid NOT NULL UNIQUE REFERENCES p_orders(order_id),
-                                          payment_method payment_method NOT NULL,
-                                          card_number    varchar(16) NOT NULL,
-                                          payment_amount int NOT NULL,
-                                          payment_time   timestamp NOT NULL,
-                                          payment_result payment_result NOT NULL,
-                                          failure_reason text
-);
+                                                payment_id    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+                                                order_id    uuid NOT NULL REFERENCES p_orders(order_id),
+                                                payment_key varchar(100) NOT NULL UNIQUE ,
+                                                status  varchar(20) NOT NULL,
+                                                card_company         varchar(30),
+                                                card_bin             varchar(8),   -- 앞 6~8자리
+                                                card_last4           varchar(4),   -- 뒤 4자리
+                                                card_number_masked   varchar(25),  -- Toss 제공 마스킹 문자열
+                                                payment_amount       int NOT NULL,
+                                                currency             varchar(3) DEFAULT 'KRW' NOT NULL,
+                                                requested_at         timestamptz,
+                                                approved_at          timestamptz,
+                                                receipt_url          varchar(300),
+                                                approve_no           varchar(32),
+                                                issuer_code          varchar(8),
+                                                acquirer_code        varchar(8),
+                                                is_partial_cancelable boolean DEFAULT false NOT NULL,
+                                                payment_result       varchar(30) NOT NULL,
+                                                failure_reason       text,
+                                                failure_code         varchar(50),
+                                                m_id                 varchar(50),
+                                                last_transaction_key varchar(64)
+    );
 
 -- =====================
 -- ERROR LOG

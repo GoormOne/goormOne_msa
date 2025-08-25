@@ -1,6 +1,8 @@
 package com.example.storeservice.service;
 
 import com.example.storeservice.entity.Review;
+import com.example.storeservice.entity.ReviewQuery;
+import com.example.storeservice.repository.ReviewQueryRepository;
 import com.example.storeservice.repository.ReviewRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReviewService {
     private final ReviewRepository reviewRepository;
-
+    private final ReviewQueryRepository reviewQueryRepository;
 
     public Review getById(UUID id) {
         return reviewRepository.findByReviewIdAndIsDeletedFalse(id)
@@ -31,8 +33,12 @@ public class ReviewService {
         return reviewPage;
     }
 
-
     public Review saveReview(Review review) {
         return reviewRepository.save(review);
     }
+
+    public ReviewQuery saveReviewQuery(ReviewQuery reviewQuery) {
+        return reviewQueryRepository.save(reviewQuery);
+    }
+
 }

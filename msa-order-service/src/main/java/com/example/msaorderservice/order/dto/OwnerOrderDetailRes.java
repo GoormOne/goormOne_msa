@@ -4,8 +4,9 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.example.common.entity.PaymentStatus;
 import com.example.msaorderservice.order.entity.OrderStatus;
-import com.example.msaorderservice.order.entity.PaymentStatus;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

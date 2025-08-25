@@ -3,7 +3,9 @@ package com.example.storeservice.controller;
 import com.example.common.dto.ApiResponse;
 import com.example.storeservice.dto.CreateReviewDto;
 import com.example.storeservice.dto.ReviewDto;
+import com.example.storeservice.dto.ReviewQueryDto;
 import com.example.storeservice.entity.Review;
+import com.example.storeservice.entity.ReviewQuery;
 import com.example.storeservice.interceptor.RequireStoreOwner;
 import com.example.storeservice.service.ReviewService;
 import jakarta.validation.constraints.Max;
@@ -80,6 +82,20 @@ public class ReviewController {
 
         return ResponseEntity.ok(ApiResponse.success(ReviewDto.from(review)));
     }
+
+    @PostMapping("/query")
+    public ResponseEntity<ApiResponse<?>> postReviewQuery(
+            @RequestBody ReviewQueryDto reviewQueryDto
+    ){
+        String ownerId = "cf7a8f73-c0fd-4300-82b9-184e718c7b04";
+        UUID ownerUuid = UUID.fromString(ownerId);
+
+        ReviewQuery reviewQuery = reviewService.saveReviewQuery(new ReviewQuery(reviewQueryDto, ownerUuid));
+
+        return ResponseEntity.ok(ApiResponse.success(reviewQuery));
+    }
+
+
 
     // todo : 리뷰 좋아요/취소
 
