@@ -1,30 +1,37 @@
 package com.example.storeservice.batch;
 
 import com.example.storeservice.dto.AiFlatRow;
+import com.example.storeservice.dto.ReviewQueryFlatRow;
 import com.example.storeservice.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamReader;
 
 import java.util.List;
 
-public class FlatRowsPageReader implements ItemStreamReader<List<AiFlatRow>> {
+@Slf4j
+public class QueryFlatRowsPageReader implements ItemStreamReader<List<ReviewQueryFlatRow>> {
 
     private final StoreRepository repo;
     private final int pageSize;
     private int page = 0;
     private boolean exhausted = false;
 
-    public FlatRowsPageReader(StoreRepository repo, int pageSize) {
+    public QueryFlatRowsPageReader(StoreRepository repo, int pageSize) {
         this.repo = repo;
         this.pageSize = pageSize;
     }
 
     @Override
-    public List<AiFlatRow> read() {
+    public List<ReviewQueryFlatRow> read() {
         if (exhausted) return null;
 
-        List<AiFlatRow> rows = repo.findFlatRows(page, pageSize);
+        List<ReviewQueryFlatRow> rows = repo.findQueryFlatRows(page, pageSize);
+        for (ReviewQueryFlatRow row : rows) {
+            log.info("ezra QueryFlatRowsPageReader read result: {}", row.toString());
+
+        }
         if (rows == null || rows.isEmpty()) {
             exhausted = true;
             return null;
@@ -50,4 +57,3 @@ public class FlatRowsPageReader implements ItemStreamReader<List<AiFlatRow>> {
     @Override
     public void close() { }
 }
-

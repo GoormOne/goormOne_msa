@@ -58,6 +58,9 @@ public class Menu {
     @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY)
     private List<Review> reviews = new ArrayList<>();
 
+    @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY)
+    private List<ReviewQuery> reviewQueries = new ArrayList<>();
+
 
     public Menu(UUID menuId) {
         this.menuId = menuId;

@@ -25,7 +25,7 @@ spring:
     jdbc:
       initialize-schema: never   # 메타테이블 생성 : 최초 한번만
     job:
-      enabled: true              # 앱 실행시 job 자동 실행
+      enabled: false              # 앱 실행시 job 자동 실행
 
   data:
     mongodb:
