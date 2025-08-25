@@ -46,3 +46,6 @@ toss:
   api-url: https://api.tosspayments.com
   secret-key: test_sk_GePWvyJnrKblk4AJ4qbEVgLzN97E
   client-key: test_ck_Ba5PzR0Arn9bqEYORBDXVvmYnNeD
+
+store:
+  url: http://msa-store-service

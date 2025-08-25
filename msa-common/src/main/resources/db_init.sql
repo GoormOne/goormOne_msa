@@ -224,7 +224,7 @@ CREATE TABLE IF NOT EXISTS p_payments (
                                                 order_id    uuid NOT NULL REFERENCES p_orders(order_id),
                                                 payment_key varchar(100) NOT NULL UNIQUE ,
                                                 status  varchar(20) NOT NULL,
-                                                payment_method  payment_method NOT NULL,
+
                                                 card_company         varchar(30),
                                                 card_bin             varchar(8),   -- 앞 6~8자리
                                                 card_last4           varchar(4),   -- 뒤 4자리
@@ -238,7 +238,7 @@ CREATE TABLE IF NOT EXISTS p_payments (
                                                 issuer_code          varchar(8),
                                                 acquirer_code        varchar(8),
                                                 is_partial_cancelable boolean DEFAULT false NOT NULL,
-                                                payment_result       payment_result NOT NULL,
+                                                payment_result       varchar(30) NOT NULL,
                                                 failure_reason       text,
                                                 failure_code         varchar(50),
                                                 m_id                 varchar(50),
