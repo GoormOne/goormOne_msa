@@ -6,23 +6,64 @@ spring:
     name: msa-gateway
   main:
     web-application-type: reactive
+  # JWT 리소스 서버 (Cognito 사용 시)
+  # issuer-uri만 맞추면 JWK 자동 로딩으로 서명 검증
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+#          issuer-uri: https://ap-northeast-2uwu3tltzt.auth.ap-northeast-2.amazoncognito.com/oauth2
+          issuer-uri: https://cognito-idp.ap-northeast-2.amazonaws.com/ap-northeast-2_UwU3TlTZt
+#          또는 jwk-ser-uri: https://cognito-idp.ap-northeast-2.amazonaws.com/ap-northeast-2_UwU3TlTZt/.well-known/jwks.json
   cloud:
     gateway:
+      # 공통 필터
       default-filters:
-        - RemoveResponseHeader=Server
+        - RemoveResponseHeader=Cookie
+      # 라우트 정의
       routes:
-        - id: msa-store-service
-          uri: lb://MSA-STORE-SERVICE
+#        - id: msa-common-service
+#          uri: lb://MSA-COMMON-SERVICE
+#          predicates:
+#            - Path=/common/**
+#        - id: msa-user-service
+#          uri: lb://MSA-USER-SERVICE
+#          predicates:
+#            - Path=/users/**
+        - id: msa-auth-service
+          uri: lb://MSA-AUTH-SERVICE
           predicates:
-            - Path=/stores/**
-        - id: msa-common-service
-          uri: lb://MSA-COMMON-SERVICE
-          predicates:
-            - Path=/common/**
+            - Path=/auth/**, /internal/auth/**
+          filters:
+            - PreserveHostHeader
+#        - id: msa-store-service
+#          uri: lb://MSA-STORE-SERVICE
+#          predicates:
+#            - Path=/stores/**, /menus/**
+#          # CircuitBreaker + fallback / RateLimiter: 게이트웨이 품질 안전장치
+#          # RewritePath: 내부 서비스 경로 정리
+#          # Actuator: /actuator/gateway/routes 등 관측
 #          filters:
-#            - StripPrefix=1
-    discovery:
-      enabled: true
+#            - StripPrefix=0
+#            - name: CircuitBreaker
+#              args:
+#                name: storeCB
+#                fallbackUri: forward:/__fallback/store
+#            - name: RequestRateLimiter
+#              args:
+#                key-resolver: "#{@ipKeyResolver}"
+#                redis-rate-limiter.replenishRate: 20   # 초당
+#                redis-rate-limiter.burstCapacity: 40
+#            - name: RewritePath
+#              args:
+#                regexp: "^/stores(?<segment>/?.*)"
+#                replacement: "${segment}"
+      # 서비스 디스커버리 자동 매핑(선택): http://gateway/<serviceId>/... 로 프록시
+      # Eureka에 등록된 서비스 자동 프록시(초기 탐색 편함)
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
 
 management:
   endpoints:
@@ -40,5 +81,14 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
+gateway:
+  user-resolver:
+    base-url: http://msa-auth-service   # load-balanced(WebClient lb://)를 쓰고 싶다면 spring.cloud.loadbalancer 사용
+    timeout-ms: 1500
+    cache-ttl-sec: 60
 
-
+cognito:
+  expected-audience: 2ig0efqufk2ct3svjjevvp1709
+  groups-claim: cognito:groups
+  username-claim: cognito:username
+  name-claim: name

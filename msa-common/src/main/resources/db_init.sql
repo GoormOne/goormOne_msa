@@ -224,7 +224,6 @@ CREATE TABLE IF NOT EXISTS p_payments (
                                                 order_id    uuid NOT NULL REFERENCES p_orders(order_id),
                                                 payment_key varchar(100) NOT NULL UNIQUE ,
                                                 status  varchar(20) NOT NULL,
-
                                                 card_company         varchar(30),
                                                 card_bin             varchar(8),   -- 앞 6~8자리
                                                 card_last4           varchar(4),   -- 뒤 4자리
