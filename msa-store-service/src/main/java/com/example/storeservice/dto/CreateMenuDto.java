@@ -26,6 +26,11 @@ public class CreateMenuDto {
     private Boolean isPublic = true;
     private Boolean isPublicPhoto = true;
 
+    @NotNull
+    @Positive
+    private Integer initialQty;
+    private Boolean infinite = false;
+
     public static Menu toEntity(CreateMenuDto m, UUID storeId) {
 
         return Menu.builder()

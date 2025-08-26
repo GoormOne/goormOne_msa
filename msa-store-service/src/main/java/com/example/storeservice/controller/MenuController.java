@@ -92,7 +92,7 @@ public class MenuController {
         storeAuditService.insertStoreAudit(new StoreAudit(ownerId,pk));
         menu.setMenuId(pk);
 
-        Menu result = menuService.insertMenu(menu);
+        Menu result = menuService.insertMenu(menu, menuDto.getInitialQty(), menuDto.getInfinite());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(result.getMenuId()));
     }
@@ -105,7 +105,7 @@ public class MenuController {
     ){
 
         // todo - 요청자 ownerId 파싱
-        String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";
+        String ownerId = "2ae528d0-1414-4cf3-ac1d-e8ff642c9056";
         UUID ownerUUID = UUID.fromString(ownerId);
 
         // service에서 메뉴와 상점 일치 여부 확인함
@@ -121,7 +121,7 @@ public class MenuController {
     @RequireStoreOwner
     public ResponseEntity<ApiResponse<?>> updateMenuPhoto(
             @PathVariable UUID storeId,
-            @Valid @RequestBody MenuDto menuDto,
+            @Valid @RequestPart("menuDto") MenuDto menuDto,
             @RequestPart("file") MultipartFile file
             ){
         String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";

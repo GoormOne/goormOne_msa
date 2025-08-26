@@ -37,9 +37,7 @@ public class StoreController {
     @GetMapping("/{storeId}")
     public ResponseEntity<ApiResponse<?>> getStore(@PathVariable UUID storeId) {
         // todo - internal 통신시 인증 절차 추가
-        Store store = storeService.getStore(storeId);
-
-        StoreDto storeDto = StoreDto.fromEntity(store);
+        StoreDto storeDto = storeService.getStore(storeId);
 
         return ResponseEntity.ok(ApiResponse.success(storeDto));
 

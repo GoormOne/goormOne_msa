@@ -14,11 +14,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.example.common.dto.ApiResponse;
 import com.example.common.dto.OrderCheckoutView;
 import com.example.common.dto.PaymentStatusUpdatedReq;
 import com.example.common.entity.PaymentStatus;
@@ -29,7 +27,7 @@ import com.example.msaorderservice.order.entity.OrderItemEntity;
 import com.example.msaorderservice.order.repository.OrderAuditRepository;
 import com.example.msaorderservice.order.repository.OrderItemRepository;
 import com.example.msaorderservice.order.repository.OrderRepository;
-import com.example.msaorderservice.order.service.StoreClient;
+import com.example.msaorderservice.order.client.StoreClient;
 
 import lombok.RequiredArgsConstructor;
 

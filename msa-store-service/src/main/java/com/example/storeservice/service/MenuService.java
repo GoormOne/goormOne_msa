@@ -3,6 +3,7 @@ package com.example.storeservice.service;
 
 import com.example.storeservice.dto.MenuDto;
 import com.example.storeservice.entity.Menu;
+import com.example.storeservice.repository.MenuInventoryRepository;
 import com.example.storeservice.repository.MenuRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MenuService {
     private final MenuRepository menuRepository;
+    private final MenuInventoryRepository menuInventoryRepository;
+    private final MenuInventoryService menuInventoryService;
 
     public Menu getMenu(UUID menuId, UUID storeId){
         Menu menu =  menuRepository.findByMenuIdAndIsDeletedFalse(menuId).orElseThrow(()-> new EntityNotFoundException("없는 메뉴입니다."));
@@ -35,6 +38,7 @@ public class MenuService {
     public Menu deleteMenu(UUID menuId, UUID storeId){
         Menu menu =  getMenu(menuId, storeId);
         menu.setIsDeleted(true);
+        menuInventoryRepository.deleteById(menuId);
         return menu;
     }
 
@@ -49,6 +53,10 @@ public class MenuService {
         if (dto.getIsPublic() != null) menu.setIsPublic(dto.getIsPublic());
         if (dto.getIsPublicPhoto() != null) menu.setIsPublicPhoto(dto.getIsPublicPhoto());
         if (dto.getMenuPhotoUrl() != null) menu.setMenuPhotoUrl(dto.getMenuPhotoUrl());
+        if (dto.getInfinite() != null) menuInventoryService.setInfinite(menuId, dto.getInfinite());
+        if (Boolean.FALSE.equals(dto.getInfinite()) && dto.getNewAvailableQty() != null) {
+            menuInventoryService.adjust(menuId, dto.getNewAvailableQty());
+        }
 
 
         return MenuDto.from(menu);
@@ -62,7 +70,12 @@ public class MenuService {
 
 
 
-    public Menu insertMenu(Menu menu) {
-        return menuRepository.save(menu);
+    @Transactional
+    public Menu insertMenu(Menu menu, int initialQty, boolean infinite) {
+        Menu saved = menuRepository.save(menu);
+
+        menuInventoryService.initInventory(saved.getMenuId(), initialQty, infinite);
+
+        return saved;
     }
 }

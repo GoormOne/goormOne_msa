@@ -17,27 +17,24 @@ spring:
 #          또는 jwk-ser-uri: https://cognito-idp.ap-northeast-2.amazonaws.com/ap-northeast-2_UwU3TlTZt/.well-known/jwks.json
   cloud:
     gateway:
-      # 공통 필터
-      default-filters:
-        - RemoveResponseHeader=Cookie
       # 라우트 정의
       routes:
 #        - id: msa-common-service
 #          uri: lb://MSA-COMMON-SERVICE
 #          predicates:
 #            - Path=/common/**
-#        - id: msa-user-service
-#          uri: lb://MSA-USER-SERVICE
-#          predicates:
-#            - Path=/users/**
+        - id: msa-user-service
+          uri: lb://msa-user-service
+          predicates:
+            - Path=/users/**, /internal/users/**
         - id: msa-auth-service
-          uri: lb://MSA-AUTH-SERVICE
+          uri: lb://msa-auth-service
           predicates:
             - Path=/auth/**, /internal/auth/**
           filters:
             - PreserveHostHeader
         - id: msa-store-service
-          uri: lb://MSA-STORE-SERVICE
+          uri: lb://msa-store-service
           predicates:
             - Path=/stores/**
 #          # CircuitBreaker + fallback / RateLimiter: 게이트웨이 품질 안전장치

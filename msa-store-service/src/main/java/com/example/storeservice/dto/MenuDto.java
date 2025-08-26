@@ -1,6 +1,8 @@
 package com.example.storeservice.dto;
 
 import com.example.storeservice.entity.Menu;
+
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Builder;
@@ -26,6 +28,10 @@ public class MenuDto {
 
     private UUID storeId;
     private UUID menuCategoryId;
+
+    @Min(0)
+    private Integer newAvailableQty;
+    private Boolean infinite;
 
     public static MenuDto from(Menu m) {
         return MenuDto.builder()
