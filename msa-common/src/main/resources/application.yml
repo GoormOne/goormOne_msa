@@ -1,3 +1,9 @@
 spring:
   application:
     name: msa-common
+
+auth:
+  mode: hs256
+  hs256Secret: ${JWT_DEV_SECRET}   # 로컬 only
+  header: Authorization
+  prefix: "Bearer "

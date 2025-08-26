@@ -2,11 +2,11 @@ package com.example.storeservice.batch;
 
 import com.example.storeservice.dto.AiFlatRow;
 import com.example.storeservice.repository.StoreRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamReader;
 
 import java.util.List;
-
 
 public class FlatRowsPageReader implements ItemStreamReader<List<AiFlatRow>> {
 
@@ -24,7 +24,7 @@ public class FlatRowsPageReader implements ItemStreamReader<List<AiFlatRow>> {
     public List<AiFlatRow> read() {
         if (exhausted) return null;
 
-        List<AiFlatRow> rows = repo.findFlatRowsPage(page, pageSize);
+        List<AiFlatRow> rows = repo.findFlatRows(page, pageSize);
         if (rows == null || rows.isEmpty()) {
             exhausted = true;
             return null;

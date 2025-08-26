@@ -19,6 +19,12 @@ public class ReviewQueryEntity {
     @Id
     private String id;
 
+    @Field("store_name")
+    private String storeName;
+
+    @Field("updated_at")
+    private LocalDateTime updatedAt;
+
     @Builder.Default
     private List<ReviewQueryEntity.Menus> menus = List.of();  // 빌더가 null 안 넣고 기본값 유지 => null값 방지용
 
@@ -41,10 +47,10 @@ public class ReviewQueryEntity {
     @NoArgsConstructor
     @Builder
     public static class Questions {
-        @Field("review_id")
-        private String reviewId;
-        @Field("question_raw")
-        private String questionRaw;
+        @Field("request_id")
+        private String requestId;
+        @Field("question")
+        private String question;
         @Field("created_at")
         private LocalDateTime createdAt;
     }

@@ -3,8 +3,10 @@ package com.example.msaorderservice.order.controller;
 import java.util.Map;
 import java.util.UUID;
 
+import com.example.msaorderservice.order.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,11 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.msaorderservice.order.dto.OrderCreateReq;
-import com.example.msaorderservice.order.dto.OrderCreateRes;
-import com.example.msaorderservice.order.dto.CustomerOrderDetailRes;
-import com.example.msaorderservice.order.dto.OrderSummaryRes;
-import com.example.msaorderservice.order.dto.OwnerOrderDetailRes;
 import com.example.msaorderservice.order.entity.OrderStatus;
 import com.example.msaorderservice.order.service.OrderService;
 
@@ -43,10 +40,11 @@ public class OrderController {
 
 	@GetMapping
 	public Page<OrderSummaryRes> getMyOrders(
-		@RequestHeader("X-User-Id") UUID customerId,
-		Pageable pageable
+			@RequestHeader("X-User-Id") UUID customerId,
+			Pageable pageable
 	) {
-		return orderService.getMyOrders(customerId, pageable);
+		PageCache<OrderSummaryRes> cached = orderService.getMyOrdersCache(customerId, pageable);
+		return cached.toPage(); // Page<OrderSummaryRes>로 변환
 	}
 
 	@GetMapping("/{orderId}")
@@ -59,11 +57,11 @@ public class OrderController {
 
 	@GetMapping("/owner")
 	public Page<OrderSummaryRes> getOwnerOrders(
-		@RequestHeader("X-User-Id") UUID ownerId,
-		@RequestParam("storeId") UUID storeId,
-		Pageable pageable
+			@RequestHeader("X-User-Id") UUID ownerId,
+			@RequestParam("storeId") UUID storeId,
+			Pageable pageable
 	) {
-		return orderService.getOwnerOrders(ownerId, storeId, pageable);
+		return orderService.getOwnerOrdersCache(ownerId, storeId, pageable).toPage();
 	}
 
 	@GetMapping("/owner/{orderId}")

@@ -10,24 +10,25 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "p_customers")
+@Table(name = "p_customers",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_p_customers_username", columnNames = "username"),
+                @UniqueConstraint(name = "uk_p_customers_email", columnNames = "email")
+        })
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
-@SuperBuilder
-public class Customer extends AuditBaseEntity {
+public class Customer {
 
     /* DB가 gen_random_uuid()로 생성하더라도, JPA가 자신이 ID를 넣어야 하나 오해하면 INSERT 안됨.
     -> JPA에도 UUID 자동 생성 전략을 명시 */
     @Id
     @GeneratedValue
     @UuidGenerator
-    @Column(name = "customer_id", updatable = false, nullable = false)
+    @Column(name = "customer_id", columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID customerId;
 
-//    @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
-//    @MapsId // user_id == p_user_audit.audit_id
-//    @JoinColumn(name = "user_id", referencedColumnName = "audit_id")
-//    private UserAudit userAudit;
+    @PrePersist
+    void pre() { if (customerId == null) customerId = UUID.randomUUID(); }
 
     @Column(name = "username", nullable = false, unique = true, length = 10)
     private String username;
@@ -44,11 +45,9 @@ public class Customer extends AuditBaseEntity {
     @Column(name = "email", nullable = false, unique = true, length = 30)
     private String email;
 
-    @Builder.Default
     @Column(name = "email_verified", nullable = false)
     private Boolean emailVerified = false;
 
-    @Builder.Default
     @Column(name = "is_banned", nullable = false)
     private Boolean isBanned = false;
 }
