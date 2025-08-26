@@ -24,4 +24,8 @@ public interface OrderService {
 	OwnerOrderDetailRes getOwnerOrderDetail(UUID orderId, UUID storeId, UUID ownerId);
 
 	OwnerOrderDetailRes updateOrderStatusByOwner(UUID ownerId, UUID orderId, OrderStatus newStatus);
+
+	CustomerOrderDetailRes cancelMyOrder(UUID customerId, UUID orderId);
+
+	OwnerOrderDetailRes cancelStoreOrder(UUID ownerId, UUID storeId, UUID orderId);
 }

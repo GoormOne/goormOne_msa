@@ -44,3 +44,6 @@ eureka:
 menu:
   inventory:
     url: http://msa-store-service
+
+payment:
+  url: http://msa-payment-service

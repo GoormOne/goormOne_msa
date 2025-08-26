@@ -83,4 +83,21 @@ public class OrderController {
 	) {
 		return orderService.updateOrderStatusByOwner(ownerId, orderId, newStatus);
 	}
+
+	@PostMapping("/{orderId}/cancel")
+	public CustomerOrderDetailRes cancelMyOrder(
+		@RequestHeader("X-User-Id") UUID customerId,
+		@PathVariable UUID orderId
+	) {
+		return orderService.cancelMyOrder(customerId, orderId);
+	}
+
+	@PostMapping("/owner/{orderId}/cancel")
+	public OwnerOrderDetailRes cancelStoreOrder(
+		@RequestHeader("X-User-Id") UUID ownerId,
+		@RequestParam("storeId") UUID storeId,
+		@PathVariable UUID orderId
+	) {
+		return orderService.cancelStoreOrder(ownerId, storeId, orderId);
+	}
 }

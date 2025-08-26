@@ -1,4 +1,4 @@
-package com.example.msaorderservice.order.service;
+package com.example.msaorderservice.order.client;
 
 import java.util.UUID;
 

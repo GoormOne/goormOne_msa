@@ -1,4 +1,4 @@
-package com.example.msaorderservice.order.service;
+package com.example.msaorderservice.order.client;
 
 import java.util.UUID;
 
@@ -12,7 +12,6 @@ import com.example.common.dto.ApiResponse;
 import com.example.msaorderservice.order.dto.StoreLookUp;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor

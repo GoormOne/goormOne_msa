@@ -19,6 +19,9 @@ import com.example.common.entity.PaymentStatus;
 import com.example.msaorderservice.cart.dto.MenuLookUp;
 import com.example.msaorderservice.cart.entity.CartEntity;
 import com.example.msaorderservice.cart.entity.CartItemEntity;
+import com.example.msaorderservice.order.client.MenuInventoryClient;
+import com.example.msaorderservice.order.client.PaymentClient;
+import com.example.msaorderservice.order.client.StoreClient;
 import com.example.msaorderservice.order.dto.OrderCreateReq;
 import com.example.msaorderservice.order.dto.OrderCreateRes;
 import com.example.msaorderservice.order.dto.OrderLineRes;
@@ -51,6 +54,7 @@ public class OrderServiceImpl implements OrderService {
 	private final MenuClient menuClient;
 	private final StoreClient storeClient;
 	private final MenuInventoryClient menuInventoryClient;
+	private final PaymentClient paymentClient;
 
 	@Override
 	@Transactional
@@ -370,6 +374,84 @@ public class OrderServiceImpl implements OrderService {
 					.build()
 			).toList())
 			.build();
+	}
+
+	public CustomerOrderDetailRes cancelMyOrder(UUID customerId, UUID orderId) {
+		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)
+			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+
+		if (order.getOrderStatus() == OrderStatus.CANCELED) {
+			return getMyOrderDetail(customerId, orderId);
+		}
+
+		if ((order.getOrderStatus() == OrderStatus.CONFIRMED
+			|| order.getOrderStatus() == OrderStatus.COOKING
+			|| order.getOrderStatus() == OrderStatus.DELIVERING
+			|| order.getOrderStatus() == OrderStatus.COMPLETED)
+			&& order.getPaymentStatus() == PaymentStatus.PAID) {
+			throw new IllegalStateException("현재 상태에서는 취소할 수 없습니다.");
+		}
+
+		if (order.getPaymentStatus() == PaymentStatus.PAID) {
+			paymentClient.cancelPayment(order.getOrderId(), customerId,"USER_CANCELED");
+			order.setPaymentStatus(PaymentStatus.REFUNDED);
+		}
+
+		var items = orderItemRepository.findByOrderId_OrderId(orderId);
+
+		for (OrderItemEntity item : items) {
+			menuInventoryClient.release(item.getMenuId(), item.getQuantity());
+		}
+
+		order.setOrderStatus(OrderStatus.CANCELED);
+		order.setPaymentStatus(PaymentStatus.REFUNDED);
+		orderRepository.save(order);
+
+		orderAuditRepository.findById(orderId).ifPresent(a -> {
+			a.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+			a.setUpdatedBy(order.getCustomerId());
+			orderAuditRepository.save(a);
+		});
+
+		return getMyOrderDetail(customerId, orderId);
+	}
+
+	public OwnerOrderDetailRes cancelStoreOrder(UUID ownerId, UUID storeId, UUID orderId) {
+		OrderEntity order = orderRepository.findById(orderId)
+			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+
+		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
+
+		UUID ownerFromStore = store.getOwnerId();
+		if (Objects.equals(ownerFromStore, ownerId)) {
+			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+		}
+
+		if (order.getOrderStatus() == OrderStatus.CANCELED) {
+			return getOwnerOrderDetail(ownerId, storeId, orderId);
+		}
+
+		if (order.getOrderStatus() == OrderStatus.CONFIRMED) {
+			throw new IllegalStateException("현재 상태에서는 취소할 수 없습니다.");
+		}
+
+		if (order.getPaymentStatus() == PaymentStatus.PAID) {
+			paymentClient.cancelPayment(order.getOrderId(), ownerId,"USER_CANCELED");
+			order.setPaymentStatus(PaymentStatus.REFUNDED);
+		}
+
+		order.setOrderStatus(OrderStatus.CANCELED);
+		order.setPaymentStatus(PaymentStatus.REFUNDED);
+
+		orderRepository.save(order);
+
+		orderAuditRepository.findById(orderId).ifPresent(a -> {
+			a.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+			a.setUpdatedBy(ownerId);
+			orderAuditRepository.save(a);
+		});
+
+		return getOwnerOrderDetail(ownerId, storeId, orderId);
 	}
 
 	private OrderSummaryRes toOrderSummary(OrderEntity o, List<OrderItemEntity> items, OffsetDateTime createdAt, String storeName) {
