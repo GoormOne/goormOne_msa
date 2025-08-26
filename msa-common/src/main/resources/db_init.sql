@@ -145,6 +145,18 @@ CREATE TABLE IF NOT EXISTS p_menu_category (
                                                UNIQUE (store_id, menu_category_name)
 );
 
+CREATE TABLE IF NOT EXISTS p_menu_inventory
+(
+                                                menu_id           uuid                  NOT NULL
+                                                    primary key
+                                                    references p_menus
+                                                        on delete cascade,
+                                                is_infinite_stock boolean default false NOT NULL,
+                                                available_qty     integer default 0     NOT NULL,
+                                                reserved_qty      integer default 0     NOT NULL,
+                                                version           bigint                NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS p_menus (
                                        menu_id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
                                        store_id         uuid NOT NULL REFERENCES p_stores(store_id),

@@ -96,7 +96,7 @@ public class MenuController {
         storeAuditService.insertStoreAudit(new StoreAudit(ownerId,pk));
         menu.setMenuId(pk);
 
-        Menu result = menuService.insertMenu(menu);
+        Menu result = menuService.insertMenu(menu, menuDto.getInitialQty(), menuDto.getInfinite());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(result.getMenuId()));
     }
@@ -125,7 +125,7 @@ public class MenuController {
     @RequireStoreOwner
     public ResponseEntity<ApiResponse<?>> updateMenuPhoto(
             @PathVariable UUID storeId,
-            @Valid @RequestBody MenuDto menuDto,
+            @Valid @RequestPart("menuDto") MenuDto menuDto,
             @RequestPart("file") MultipartFile file
             ){
         String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";

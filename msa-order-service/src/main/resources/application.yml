@@ -76,6 +76,12 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
+menu:
+  inventory:
+    url: http://msa-store-service
+
+payment:
+  url: http://msa-payment-service
 
 
 logging:
@@ -109,6 +115,13 @@ spring:
 store:
   service:
     url: http://msa-store-service:8080
+
+menu:
+  inventory:
+    url: http://msa-store-service:8080
+
+payment:
+  url: http://msa-payment-service:8080
 
 
 server:
