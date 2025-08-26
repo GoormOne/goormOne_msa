@@ -91,7 +91,7 @@ public class ReviewController {
 
         ReviewQuery reviewQuery = reviewService.saveReviewQuery(new ReviewQuery(reviewQueryDto, ownerUuid));
 
-        return ResponseEntity.ok(ApiResponse.success(reviewQuery));
+        return ResponseEntity.ok(ApiResponse.success(reviewQuery.getQuestionId()));
     }
 
 
