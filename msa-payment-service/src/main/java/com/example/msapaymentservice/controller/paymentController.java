@@ -2,6 +2,10 @@ package com.example.msapaymentservice.controller;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.common.dto.OrderCheckoutView;
+import com.example.msapaymentservice.dto.PaymentSearchRes;
 import com.example.msapaymentservice.dto.TossCancelReq;
 import com.example.msapaymentservice.service.PaymentService;
 
@@ -61,6 +66,26 @@ public class paymentController {
 			: req.getCancelReason().trim();
 
 		return paymentService.cancelPayment(customerId, paymentKey, reason);
+	}
+
+
+	@GetMapping("/me")
+	public Page<PaymentSearchRes> getMyPayments(
+		@RequestHeader("X-User-Id") UUID customerId,
+		@PageableDefault(size = 20, sort = "approvedAt", direction = Sort.Direction.DESC)
+		Pageable pageable
+	) {
+		return paymentService.getMyPayments(customerId, pageable);
+	}
+
+	@GetMapping("/store/{storeId}")
+	public Page<PaymentSearchRes> getOwnerStorePayments(
+		@RequestHeader("X-User-Id") UUID ownerId,
+		@PathVariable UUID storeId,
+		@PageableDefault(size = 20, sort = "approvedAt", direction = Sort.Direction.DESC) Pageable pageable
+	) {
+
+		return paymentService.getOwnerStorePayments(ownerId, storeId, pageable);
 	}
 
 	@GetMapping("/success")

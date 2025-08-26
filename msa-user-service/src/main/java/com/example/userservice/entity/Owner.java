@@ -13,8 +13,7 @@ import java.util.UUID;
 @Table(name = "p_owners")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
-@SuperBuilder
-public class Owner extends AuditBaseEntity {
+public class Owner {
 
     @Id
     @GeneratedValue
@@ -37,11 +36,9 @@ public class Owner extends AuditBaseEntity {
     @Column(name = "email", nullable = false, unique = true, length = 30)
     private String email;
 
-    @Builder.Default
     @Column(name = "email_verified", nullable = false)
     private Boolean emailVerified = false;
 
-    @Builder.Default
     @Column(name = "is_banned", nullable = false)
     private Boolean isBanned = false;
 }

@@ -2,13 +2,9 @@ package com.example.storeservice.controller;
 
 
 import com.example.common.dto.ApiResponse;
-import com.example.common.exception.CommonCode;
 import com.example.storeservice.dto.StoreDto;
 import com.example.storeservice.dto.StoreRegisterDto;
-import com.example.storeservice.entity.StoreAudit;
-import com.example.storeservice.exception.StoreAlreadyDeletedException;
 import com.example.storeservice.interceptor.RequireStoreOwner;
-import com.example.storeservice.service.StoreAuditService;
 import com.example.storeservice.service.StoreService;
 import com.example.storeservice.entity.Store;
 import jakarta.validation.Valid;
@@ -17,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 
 /*
@@ -36,8 +31,13 @@ import java.util.UUID;
 @Slf4j
 public class StoreController {
     private final StoreService storeService;
-    private final StoreAuditService storeAuditService;
 
+    @GetMapping("/test")
+    public ResponseEntity<ApiResponse> test() {
+
+
+        return ResponseEntity.ok(ApiResponse.success());
+    }
 
     // todo - 스토어 상세조회  : 메뉴카테고리, 메뉴, 리전, 오너까지 반환 추가
     @GetMapping("/{storeId}")
@@ -57,17 +57,15 @@ public class StoreController {
 //        String owerId = null;
 //        if(owerId != storeRegisterDto.getOwerId()){}
 
-        UUID pk = UUID.randomUUID();
+        log.info("StoreController.saveStore - storeRegisterDto:{}", storeRegisterDto);
         //store 저장
+        UUID pk = UUID.randomUUID();
+
+        log.info("StoreController.saveStore - pk:{}", storeRegisterDto.toEntity(pk).toString());
         Store store = storeService.insertStore(storeRegisterDto.toEntity(pk));
-        if (store == null) {return ResponseEntity.notFound().build();}
 
-        //audit생성
-        StoreAudit storePk = storeAuditService.insertStoreAudit(new StoreAudit(storeRegisterDto.getOwnerId(),pk));
-
-        if (storePk == null) {return ResponseEntity.notFound().build();}
-
-        return ResponseEntity.ok(ApiResponse.success(pk));
+        log.info("Store {} has been inserted", store.toString());
+        return ResponseEntity.ok(ApiResponse.success(store.getStoreId()));
     }
 
     @DeleteMapping("/{storeId}")
@@ -77,9 +75,9 @@ public class StoreController {
 
         // TODO: JWT에서 ownerId 추출
         String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";
+        UUID ownerUuid = UUID.fromString(ownerId);
 
-        storeAuditService.deleteAudit(storeId, UUID.fromString(ownerId));
-        UUID deletedId = storeService.deleteStore(storeId);
+        UUID deletedId = storeService.deleteStore(storeId, ownerUuid);
 
         return ResponseEntity.ok(ApiResponse.success(deletedId));
 
@@ -93,12 +91,10 @@ public class StoreController {
             @Valid @RequestBody StoreRegisterDto storeRegisterDto
     ){
         // TODO: JWT에서 ownerId 추출 == 요청자
-
         UUID ownerUuid = storeRegisterDto.getOwnerId();
 
         Store updatedStore = storeService.updateStore(storeId, storeRegisterDto);
 
-        storeAuditService.updateAudit(updatedStore.getStoreId(),ownerUuid);
 
         return ResponseEntity.ok(ApiResponse.success(updatedStore.getStoreId()));
     }

@@ -1,132 +1,118 @@
 package com.example.userservice.controller;
 
-import com.example.common.dto.ApiResponse;
-import com.example.userservice.dto.CustomerProfileUpdateReq;
-import com.example.userservice.dto.OwnerProfileUpdateReq;
-import com.example.userservice.service.UserProfileService;
-import jakarta.validation.Valid;
+import com.example.userservice.dto.*;
+import com.example.userservice.service.UserService;
+import com.example.common.web.AuthUser;
+import com.example.common.dto.AuthHeaders;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-/*
-* --- user ---
-* 1. 고객/사장 회원가입 (인증 X)
-* 2. 고객/사장 회원탈퇴
-* 3. 고객/사장 내정보 조회
-* 4. 고객/사장 내정보 수정
-* 5. 고객/사장 비밀번호 변경
-* 6. 관리자 회원정보 조회, 수정
-* */
 @RestController
-@RequestMapping("/users")
 @RequiredArgsConstructor
-@Slf4j
+@RequestMapping("/users")
 public class UserController {
-//    •	POST /users (프로필 생성; auth 등록 후 호출)
-//    •	GET /users/me
-//	  •	PUT /users/me
-//	  •	DELETE /users/me (soft delete)
-//	  •	GET /admin/users?query=&sort=createdAt,desc&page=0&size=10
-//    •	PATCH /admin/users/{id} (role/is_banned)
 
-    private final UserProfileService service;
+    private final UserService userservice;
 
-    // customers
-    @GetMapping("/customers/{customerId}")
-    public ResponseEntity<ApiResponse<?>> getCustomer(@PathVariable UUID customerId) {
-        return ResponseEntity.ok(ApiResponse.success(service.getCustomer(customerId)));
+    // ===== CUSTOMER =====
+    @GetMapping("/customers/me")
+    public MyProfileRes getMyCustomer(@AuthUser AuthHeaders headers) {
+        requireGroup(headers, "CUSTOMER");
+        UUID id = uuid(headers.getUserId());
+        return userservice.getMyCustomer(id);
     }
 
-    @PutMapping("/customers/{customerId}")
-    public ResponseEntity<ApiResponse<?>> updateCustomer(
-            @PathVariable UUID customerId,
-            @Valid @RequestBody CustomerProfileUpdateReq req) {
-        return ResponseEntity.ok(ApiResponse.success(service.updateCustomer(customerId, req)));
+    @PutMapping("/customers/me")
+    public MyProfileRes updateMyCustomer(@AuthUser AuthHeaders headers,
+                                         @RequestBody UpdateCustomerReq req) {
+        requireGroup(headers, "CUSTOMER");
+        UUID id = uuid(headers.getUserId());
+        return userservice.updateMyCustomer(id, req);
     }
 
-    @DeleteMapping("/customers/{customerId}")
-    public ResponseEntity<ApiResponse<Void>> deleteCustomer(
-            @PathVariable UUID customerId,
-            @RequestParam(required = false, defaultValue = "user request") String reason) {
-        service.deleteCustomer(customerId, reason);
-        return ResponseEntity.ok(ApiResponse.success()); // 성공만 반환
+    @PatchMapping("/customers/me/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changeMyCustomerPassword(@AuthUser AuthHeaders headers,
+                                         @RequestBody ChangePasswordReq req) {
+        requireGroup(headers, "CUSTOMER");
+        UUID id = uuid(headers.getUserId());
+        userservice.changeCustomerPassword(id, req);
     }
 
-    // owners
-    @GetMapping("/owners/{ownerId}")
-    public ResponseEntity<ApiResponse<?>> getOwner(@PathVariable UUID ownerId) {
-        return ResponseEntity.ok(ApiResponse.success(service.getOwner(ownerId)));
+    // ===== OWNER =====
+    @GetMapping("/owners/me")
+    public MyProfileRes getMyOwner(@AuthUser AuthHeaders headers) {
+        requireGroup(headers, "OWNER");
+        UUID id = uuid(headers.getUserId());
+        return userservice.getMyOwner(id);
     }
 
-    @PutMapping("/owners/{ownerId}")
-    public ResponseEntity<ApiResponse<?>> updateOwner(
-            @PathVariable UUID ownerId,
-            @Valid @RequestBody OwnerProfileUpdateReq req) {
-        return ResponseEntity.ok(ApiResponse.success(service.updateOwner(ownerId, req)));
+    @PutMapping("/owners/me")
+    public MyProfileRes updateMyOwner(@AuthUser AuthHeaders headers,
+                                      @RequestBody UpdateOwnerReq req) {
+        requireGroup(headers, "OWNER");
+        UUID id = uuid(headers.getUserId());
+        return userservice.updateMyOwner(id, req);
     }
 
-    @DeleteMapping("/owners/{ownerId}")
-    public ResponseEntity<ApiResponse<Void>> deleteOwner(
-            @PathVariable UUID ownerId,
-            @RequestParam(required = false, defaultValue = "user request") String reason) {
-        service.deleteOwner(ownerId, reason);
-        return ResponseEntity.ok(ApiResponse.success());
+    @PatchMapping("/owners/me/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changeMyOwnerPassword(@AuthUser AuthHeaders headers,
+                                      @RequestBody ChangePasswordReq req) {
+        requireGroup(headers, "OWNER");
+        UUID id = uuid(headers.getUserId());
+        userservice.changeOwnerPassword(id, req);
     }
+
+    // ===== 내부 유저 PK 해석용(게이트웨이에서 호출) =====
+    //  GW가 "로컬 PK"를 알아내기 위한 내부 전용 API
+    //  여기서만 username/email로 조회해서 PK 반환, 일반 비즈니스 API는 PK로만 조회
+    //  실제 구현에서 CustomerRepository/OwnerRepository에 findByUsername/findByEmail 같은 읽기용 메서드를 추가해서 resolve 내부를 완성
+    //  GET /internal/users/resolve?username=...&email=...&group=CUSTOMER|OWNER|ADMIN
+    @GetMapping("/internal/users/resolve")
+    public ResolveRes resolve(@RequestParam String username,
+                              @RequestParam String email,
+                              @RequestParam String group) {
+        // 로컬 전략:
+        // - group에 따라 해당 테이블에서 username 또는 email 로 매핑 PK를 찾고 반환
+        // - "PK만 조회" 원칙에 맞추기 위해, 여기서는 내부용 예외로 username/email -> PK 변환을 허용
+        String principalType = group.toUpperCase();
+        String userId = switch (principalType) {
+            case "OWNER" -> findOwnerIdByUsernameOrEmail(username, email);
+            case "ADMIN" -> findAdminIdByUsernameOrEmail(username, email); // 필요 시 구현
+            default -> findCustomerIdByUsernameOrEmail(username, email);
+        };
+        return new ResolveRes(principalType, userId, username, email, new String[]{group});
+    }
+
+    // === 단순 샘플 구현부 (실서비스에서는 Repository 메서드 추가/쿼리 작성) ===
+    private String findCustomerIdByUsernameOrEmail(String username, String email) {
+        // 예: customerRepository.findByUsername(...) 또는 findByEmail(...)
+        // 여기서는 간략화를 위해 username/email -> UUID 변환 로직을 별도로 두지 않고,
+        // 실제 구현 시 Repository 메서드를 추가하세요.
+        throw new UnsupportedOperationException("Implement customer resolve by username/email");
+    }
+    private String findOwnerIdByUsernameOrEmail(String username, String email) {
+        throw new UnsupportedOperationException("Implement owner resolve by username/email");
+    }
+    private String findAdminIdByUsernameOrEmail(String username, String email) {
+        throw new UnsupportedOperationException("Implement admin resolve by username/email");
+    }
+
+    // ===== 유틸 =====
+    private void requireGroup(AuthHeaders headers, String required) {
+        if (!required.equalsIgnoreCase(headers.getGroups())) {
+            throw new org.springframework.security.access.AccessDeniedException("FORBIDDEN_GROUP");
+        }
+    }
+    private UUID uuid(String v) {
+        try { return UUID.fromString(v); }
+        catch (Exception e) { throw new IllegalArgumentException("INVALID_USER_ID"); }
+    }
+
+    // 내부 응답 DTO
+    public record ResolveRes(String principalType, String userId, String username, String email, String[] roles) { }
 }
-
-// 기존 코드 주석처리
-/*
-import com.example.userservice.dto.request.AuthRequestDTO;
-import com.example.userservice.dto.response.AuthResponseDTO;
-import com.example.userservice.entity.Role;
-import com.example.userservice.service.AuthService;
-import com.example.userservice.service.UserAddressService;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import java.util.List;
-
-private final UserAddressService userAddressService;
-private final AuthService authService;
-
-// 회원 가입
-@PostMapping("/signup/{role:customer|owner}")
-public ResponseEntity<ApiResponse<AuthResponseDTO.AuthRegisterResponseDTO>> signup(
-        @PathVariable String role,
-        @Valid @RequestBody AuthRequestDTO.RegisterRequestDto request) {
-    Role r = "owner".equalsIgnoreCase(role) ? Role.OWNER : Role.CUSTOMER;
-    AuthResponseDTO.AuthRegisterResponseDTO res = userService.createUser(request, r);
-}
-
-@PostMapping("/signup/customer")
-public ResponseEntity<ApiResponse<String>> signup(@RequestBody SignupRequestDto request) {
-    String result = userService.createUser(request);
-    return ResponseEntity.ok(ApiResponse.success(result));
-}
-@PostMapping("/register/customer")
-public ResponseEntity<ApiResponse<AuthResponseDTO.AuthRegisterResponseDTO>> registerCustomer(
-        @Valid @RequestBody AuthRequestDTO.RegisterRequestDto request) {
-
-    AuthResponseDTO.AuthRegisterResponseDTO response = authService.registerCustomer(request);
-    return ResponseEntity.ok(ApiResponse.success(response));
-}
-@PostMapping("/register/owner")
-public ResponseEntity<ApiResponse<AuthResponseDTO.AuthRegisterResponseDTO>> registerOwner(
-        @Valid @RequestBody AuthRequestDTO.RegisterRequestDto request) {
-
-    AuthResponseDTO.AuthRegisterResponseDTO response = authService.registerOwner(request);
-    return ResponseEntity.ok(ApiResponse.success(response));
-}
-
-// 회원 탈퇴
-@DeleteMapping("/withdraw")
-public ResponseEntity<ApiResponse<String>> withdraw(Authentication authentication) {
-    String username = authentication.getName();
-    String result = userService.softDeleteUser(username);
-    return ResponseEntity.ok(ApiResponse.success(result));
-}
-*/

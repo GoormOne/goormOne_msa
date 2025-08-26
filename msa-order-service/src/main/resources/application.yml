@@ -39,9 +39,11 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
+
 store:
   service:
     url: http://msa-store-service
+
 
 
 
