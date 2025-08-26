@@ -1,11 +1,14 @@
 package com.example.common.dto;
 
-public final class AuthHeaders {
-    private AuthHeaders() {}
+import lombok.*;
 
-    public static final String X_USER_ID   = "X-User-Id";
-    public static final String X_USER_TYPE = "X-User-Type";   // CUSTOMER | OWNER | ADMIN
-    public static final String X_USERNAME  = "X-Username";
-    public static final String X_EMAIL     = "X-Email";
-    public static final String X_GROUPS    = "X-Groups";      // CSV (e.g. CUSTOMER,OWNER)
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+@Builder
+public class AuthHeaders {
+    private String groups;     // CUSTOMER | OWNER | ADMIN
+    private String userId;     // UUID (문자열)
+    private String userName;
+    private String email;
+    private String userRoles;  // 콤마로 조인된 전체 그룹(옵션)
 }
