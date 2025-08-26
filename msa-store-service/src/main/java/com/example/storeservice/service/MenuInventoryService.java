@@ -1,7 +1,5 @@
 package com.example.storeservice.service;
 
-import static java.awt.SystemColor.*;
-
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -14,10 +12,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import com.example.storeservice.entity.Menu;
 import com.example.storeservice.entity.MenuInventory;
-import com.example.storeservice.exception.InvalidQuantityException;
-import com.example.storeservice.exception.InventoryNotFoundException;
-import com.example.storeservice.exception.OutOfStockException;
-import com.example.storeservice.exception.ReservedNotEnoughException;
+import com.example.storeservice.global.exception.InvalidQuantityException;
+import com.example.storeservice.global.exception.InventoryNotFoundException;
+import com.example.storeservice.global.exception.OutOfStockException;
+import com.example.storeservice.global.exception.ReservedNotEnoughException;
 import com.example.storeservice.repository.MenuInventoryRepository;
 import com.example.storeservice.repository.MenuRepository;
 

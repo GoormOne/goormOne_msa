@@ -4,7 +4,7 @@ package com.example.storeservice.controller;
 import com.example.common.dto.ApiResponse;
 import com.example.storeservice.dto.StoreDto;
 import com.example.storeservice.dto.StoreRegisterDto;
-import com.example.storeservice.interceptor.RequireStoreOwner;
+import com.example.storeservice.global.interceptor.RequireStoreOwner;
 import com.example.storeservice.service.StoreService;
 import com.example.storeservice.entity.Store;
 import jakarta.validation.Valid;
@@ -32,12 +32,6 @@ import java.util.UUID;
 public class StoreController {
     private final StoreService storeService;
 
-    @GetMapping("/test")
-    public ResponseEntity<ApiResponse> test() {
-
-
-        return ResponseEntity.ok(ApiResponse.success());
-    }
 
     // todo - 스토어 상세조회  : 메뉴카테고리, 메뉴, 리전, 오너까지 반환 추가
     @GetMapping("/{storeId}")

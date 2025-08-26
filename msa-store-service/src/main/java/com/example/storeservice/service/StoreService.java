@@ -1,19 +1,15 @@
 package com.example.storeservice.service;
 
 
-import com.example.storeservice.dto.AiFlatRow;
 import com.example.storeservice.dto.StoreRegisterDto;
-import com.example.storeservice.mongoDB.AiDocumentEntity;
 import com.example.storeservice.entity.Store;
 import com.example.storeservice.entity.StoreAudit;
-import com.example.storeservice.exception.StoreAlreadyDeletedException;
+import com.example.storeservice.global.exception.StoreAlreadyDeletedException;
 import com.example.storeservice.global.EventAction;
 import com.example.storeservice.repository.StoreAuditRepository;
 import com.example.storeservice.repository.StoreRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

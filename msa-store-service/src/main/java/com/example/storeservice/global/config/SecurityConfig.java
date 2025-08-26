@@ -1,4 +1,4 @@
-package com.example.storeservice.global;
+package com.example.storeservice.global.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

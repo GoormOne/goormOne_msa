@@ -23,7 +23,7 @@ import java.util.*;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class ReviewQueryBatch {
+public class ReviewQueryJobConfiguration {
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
     private final StoreRepository storeRepository;

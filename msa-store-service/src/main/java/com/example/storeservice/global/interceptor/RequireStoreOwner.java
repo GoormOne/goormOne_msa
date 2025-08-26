@@ -1,4 +1,4 @@
-package com.example.storeservice.interceptor;
+package com.example.storeservice.global.interceptor;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

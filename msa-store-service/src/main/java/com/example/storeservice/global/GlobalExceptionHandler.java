@@ -4,7 +4,7 @@ package com.example.storeservice.global;
 import com.example.common.dto.ApiResponse;
 import com.example.common.exception.BusinessException;
 import com.example.common.exception.CommonCode;
-import com.example.storeservice.exception.StoreAlreadyDeletedException;
+import com.example.storeservice.global.exception.StoreAlreadyDeletedException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +17,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.AccessDeniedException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice

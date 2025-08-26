@@ -1,5 +1,6 @@
-package com.example.storeservice.interceptor;
+package com.example.storeservice.global.config;
 
+import com.example.storeservice.global.interceptor.StoreOwnerInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

@@ -1,7 +1,7 @@
 package com.example.storeservice.service;
 
 import com.example.storeservice.entity.StoreAudit;
-import com.example.storeservice.exception.StoreAlreadyDeletedException;
+import com.example.storeservice.global.exception.StoreAlreadyDeletedException;
 import com.example.storeservice.repository.StoreAuditRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
