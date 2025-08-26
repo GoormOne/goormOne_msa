@@ -7,7 +7,7 @@ spring:
   data:
     redis:
 #      host: localhost
-      host: 3.35.168.60
+      host: 192.168.3.208
       port: 6379
       clientName: ksy
 
