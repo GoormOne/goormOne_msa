@@ -6,7 +6,6 @@ import com.example.storeservice.dto.ReviewDto;
 import com.example.storeservice.dto.ReviewQueryDto;
 import com.example.storeservice.entity.Review;
 import com.example.storeservice.entity.ReviewQuery;
-import com.example.storeservice.interceptor.RequireStoreOwner;
 import com.example.storeservice.service.ReviewService;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

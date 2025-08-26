@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,4 +16,5 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
     Optional<Review> findByReviewIdAndIsDeletedFalse(UUID reviewId);
     Page<Review> findByStore_StoreIdAndIsDeletedFalse(UUID storeId, Pageable pageable);
 
+    List<Review> findByMenu_MenuId(UUID menuMenuId);
 }

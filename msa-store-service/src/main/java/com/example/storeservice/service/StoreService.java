@@ -5,10 +5,9 @@ package com.example.storeservice.service;
 import com.example.storeservice.dto.StoreDto;
 import com.example.storeservice.dto.AiFlatRow;
 import com.example.storeservice.dto.StoreRegisterDto;
-import com.example.storeservice.mongoDB.AiDocumentEntity;
 import com.example.storeservice.entity.Store;
 import com.example.storeservice.entity.StoreAudit;
-import com.example.storeservice.exception.StoreAlreadyDeletedException;
+import com.example.storeservice.global.exception.StoreAlreadyDeletedException;
 import com.example.storeservice.global.EventAction;
 import com.example.storeservice.repository.StoreAuditRepository;
 import com.example.storeservice.repository.StoreRepository;
@@ -92,7 +91,7 @@ public class StoreService {
     @Transactional
     //메서드가 성공적으로 완료되면 해당 내역도 캐시에서 삭제
     //@CacheEvict(value = "store" , key ="#storeId")
- 
+
     public UUID deleteStore(UUID storeId, UUID deleterId) {
 
         Store store = storeRepository.findById(storeId)

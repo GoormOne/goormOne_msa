@@ -17,6 +17,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+// Security 설정
 @Configuration
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
@@ -41,7 +42,8 @@ public class SecurityConfig {
                                 "/health/**",
                                 "/auth/**",
                                 "/users/**",
-                                "/internal/auth/**"
+                                "/internal/auth/**",
+                                "/stores/**"
                         ).permitAll()
                         .anyExchange().authenticated()
                 )

@@ -1,4 +1,4 @@
-package com.example.storeservice.interceptor;
+package com.example.storeservice.global.interceptor;
 
 import com.example.storeservice.service.StoreAuthorizationService;
 import jakarta.servlet.http.HttpServletRequest;

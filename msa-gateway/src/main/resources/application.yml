@@ -36,7 +36,7 @@ spring:
         - id: msa-store-service
           uri: lb://msa-store-service
           predicates:
-            - Path=/stores/**, /menus/**
+            - Path=/stores/**
 #          # CircuitBreaker + fallback / RateLimiter: 게이트웨이 품질 안전장치
 #          # RewritePath: 내부 서비스 경로 정리
 #          # Actuator: /actuator/gateway/routes 등 관측
@@ -80,8 +80,7 @@ eureka:
 
 gateway:
   user-resolver:
-#    base-url: http://msa-auth-service   # load-balanced(WebClient lb://)를 쓰고 싶다면 spring.cloud.loadbalancer 사용
-    base-url: lb://msa-auth-service
+    base-url: http://msa-auth-service   # load-balanced(WebClient lb://)를 쓰고 싶다면 spring.cloud.loadbalancer 사용
     timeout-ms: 1500
     cache-ttl-sec: 60
 
