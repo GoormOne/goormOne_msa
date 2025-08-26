@@ -106,9 +106,9 @@ spring:
       enabled: false
 aws:
   cognito:
-    user-pool-id: ${AWS_COGNITO_USER_POOL_ID}
-    app-client-id: ${AWS_COGNITO_APP_CLIENT_ID}
-    app-client-secret: ${AWS_COGNITO_APP_CLIENT_SECRET}
+    user-pool-id: ${user_pool_id}
+    app-client-id: ${client_id}
+    app-client-secret: ${client_secrets}
     groups:
       admin: admin
       owner: owner
