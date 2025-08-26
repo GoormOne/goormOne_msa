@@ -1,64 +1,78 @@
 package com.example.gateway.security;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import reactor.core.publisher.Mono;
 
-import java.util.Collection;
-import java.util.function.Function;
+import java.util.List;
 
-// Security 설정
 @Configuration
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Value("${cognito.groups-claim:cognito:groups}")
-    private String groupsClaim;
-
-    @Value("${cognito.expected-audience}")
-    private String expectedAudience;
+    private final ReactiveJwtDecoder jwtDecoder; // (issuer-uri 등록 시 자동 빈 생성, 없으면 제거 가능)
+    private final JwtRoleConverter jwtRoleConverter;
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        Function<Jwt, Collection<GrantedAuthority>> authoritiesConverter =
-                new JwtRoleConverter(groupsClaim)::convert;
+        // 서블릿용 컨버터를 리액티브로 래핑
+        JwtAuthenticationConverter servletJwtConv = new JwtAuthenticationConverter();
+        servletJwtConv.setJwtGrantedAuthoritiesConverter(jwtRoleConverter);
+        var reactiveJwtConverter = new ReactiveJwtAuthenticationConverterAdapter(servletJwtConv);
 
         http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .authorizeExchange(reg -> reg
-                        // 회원가입/로그인 등 auth-service의 일부 공개 엔드포인트는 게이트웨이에서도 열어둠
+                .cors(cors -> {}) // 아래 corsConfigurationSource() 사용
+                .authorizeExchange(ex -> ex
                         .pathMatchers(
-                                "/auth/**"
+                                "/actuator/**",
+                                "/health/**",
+                                "/auth/**",
+                                "/users/**",
+                                "/internal/auth/**"
                         ).permitAll()
-                        // 내부 조회 API는 인증 필요(게이트웨이 자체에서 호출하므로 통과됨)
-                        .pathMatchers("/internal/**").authenticated()
-                        // 그 외는 모두 인증
                         .anyExchange().authenticated()
                 )
-                .oauth2ResourceServer(oauth -> oauth
-                        .jwt(jwt -> jwt
-                                .jwtAuthenticationConverter(new ReactiveJwtAuthenticationConverterAdapter(
-                                        jwtToken -> {
-                                            Jwt j = (Jwt) jwtToken;
-                                            if (!j.getAudience().contains(expectedAudience)) {
-                                                throw new JwtValidationException("Invalid audience", null);
-                                            }
-                                            return (AbstractAuthenticationToken) authoritiesConverter.apply(j);
-                                        }
-                                ))
-                        )
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> {
+                            // 리액티브 컨버터 연결
+                            jwt.jwtAuthenticationConverter(reactiveJwtConverter);
+                            // 커스텀 디코더를 쓰고 싶으면 아래 라인 활성화
+                            // jwt.jwtDecoder(jwtDecoder);
+                        })
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration conf = new CorsConfiguration();
+        conf.setAllowedOriginPatterns(List.of("*"));
+        conf.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+        conf.setAllowedHeaders(List.of(
+                "Authorization", "Content-Type",
+                "X-Groups", "X-User-Id", "X-User-Name", "X-User-Roles", "X-Email"
+        ));
+        conf.setExposedHeaders(List.of(
+                "X-Groups", "X-User-Id", "X-User-Name", "X-User-Roles", "X-Email"
+        ));
+        conf.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
+        src.registerCorsConfiguration("/**", conf);
+        return src;
     }
 }

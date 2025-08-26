@@ -17,29 +17,26 @@ spring:
 #          또는 jwk-ser-uri: https://cognito-idp.ap-northeast-2.amazonaws.com/ap-northeast-2_UwU3TlTZt/.well-known/jwks.json
   cloud:
     gateway:
-      # 공통 필터
-      default-filters:
-        - RemoveResponseHeader=Cookie
       # 라우트 정의
       routes:
 #        - id: msa-common-service
 #          uri: lb://MSA-COMMON-SERVICE
 #          predicates:
 #            - Path=/common/**
-#        - id: msa-user-service
-#          uri: lb://MSA-USER-SERVICE
-#          predicates:
-#            - Path=/users/**
+        - id: msa-user-service
+          uri: lb://msa-user-service
+          predicates:
+            - Path=/users/**, /internal/users/**
         - id: msa-auth-service
-          uri: lb://MSA-AUTH-SERVICE
+          uri: lb://msa-auth-service
           predicates:
             - Path=/auth/**, /internal/auth/**
           filters:
             - PreserveHostHeader
-#        - id: msa-store-service
-#          uri: lb://MSA-STORE-SERVICE
-#          predicates:
-#            - Path=/stores/**, /menus/**
+        - id: msa-store-service
+          uri: lb://msa-store-service
+          predicates:
+            - Path=/stores/**, /menus/**
 #          # CircuitBreaker + fallback / RateLimiter: 게이트웨이 품질 안전장치
 #          # RewritePath: 내부 서비스 경로 정리
 #          # Actuator: /actuator/gateway/routes 등 관측
@@ -83,7 +80,8 @@ eureka:
 
 gateway:
   user-resolver:
-    base-url: http://msa-auth-service   # load-balanced(WebClient lb://)를 쓰고 싶다면 spring.cloud.loadbalancer 사용
+#    base-url: http://msa-auth-service   # load-balanced(WebClient lb://)를 쓰고 싶다면 spring.cloud.loadbalancer 사용
+    base-url: lb://msa-auth-service
     timeout-ms: 1500
     cache-ttl-sec: 60
 
