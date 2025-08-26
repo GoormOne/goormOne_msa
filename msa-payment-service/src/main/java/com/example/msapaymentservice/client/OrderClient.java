@@ -1,6 +1,7 @@
 package com.example.msapaymentservice.client;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -9,15 +10,12 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import com.example.common.dto.ApiResponse;
-import com.example.common.dto.PaymentStatusUpdatedReq;
 import com.example.common.entity.PaymentStatus;
 import com.example.common.dto.OrderCheckoutView;
-
+import com.example.msapaymentservice.dto.PaymentStatusUpdateReq;
 
 @Component
 public class OrderClient {
@@ -52,18 +50,13 @@ public class OrderClient {
 		String url = STORE_BASE + "/internal/orders/" + orderId + "/status";
 
 		HttpHeaders headers = new HttpHeaders();
-
-		if (customerId != null) {
-			headers.set("X-User-Id", customerId.toString());
-		}else {
-			headers.set("X-Internal-Call", "msa-payment-service");
-		}
-
 		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set("X-User-Id", customerId.toString());
 
-		PaymentStatusUpdatedReq req = new PaymentStatusUpdatedReq(status, reason);
-		HttpEntity<PaymentStatusUpdatedReq> entity = new HttpEntity<>(req, headers);
+		PaymentStatusUpdateReq body = new PaymentStatusUpdateReq();
+		body.setPaymentStatus(status);
 
+		HttpEntity<PaymentStatusUpdateReq> entity = new HttpEntity<>(body, headers);
 		restTemplate.exchange(url, HttpMethod.PATCH, entity, Void.class);
 	}
 

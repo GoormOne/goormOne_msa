@@ -1,4 +1,4 @@
-package com.example.msacommonservice.global;
+package com.example.commonservice.global;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

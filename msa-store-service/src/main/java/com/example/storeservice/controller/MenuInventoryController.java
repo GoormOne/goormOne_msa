@@ -15,11 +15,13 @@ import com.example.storeservice.service.MenuInventoryService;
 
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/internal/inventory")
 @RequiredArgsConstructor
 @Validated
+@Slf4j
 public class MenuInventoryController {
 
 	private final MenuInventoryService inventoryService;
@@ -48,6 +50,7 @@ public class MenuInventoryController {
 	@PostMapping("/{menuId}/reserve")
 	public ApiResponse<Void> reserve(@PathVariable UUID menuId,
 		@RequestParam @Min(1) int qty) {
+		log.info("[STORE] RESERVE HIT menuId={}, qty={}", menuId, qty);
 		inventoryService.reserve(menuId, qty);
 		return ApiResponse.success();
 	}

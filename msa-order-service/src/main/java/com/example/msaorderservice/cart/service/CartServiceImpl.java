@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -65,7 +66,10 @@ public class CartServiceImpl implements CartService {
 	}
 
 	@Override
-	@Transactional
+	@Cacheable(
+			value = "myCartItem",
+			key = "#customerId + '::' + #page + '::' + #size")
+	@Transactional(readOnly = true)
 	public CartItemsPageRes getMyCartItemsPage(UUID customerId, Integer page, Integer size) {
 		int p = (page == null || page < 0) ? 0 : page;
 		int s = (size == null || size <= 0) ? 10 : Math.min(size, 100);

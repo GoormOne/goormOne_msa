@@ -26,8 +26,11 @@ public class CustomerOrderDetailRes {
 
 	private List<OrderItemDto> items;
 
+
 	@Getter
 	@Builder
+	@NoArgsConstructor
+	@AllArgsConstructor
 	public static class OrderItemDto {
 		private UUID menuId;
 		private String menuName;
