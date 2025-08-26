@@ -101,6 +101,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  cloud:
+    loadbalancer:
+      enabled: false
 aws:
   cognito:
     user-pool-id: ${AWS_COGNITO_USER_POOL_ID}
@@ -112,6 +115,8 @@ aws:
       customer: customer
     org.springframework.cloud.loadbalancer: DEBUG
     org.springframework.cloud.gateway.server.mvc: DEBUG
+
+
 
 server:
   port: 8080
