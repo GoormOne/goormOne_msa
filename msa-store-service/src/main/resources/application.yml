@@ -18,6 +18,11 @@ spring:
       redisson:
         file: classpath:redisson-config.yaml
 
+    mongodb:
+      uri: mongodb+srv://ksm3255:!4786buch@team1mongodb.oh0o0np.mongodb.net/?retryWrites=true&w=majority&appName=Team1Mongodb
+      #      port: 27017
+      database: ai_service_db
+
   datasource:
     url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres #우리 디비로 바꾸기
     driver-class-name: org.postgresql.Driver
@@ -38,13 +43,6 @@ spring:
       initialize-schema: never   # 메타테이블 생성 : 최초 한번만
     job:
       enabled: false              # 앱 실행시 job 자동 실행
-
-  data:
-    mongodb:
-      uri: mongodb+srv://ksm3255:!4786buch@team1mongodb.oh0o0np.mongodb.net/?retryWrites=true&w=majority&appName=Team1Mongodb
-#      port: 27017
-      database: ai_service_db
-
 
   jpa:
     hibernate:
