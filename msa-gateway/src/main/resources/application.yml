@@ -19,42 +19,37 @@ spring:
     gateway:
       # 라우트 정의
       routes:
-#        - id: msa-common-service
-#          uri: lb://MSA-COMMON-SERVICE
-#          predicates:
-#            - Path=/common/**
+        - id: msa-common-service
+          uri: lb://MSA-COMMON-SERVICE
+          predicates:
+            - Path=/common/**
+
         - id: msa-user-service
           uri: lb://msa-user-service
           predicates:
             - Path=/users/**, /internal/users/**
+
         - id: msa-auth-service
           uri: lb://msa-auth-service
           predicates:
             - Path=/auth/**, /internal/auth/**
           filters:
             - PreserveHostHeader
+
         - id: msa-store-service
           uri: lb://msa-store-service
           predicates:
-            - Path=/stores/**, /menus/**
-#          # CircuitBreaker + fallback / RateLimiter: 게이트웨이 품질 안전장치
-#          # RewritePath: 내부 서비스 경로 정리
-#          # Actuator: /actuator/gateway/routes 등 관측
-#          filters:
-#            - StripPrefix=0
-#            - name: CircuitBreaker
-#              args:
-#                name: storeCB
-#                fallbackUri: forward:/__fallback/store
-#            - name: RequestRateLimiter
-#              args:
-#                key-resolver: "#{@ipKeyResolver}"
-#                redis-rate-limiter.replenishRate: 20   # 초당
-#                redis-rate-limiter.burstCapacity: 40
-#            - name: RewritePath
-#              args:
-#                regexp: "^/stores(?<segment>/?.*)"
-#                replacement: "${segment}"
+            - Path=/stores/**, /internal/inventory/**
+
+        - id: msa-order-service
+          uri: lb://msa-order-service
+          predicates:
+            - Path=/carts/**, /orders/**, /internal/orders/**
+
+        - id: msa-payment-service
+          uri: lb://msa-payment-service
+          predicates:
+            - Path=/payments/**
       # 서비스 디스커버리 자동 매핑(선택): http://gateway/<serviceId>/... 로 프록시
       # Eureka에 등록된 서비스 자동 프록시(초기 탐색 편함)
       discovery:
