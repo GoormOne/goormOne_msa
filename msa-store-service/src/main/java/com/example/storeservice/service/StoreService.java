@@ -28,7 +28,7 @@ public class StoreService {
 //                .orElseThrow(() -> new EntityNotFoundException("없는 상점입니다 : " + storeId)
 //        );
 //    }
-    @Cacheable(value = "store", key = "#storeId")
+    //@Cacheable(value = "store", key = "#storeId")
     public StoreDto getStore(UUID storeId) { // 반환 타입을 StoreDto로 수정
         Store store = storeRepository.findByStoreIdAndIsDeletedFalse(storeId)
                 .orElseThrow(() -> new EntityNotFoundException("없는 상점입니다 : " + storeId));
@@ -42,7 +42,7 @@ public class StoreService {
     }
 
     @Transactional
-    @CacheEvict(value = "store" , key ="#storeId")
+    //@CacheEvict(value = "store" , key ="#storeId")
     public Store updateStore(UUID storeId, StoreRegisterDto dto) {
         Store store = storeRepository.findByStoreIdAndIsDeletedFalse(storeId)
                 .orElseThrow(() -> new EntityNotFoundException("없는 상점입니다 : " + storeId));
@@ -65,7 +65,7 @@ public class StoreService {
 
     @Transactional
     //메서드가 성공적으로 완료되면 해당 내역도 캐시에서 삭제
-    @CacheEvict(value = "store" , key ="#storeId")
+    //@CacheEvict(value = "store" , key ="#storeId")
     public UUID deleteStore(UUID storeId) {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new EntityNotFoundException("없는 상점입니다 : " + storeId)
