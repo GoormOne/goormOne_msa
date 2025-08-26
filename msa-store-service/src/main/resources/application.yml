@@ -9,7 +9,7 @@ spring:
 #      host: localhost
       host: 3.35.168.60
       port: 6379
-      clientName: ksy
+      clientName: KSY
 
     cache:
       type: redis
