@@ -4,6 +4,8 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,17 +15,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.common.dto.OrderCheckoutView;
 import com.example.common.dto.PaymentStatusUpdatedReq;
 import com.example.common.entity.PaymentStatus;
+import com.example.msaorderservice.cart.service.CartService;
 import com.example.msaorderservice.order.entity.OrderEntity;
 import com.example.msaorderservice.order.entity.OrderItemEntity;
 
 import com.example.msaorderservice.order.repository.OrderAuditRepository;
 import com.example.msaorderservice.order.repository.OrderItemRepository;
 import com.example.msaorderservice.order.repository.OrderRepository;
-import com.example.msaorderservice.order.service.StoreClient;
+import com.example.msaorderservice.order.client.StoreClient;
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,6 +40,7 @@ public class OrderInternalController {
 	private final OrderItemRepository orderItemRepository;
 	private final OrderAuditRepository orderAuditRepository;
 	private final StoreClient storeClient;
+	private final CartService cartService;
 
 	@GetMapping("/{orderId}/checkout")
 	public OrderCheckoutView getOrderForCheckout(@PathVariable UUID orderId,
@@ -97,6 +102,41 @@ public class OrderInternalController {
 		audit.setUpdatedAt(OffsetDateTime.now());
 		audit.setUpdatedBy(customerId);
 
+		if (curr == PaymentStatus.PENDING && next == PaymentStatus.PAID) {
+				cartService.deleteCart(customerId);
+		}
+
 		return ResponseEntity.noContent().build();
 	}
+
+	@GetMapping("/my")
+	@Transactional(readOnly = true)
+	public List<UUID> getOrderIdsByCustomer(
+		@RequestHeader("X-User-Id") UUID customerId
+	) {
+		var page = orderRepository.findByCustomerId(customerId, Pageable.unpaged());
+		return page.getContent().stream()
+			.map(OrderEntity::getOrderId)
+			.toList();
+	}
+
+	@GetMapping("{storeId}/owner")
+	@Transactional(readOnly = true)
+	public List<UUID> getOrderIdsByStore(
+		@RequestHeader("X-User-Id") UUID ownerId,
+		@PathVariable UUID storeId
+	) {
+		var store = storeClient.getStoreDetail(storeId);
+		if (store.getOwnerId() == null || !store.getOwnerId().equals(ownerId)) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+				"매장 소유자 불일치: header=" + ownerId + ", store.ownerId=" + store.getOwnerId());
+		}
+
+
+		var page = orderRepository.findByStoreIdIn(List.of(storeId), Pageable.unpaged());
+		return page.getContent().stream()
+			.map(OrderEntity::getOrderId)
+			.toList();
+	}
+
 }

@@ -1,6 +1,7 @@
 package com.example.msapaymentservice.client;
 
 import java.util.Base64;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import com.example.msapaymentservice.dto.TossConfirmReq;
-import com.example.msapaymentservice.dto.TossConfirmRes;
+import com.example.msapaymentservice.dto.TossPaymentRes;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,7 @@ public class TossPaymentClient {
 	@Value("${toss.secret-key}")
 	private String secretKey;
 
-	public TossConfirmRes confirmPayment(String paymentKey, UUID orderId, int amount) {
+	public TossPaymentRes confirmPayment(String paymentKey, UUID orderId, int amount) {
 		String url = baseUrl + "/v1/payments/confirm";
 
 		TossConfirmReq body = new TossConfirmReq(paymentKey, orderId, amount);
@@ -54,8 +55,8 @@ public class TossPaymentClient {
 		HttpEntity<TossConfirmReq> entity = new HttpEntity<>(body, headers);
 
 		try {
-			ResponseEntity<TossConfirmRes> resp =
-				rest.exchange(url, HttpMethod.POST, entity, TossConfirmRes.class);
+			ResponseEntity<TossPaymentRes> resp =
+				rest.exchange(url, HttpMethod.POST, entity, TossPaymentRes.class);
 
 			if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
 				throw new IllegalStateException("Toss confirm 응답이 비정상: " + resp.getStatusCode());
@@ -65,6 +66,35 @@ public class TossPaymentClient {
 		} catch (HttpStatusCodeException e) {
 			log.warn("Toss confirm 실패 status={} body={}", e.getStatusCode(), e.getResponseBodyAsString());
 			throw e;
+		}
+	}
+
+
+	public String cancelPayment(UUID customerId, String paymentKey, String cancelReason) {
+		final String url = "https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel";
+
+
+		String basic = Base64.getEncoder()
+			.encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set(HttpHeaders.AUTHORIZATION, "Basic " + basic);
+		headers.set("Idempotency-Key", UUID.randomUUID().toString()); // 멱등키
+
+
+		Map<String, Object> body = Map.of("cancelReason",
+			(cancelReason == null || cancelReason.isBlank()) ? "USER_REQUEST" : cancelReason);
+
+		try {
+			ResponseEntity<String> res = rest.exchange(
+				url, HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
+			return res.getBody();
+		} catch (HttpStatusCodeException e) {
+
+			throw new RuntimeException(
+				"Toss cancel failed: status=" + e.getStatusCode()
+					+ ", body=" + e.getResponseBodyAsString(), e);
 		}
 	}
 }

@@ -145,6 +145,18 @@ CREATE TABLE IF NOT EXISTS p_menu_category (
                                                UNIQUE (store_id, menu_category_name)
 );
 
+CREATE TABLE IF NOT EXISTS p_menu_inventory
+(
+                                                menu_id           uuid                  NOT NULL
+                                                    primary key
+                                                    references p_menus
+                                                        on delete cascade,
+                                                is_infinite_stock boolean default false NOT NULL,
+                                                available_qty     integer default 0     NOT NULL,
+                                                reserved_qty      integer default 0     NOT NULL,
+                                                version           bigint                NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS p_menus (
                                        menu_id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
                                        store_id         uuid NOT NULL REFERENCES p_stores(store_id),
@@ -224,7 +236,6 @@ CREATE TABLE IF NOT EXISTS p_payments (
                                                 order_id    uuid NOT NULL REFERENCES p_orders(order_id),
                                                 payment_key varchar(100) NOT NULL UNIQUE ,
                                                 status  varchar(20) NOT NULL,
-                                                payment_method  payment_method NOT NULL,
                                                 card_company         varchar(30),
                                                 card_bin             varchar(8),   -- 앞 6~8자리
                                                 card_last4           varchar(4),   -- 뒤 4자리
@@ -238,7 +249,7 @@ CREATE TABLE IF NOT EXISTS p_payments (
                                                 issuer_code          varchar(8),
                                                 acquirer_code        varchar(8),
                                                 is_partial_cancelable boolean DEFAULT false NOT NULL,
-                                                payment_result       payment_result NOT NULL,
+                                                payment_result       varchar(30) NOT NULL,
                                                 failure_reason       text,
                                                 failure_code         varchar(50),
                                                 m_id                 varchar(50),

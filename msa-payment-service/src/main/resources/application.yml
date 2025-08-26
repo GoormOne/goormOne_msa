@@ -27,12 +27,32 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: Goorm1!!
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 2
+      idle-timeout: 300000        # 5m
+      max-lifetime: 1500000       # 25m
+      keepalive-time: 1200000     # 20m
+      connection-timeout: 30000
+      validation-timeout: 3000
+      auto-commit: false
   jpa:
     hibernate:
       ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
 server:
   port: 8086
 eureka:
@@ -45,6 +65,9 @@ eureka:
 order:
   service:
     url: http://msa-order-service
+store:
+  url: http://msa-store-service
+
 
 
 ---
@@ -79,6 +102,8 @@ eureka:
 order:
   service:
     url: http://msa-order-service:8080 # 클라우드 orderservice url
+store:
+  url: http://msa-store-service:8080
 
 logging:
   pattern:

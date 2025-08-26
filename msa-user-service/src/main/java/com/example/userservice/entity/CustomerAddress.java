@@ -17,11 +17,13 @@ public class CustomerAddress {
     @Id
     @GeneratedValue
     @UuidGenerator
-    @Column(name = "address_id", updatable = false, nullable = false)
+    @Column(name = "address_id", columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID addressId;
+    @PrePersist
+    void pre() { if (addressId == null) addressId = UUID.randomUUID(); }
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "customer_id", nullable = false)
+    @JoinColumn(name = "customer_id", columnDefinition = "uuid", nullable = false)
     private Customer customer;
 
     @Column(name = "address_name", nullable = false, length = 20)
@@ -37,10 +39,10 @@ public class CustomerAddress {
     private String zipCode;
 
     @Column(name = "user_latitude", nullable = false, precision = 10, scale = 6)
-    private BigDecimal latitude;
+    private BigDecimal userLatitude;
 
     @Column(name = "user_longitude", nullable = false, precision = 10, scale = 6)
-    private BigDecimal longitude;
+    private BigDecimal userLongitude;
 
     @Column(name = "is_default", nullable = false)
     private Boolean isDefault = false;

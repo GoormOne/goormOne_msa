@@ -6,11 +6,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.example.msaorderservice.order.dto.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +23,9 @@ import com.example.common.entity.PaymentStatus;
 import com.example.msaorderservice.cart.dto.MenuLookUp;
 import com.example.msaorderservice.cart.entity.CartEntity;
 import com.example.msaorderservice.cart.entity.CartItemEntity;
+import com.example.msaorderservice.order.client.MenuInventoryClient;
+import com.example.msaorderservice.order.client.PaymentClient;
+import com.example.msaorderservice.order.client.StoreClient;
 import com.example.msaorderservice.order.dto.OrderCreateReq;
 import com.example.msaorderservice.order.dto.OrderCreateRes;
 import com.example.msaorderservice.order.dto.OrderLineRes;
@@ -38,6 +46,7 @@ import com.example.msaorderservice.cart.service.MenuClient;
 
 import lombok.RequiredArgsConstructor;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -49,6 +58,8 @@ public class OrderServiceImpl implements OrderService {
 	private final OrderAuditRepository orderAuditRepository;
 	private final MenuClient menuClient;
 	private final StoreClient storeClient;
+	private final MenuInventoryClient menuInventoryClient;
+	private final PaymentClient paymentClient;
 
 	@Override
 	@Transactional
@@ -98,6 +109,22 @@ public class OrderServiceImpl implements OrderService {
 				unitPrice
 			));
 		}
+
+		List<OrderItemEntity> reserved = new ArrayList<>();
+		try{
+			for (OrderItemEntity item : toSave) {
+				menuInventoryClient.reserve(item.getMenuId(), item.getQuantity());
+				reserved.add(item);
+			}
+		} catch(Exception e){
+			for (OrderItemEntity item : reserved) {
+				try {
+					menuInventoryClient.release(item.getMenuId(), item.getQuantity());
+				} catch (Exception ignore) {}
+			}
+			throw new IllegalStateException("재고 예약에 실패했습니다. 다시 시도해주세요.");
+		}
+
 		order.setTotalPrice(total);
 
 		order = orderRepository.save(order);
@@ -124,29 +151,37 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
-	@Transactional(readOnly = true)
 	public Page<OrderSummaryRes> getMyOrders(UUID customerId, Pageable pageable) {
+		return null;
+	}
+
+	@Cacheable(
+			value = "myOrders",
+			key = "#customerId + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
+	@Transactional(readOnly = true)
+	public PageCache<OrderSummaryRes> getMyOrdersCache(UUID customerId, Pageable pageable) {
+
 		Page<OrderEntity> page = orderRepository.findByCustomerId(customerId, pageable);
 
 		List<UUID> orderIds = page.stream().map(OrderEntity::getOrderId).toList();
 
 		Map<UUID, List<OrderItemEntity>> itemsByOrderId = orderItemRepository
-			.findByOrderId_OrderIdIn(orderIds)
-			.stream()
-			.collect(Collectors.groupingBy(it -> it.getOrderId().getOrderId()));
+				.findByOrderId_OrderIdIn(orderIds)
+				.stream()
+				.collect(Collectors.groupingBy(it -> it.getOrderId().getOrderId()));
 
 		Map<UUID, OffsetDateTime> createdAtByOrderId = orderAuditRepository.findAllById(orderIds)
-			.stream()
-			.collect(Collectors.toMap(OrderAuditEntity::getAuditId, OrderAuditEntity::getCreatedAt));
+				.stream()
+				.collect(Collectors.toMap(OrderAuditEntity::getAuditId, OrderAuditEntity::getCreatedAt));
 
 		Map<UUID, String> storeNameCache = new HashMap<>();
 
-		return page.map(o -> {
+		Page<OrderSummaryRes> result = page.map(o -> {
 			List<OrderItemEntity> items = itemsByOrderId.getOrDefault(o.getOrderId(), List.of());
 
 			String storeName = storeNameCache.computeIfAbsent(
-				o.getStoreId(),
-				sid -> storeClient.getStoreDetail(sid).getStoreName()
+					o.getStoreId(),
+					sid -> storeClient.getStoreDetail(sid).getStoreName()
 			);
 
 			OffsetDateTime createdAt = createdAtByOrderId.get(o.getOrderId());
@@ -158,23 +193,28 @@ public class OrderServiceImpl implements OrderService {
 			} else if (count == 1) {
 				preview = items.get(0).getMenuName();
 			} else {
-				preview = items.get(0).getMenuName() + " 외 " + (count - 1) + "개";
+				preview = items.get(0).getMenuName() + " 외  " + (count - 1) + "개";
 			}
 
 			return OrderSummaryRes.builder()
-				.orderId(o.getOrderId())
-				.storeId(o.getStoreId())
-				.storeName(storeName)
-				.orderStatus(o.getOrderStatus())
-				.totalPrice(o.getTotalPrice())
-				.createdAt(createdAt)
-				.summaryTitle(preview)
-				.itemCount(count)
-				.build();
+					.orderId(o.getOrderId())
+					.storeId(o.getStoreId())
+					.storeName(storeName)
+					.orderStatus(o.getOrderStatus())
+					.totalPrice(o.getTotalPrice())
+					.createdAt(createdAt)
+					.summaryTitle(preview)
+					.itemCount(count)
+					.build();
 		});
+		return PageCache.fromPage(result);
 	}
 
 	@Override
+	@Cacheable(
+			value = "myOrderDetail",
+			key = "#customerId + '_' + #orderId"
+	)
 	@Transactional(readOnly = true)
 	public CustomerOrderDetailRes getMyOrderDetail(UUID customerId, UUID orderId) {
 		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)
@@ -209,51 +249,75 @@ public class OrderServiceImpl implements OrderService {
 
 
 	@Override
+	public PageCache<OrderSummaryRes> getOwnerOrders(UUID ownerId, UUID storeId, Pageable pageable) {
+		return getOwnerOrdersCache(ownerId, storeId, pageable);
+	}
+
+	@Cacheable(
+			value = "ownerOrder",
+			key = "#ownerId + '_' + #storeId + '_' + #pageable.pageNumber + '_' + #pageable.pageSize"
+	)
 	@Transactional(readOnly = true)
-	public Page<OrderSummaryRes> getOwnerOrders(UUID ownerId, UUID storeId, Pageable pageable) {
+	public PageCache<OrderSummaryRes> getOwnerOrdersCache(UUID ownerId, UUID storeId, Pageable pageable) {
+
 
 		StoreLookUp store = storeClient.getStoreDetail(storeId);
+
 
 		UUID ownerFromStore = store.getOwnerId();
 		if (ownerFromStore != null && !ownerFromStore.equals(ownerId)) {
 			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
 		}
 
-		Page<OrderEntity> page = orderRepository.findByStoreIdIn(List.of(storeId), pageable);
 
-		List<UUID> orderIds = page.stream().map(OrderEntity::getOrderId).toList();
+		Page<OrderEntity> page = orderRepository.findByStoreIdIn(List.of(storeId), pageable);
+		List<UUID> orderIds = page.stream()
+				.map(OrderEntity::getOrderId)
+				.toList();
+
 
 		Map<UUID, List<OrderItemEntity>> itemsByOrderId = orderItemRepository
-			.findByOrderId_OrderIdIn(orderIds).stream()
-			.collect(Collectors.groupingBy(it -> it.getOrderId().getOrderId()));
+				.findByOrderId_OrderIdIn(orderIds)
+				.stream()
+				.collect(Collectors.groupingBy(it -> it.getOrderId().getOrderId()));
+
 
 		Map<UUID, OffsetDateTime> createdAtByOrderId = orderAuditRepository
-			.findAllById(orderIds).stream()
-			.collect(Collectors.toMap(OrderAuditEntity::getAuditId, OrderAuditEntity::getCreatedAt));
+				.findAllById(orderIds)
+				.stream()
+				.collect(Collectors.toMap(OrderAuditEntity::getAuditId, OrderAuditEntity::getCreatedAt));
 
 		final String storeName = store.getStoreName();
 
-		return page.map(o -> {
+
+		Page<OrderSummaryRes> mappedPage = page.map(o -> {
 			List<OrderItemEntity> items = itemsByOrderId.getOrDefault(o.getOrderId(), List.of());
 			String first = items.isEmpty() ? "-" : items.get(0).getMenuName();
 			int extra = Math.max(0, items.size() - 1);
 			String preview = items.isEmpty() ? "-" : (extra > 0 ? first + " 외 " + extra + "개" : first);
 
 			return OrderSummaryRes.builder()
-				.orderId(o.getOrderId())
-				.storeId(o.getStoreId())
-				.storeName(storeName)
-				.orderStatus(o.getOrderStatus())
-				.totalPrice(o.getTotalPrice())
-				.createdAt(createdAtByOrderId.get(o.getOrderId()))
-				.summaryTitle(preview)
-				.itemCount(items.size())
-				.build();
+					.orderId(o.getOrderId())
+					.storeId(o.getStoreId())
+					.storeName(storeName)
+					.orderStatus(o.getOrderStatus())
+					.totalPrice(o.getTotalPrice())
+					.createdAt(createdAtByOrderId.get(o.getOrderId()))
+					.summaryTitle(preview)
+					.itemCount(items.size())
+					.build();
 		});
+
+
+		return PageCache.fromPage(mappedPage);
 	}
 
 
 	@Override
+	@Cacheable(
+			value = "ownerOrderDetail",
+			key = "#ownerId + '_' + #storeId"
+	)
 	@Transactional(readOnly = true)
 	public OwnerOrderDetailRes getOwnerOrderDetail(UUID orderId, UUID storeId, UUID ownerId) {
 
@@ -301,8 +365,23 @@ public class OrderServiceImpl implements OrderService {
 			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
 		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
-		if (!store.getOwnerId().equals(ownerId)) {
+
+		UUID ownerFromStore = store.getOwnerId();
+		if (Objects.equals(ownerFromStore, ownerId)) {
 			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+		}
+
+		OrderStatus oldStatus = order.getOrderStatus();
+		PaymentStatus nowPaymentStatus = order.getPaymentStatus();
+
+		if (newStatus == OrderStatus.COOKING
+			&& oldStatus == OrderStatus.CONFIRMED
+			&& nowPaymentStatus == PaymentStatus.PAID) {
+			var items = orderItemRepository.findByOrderId_OrderId(orderId);
+
+			for (OrderItemEntity item : items) {
+				menuInventoryClient.confirm(item.getMenuId(), item.getQuantity());
+			}
 		}
 
 		order.setOrderStatus(newStatus);
@@ -337,6 +416,84 @@ public class OrderServiceImpl implements OrderService {
 					.build()
 			).toList())
 			.build();
+	}
+
+	public CustomerOrderDetailRes cancelMyOrder(UUID customerId, UUID orderId) {
+		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)
+			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+
+		if (order.getOrderStatus() == OrderStatus.CANCELED) {
+			return getMyOrderDetail(customerId, orderId);
+		}
+
+		if ((order.getOrderStatus() == OrderStatus.CONFIRMED
+			|| order.getOrderStatus() == OrderStatus.COOKING
+			|| order.getOrderStatus() == OrderStatus.DELIVERING
+			|| order.getOrderStatus() == OrderStatus.COMPLETED)
+			&& order.getPaymentStatus() == PaymentStatus.PAID) {
+			throw new IllegalStateException("현재 상태에서는 취소할 수 없습니다.");
+		}
+
+		if (order.getPaymentStatus() == PaymentStatus.PAID) {
+			paymentClient.cancelPayment(order.getOrderId(), customerId,"USER_CANCELED");
+			order.setPaymentStatus(PaymentStatus.REFUNDED);
+		}
+
+		var items = orderItemRepository.findByOrderId_OrderId(orderId);
+
+		for (OrderItemEntity item : items) {
+			menuInventoryClient.release(item.getMenuId(), item.getQuantity());
+		}
+
+		order.setOrderStatus(OrderStatus.CANCELED);
+		order.setPaymentStatus(PaymentStatus.REFUNDED);
+		orderRepository.save(order);
+
+		orderAuditRepository.findById(orderId).ifPresent(a -> {
+			a.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+			a.setUpdatedBy(order.getCustomerId());
+			orderAuditRepository.save(a);
+		});
+
+		return getMyOrderDetail(customerId, orderId);
+	}
+
+	public OwnerOrderDetailRes cancelStoreOrder(UUID ownerId, UUID storeId, UUID orderId) {
+		OrderEntity order = orderRepository.findById(orderId)
+			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+
+		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
+
+		UUID ownerFromStore = store.getOwnerId();
+		if (Objects.equals(ownerFromStore, ownerId)) {
+			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+		}
+
+		if (order.getOrderStatus() == OrderStatus.CANCELED) {
+			return getOwnerOrderDetail(ownerId, storeId, orderId);
+		}
+
+		if (order.getOrderStatus() == OrderStatus.CONFIRMED) {
+			throw new IllegalStateException("현재 상태에서는 취소할 수 없습니다.");
+		}
+
+		if (order.getPaymentStatus() == PaymentStatus.PAID) {
+			paymentClient.cancelPayment(order.getOrderId(), ownerId,"USER_CANCELED");
+			order.setPaymentStatus(PaymentStatus.REFUNDED);
+		}
+
+		order.setOrderStatus(OrderStatus.CANCELED);
+		order.setPaymentStatus(PaymentStatus.REFUNDED);
+
+		orderRepository.save(order);
+
+		orderAuditRepository.findById(orderId).ifPresent(a -> {
+			a.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+			a.setUpdatedBy(ownerId);
+			orderAuditRepository.save(a);
+		});
+
+		return getOwnerOrderDetail(ownerId, storeId, orderId);
 	}
 
 	private OrderSummaryRes toOrderSummary(OrderEntity o, List<OrderItemEntity> items, OffsetDateTime createdAt, String storeName) {

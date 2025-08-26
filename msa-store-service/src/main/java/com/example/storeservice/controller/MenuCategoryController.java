@@ -3,12 +3,9 @@ package com.example.storeservice.controller;
 
 import com.example.common.dto.ApiResponse;
 import com.example.storeservice.dto.MenuCategoryDto;
-import com.example.storeservice.entity.Menu;
 import com.example.storeservice.entity.MenuCategory;
 import com.example.storeservice.entity.StoreAudit;
-import com.example.storeservice.exception.StoreAlreadyDeletedException;
-import com.example.storeservice.interceptor.RequireStoreOwner;
-import com.example.storeservice.repository.MenuCategoryRepository;
+import com.example.storeservice.global.interceptor.RequireStoreOwner;
 import com.example.storeservice.service.MenuCategoryService;
 import com.example.storeservice.service.MenuService;
 import com.example.storeservice.service.StoreAuditService;

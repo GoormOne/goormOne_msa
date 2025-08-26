@@ -2,8 +2,10 @@ package com.example.msaorderservice.cart.controller;
 
 import java.util.UUID;
 
+import com.example.msaorderservice.cart.entity.CartEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -42,10 +44,11 @@ public class CartController {
 	}
 
 	@GetMapping
-	public CartItemsPageRes getMyCartItems(@RequestHeader("X-User-Id") UUID customerId,
+	public CartItemsPageRes getMyCartItems(//@RequestHeader("X-User-Id") UUID customerId,
+										   @AuthenticationPrincipal CartEntity cart,
 		@RequestParam(required = false) Integer page,
 		@RequestParam(required = false) Integer size) {
-		return cartService.getMyCartItemsPage(customerId, page, size);
+		return cartService.getMyCartItemsPage(cart.getCustomerId(), page, size);
 	}
 
 	@DeleteMapping("/items")

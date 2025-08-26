@@ -9,12 +9,24 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: Goorm1!!
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 2
+      idle-timeout: 300000        # 5m
+      max-lifetime: 1500000       # 25m
+      keepalive-time: 1200000     # 20m
+      connection-timeout: 30000
+      validation-timeout: 3000
+      auto-commit: false
+
   jpa:
     hibernate:
-      ddl-auto: none           # ?? ? update/validate ?
+      ddl-auto: none           # validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
 
   cloud:
     aws:
@@ -27,26 +39,26 @@ spring:
         static: ap-northeast-2
       stack:
         auto: false
+        default_schema: public
 
-  security:
-    oauth2:
-      client:
-        registration:
-          cognito:
-            client-id: 2ig0efqufk2ct3svjjevvp1709
-            client-secret: 158aeliiffvc12motmg6rf17vndfmdrkmnnbvcn4cmqpvtd47gj1
-            scope:
-              - email
-              - openid
-              - phone
-            # Spring Security by default uses a redirect-uri in the format: {baseUrl}/login/oauth2/code/{registrationId}
-            # For example: http://localhost:8080/login/oauth2/code/cognito
-            # See more: https://docs.spring.io/spring-security/reference/servlet/oauth2/login/core.html#oauth2login-sample-redirect-uri
-            redirect-uri: https://d84l1y8p4kdic.cloudfront.net
-        provider:
-          cognito:
-            issuerUri: https://cognito-idp.ap-northeast-2.amazonaws.com/ap-northeast-2_UwU3TlTZt
-            user-name-attribute: username
+  config:
+    import: optional:file:.env[.properties]
+
+aws:
+  region: ap-northeast-2
+  cognito:
+    user-pool-id: ${AWS_COGNITO_USER_POOL_ID}
+    app-client-id: ${AWS_COGNITO_APP_CLIENT_ID}
+    app-client-secret: ${AWS_COGNITO_APP_CLIENT_SECRET}
+    groups:
+      admin: admin
+      owner: owner
+      customer: customer
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+    org.springframework.cloud.loadbalancer: DEBUG
+    org.springframework.cloud.gateway.server.mvc: DEBUG
 
 management:
   endpoints:
@@ -76,8 +88,12 @@ eureka:
 
 logging:
   level:
-    org.springframework.cloud.loadbalancer: DEBUG
-    org.springframework.cloud.gateway.server.mvc: DEBUG
+    root: INFO
+    com.example.authservice: DEBUG
+    software.amazon.awssdk: INFO
+
+# === Cognito 설정 (Admin API 사용)
+
 ---
 spring:
   config:

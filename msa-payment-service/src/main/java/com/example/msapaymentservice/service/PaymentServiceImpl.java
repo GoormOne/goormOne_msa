@@ -1,28 +1,41 @@
 package com.example.msapaymentservice.service;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.common.dto.OrderCheckoutView;
 import com.example.common.entity.PaymentStatus;
 import com.example.msapaymentservice.client.OrderClient;
+import com.example.msapaymentservice.client.StoreClient;
 import com.example.msapaymentservice.client.TossPaymentClient;
-import com.example.msapaymentservice.dto.TossConfirmRes;
+import com.example.msapaymentservice.dto.PaymentSearchRes;
+import com.example.msapaymentservice.dto.StoreClientRes;
+import com.example.msapaymentservice.dto.TossPaymentRes;
+import com.example.msapaymentservice.entity.PaymentAuditEntity;
 import com.example.msapaymentservice.entity.PaymentEntity;
+import com.example.msapaymentservice.repository.PaymentAuditRepository;
 import com.example.msapaymentservice.repository.PaymentRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 
 	private final OrderClient orderClient;
+	private final StoreClient storeClient;
 	private final PaymentRepository paymentRepository;
 	private final TossPaymentClient tossPaymentClient;
+	private final PaymentAuditRepository paymentAuditRepository;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -30,6 +43,87 @@ public class PaymentServiceImpl implements PaymentService {
 		return orderClient.getCheckout(orderId, customerId);
 	}
 
+	@Override
+	@Transactional
+	public ResponseEntity<String> cancelPayment(UUID customerId, String paymentKey, String cancelReason) {
+
+		PaymentEntity payment = paymentRepository.findByPaymentKey(paymentKey);
+
+
+		if ("REFUNDED".equalsIgnoreCase(payment.getStatus())) {
+			orderClient.updateOrderStatus(payment.getOrderId(), null, PaymentStatus.REFUNDED);
+			return ResponseEntity.ok("{\"message\":\"already canceled\"}");
+		}
+
+
+		String tossRaw = tossPaymentClient.cancelPayment(customerId, paymentKey, cancelReason);
+
+
+		payment.setStatus("REFUNDED");
+		paymentRepository.save(payment);
+
+		paymentAuditRepository.findById(payment.getPaymentId())
+				.ifPresentOrElse(audit ->{
+					audit.setUpdatedAt(OffsetDateTime.now());
+					audit.setUpdatedBy(customerId);
+				}, () -> {});
+
+		orderClient.updateOrderStatus(payment.getOrderId(), customerId, PaymentStatus.REFUNDED);
+
+
+		return ResponseEntity.ok(tossRaw);
+	}
+
+	@Override
+	public Page<PaymentSearchRes> getMyPayments(UUID customerId, Pageable pageable) {
+
+		List<UUID> orderIds = orderClient.findOrderIdsByCustomer(customerId);
+		if (orderIds == null || orderIds.isEmpty()) {
+			return Page.empty(pageable);
+		}
+
+
+		return paymentRepository.findByOrderIdIn(orderIds, pageable)
+			.map(this::toSummary);
+	}
+
+	@Override
+	public Page<PaymentSearchRes> getOwnerStorePayments(UUID ownerId, UUID storeId, Pageable pageable) {
+
+		StoreClientRes store = storeClient.getStoreDetail(storeId);
+		log.info("storeId={}, headerOwnerId={}, store.ownerId={}",
+			storeId, ownerId, store.getOwnerId());
+
+		if (store.getOwnerId() == null || !store.getOwnerId().equals(ownerId)) {
+			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+		}
+
+
+		List<UUID> orderIds = orderClient.findOrderIdsByStore(ownerId, storeId);
+		if (orderIds == null || orderIds.isEmpty()) {
+			return Page.empty(pageable);
+		}
+
+
+		return paymentRepository.findByOrderIdIn(orderIds, pageable)
+			.map(this::toSummary);
+	}
+
+	private PaymentSearchRes toSummary(PaymentEntity payment) {
+		return PaymentSearchRes.builder()
+			.paymentId(payment.getPaymentId())
+			.orderId(payment.getOrderId())
+			.status(payment.getStatus())
+			.amount(payment.getPaymentAmount())
+			.currency(payment.getCurrency())
+			.method(payment.getPaymentMethod())
+			.cardCompany(payment.getCardCompany())
+			.cardLast4(payment.getCardLast4())
+			.requestedAt(payment.getRequestedAt())
+			.approvedAt(payment.getApprovedAt())
+			.receiptUrl(payment.getReceiptUrl())
+			.build();
+	}
 
 	@Override
 	@Transactional
@@ -54,7 +148,7 @@ public class PaymentServiceImpl implements PaymentService {
 			return;
 		}
 
-		TossConfirmRes confirm = tossPaymentClient.confirmPayment(paymentKey, orderId, amount);
+		TossPaymentRes confirm = tossPaymentClient.confirmPayment(paymentKey, orderId, amount);
 
 		PaymentEntity ok = PaymentEntity.builder()
 			.orderId(orderId)
@@ -79,6 +173,13 @@ public class PaymentServiceImpl implements PaymentService {
 			.build();
 		paymentRepository.save(ok);
 
+		PaymentAuditEntity audit = PaymentAuditEntity.builder()
+			.payment(ok)
+			.createdAt(OffsetDateTime.now())
+			.createdBy(customerId)
+			.build();
+		paymentAuditRepository.save(audit);
+
 		orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.PAID);
 	}
 
@@ -95,6 +196,13 @@ public class PaymentServiceImpl implements PaymentService {
 			.requestedAt(OffsetDateTime.now())
 			.build();
 		paymentRepository.save(fail);
+
+		PaymentAuditEntity audit = PaymentAuditEntity.builder()
+			.payment(fail)
+			.createdAt(OffsetDateTime.now())
+			.createdBy(customerId)
+			.build();
+		paymentAuditRepository.save(audit);
 
 		orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.FAILED);
 	}

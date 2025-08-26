@@ -4,20 +4,50 @@ spring:
 
   profiles:
     active: local
+
+
+  data:
+
+    redis:
+#      host: localhost
+      host: 3.35.168.60
+      port: 6379
+      clientName: ksy
+
+    cache:
+      type: redis
+      redisson:
+        file: classpath:redisson-config.yaml
   datasource:
     url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: Goorm1!!
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 2
+      idle-timeout: 300000        # 5m
+      max-lifetime: 1500000       # 25m
+      keepalive-time: 1200000     # 20m
+      connection-timeout: 30000
+      validation-timeout: 3000
+      auto-commit: false
   jpa:
     hibernate:
       ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
+
 store:
   service:
     url: http://msa-store-service
+
+
+
+
 
 
 
@@ -30,7 +60,9 @@ management:
     health:
       show-details: when_authorized
 
-
+logging:
+  level:
+    org.springframework.cache.interceptor: DEBUG
 ---
 spring:
   config:
@@ -48,6 +80,12 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
+menu:
+  inventory:
+    url: http://msa-store-service
+
+payment:
+  url: http://msa-payment-service
 
 
 logging:
@@ -63,7 +101,7 @@ spring:
   config:
     activate:
       on-profile: dev
-    import: ["aws-secretsmanager:dev"]
+    import: [ "aws-secretsmanager:dev" ]
   datasource:
     url: jdbc:postgresql://${db_host}:5432/postgres
     driver-class-name: org.postgresql.Driver
@@ -82,6 +120,13 @@ spring:
 store:
   service:
     url: http://msa-store-service:8080
+
+menu:
+  inventory:
+    url: http://msa-store-service:8080
+
+payment:
+  url: http://msa-payment-service:8080
 
 
 server:

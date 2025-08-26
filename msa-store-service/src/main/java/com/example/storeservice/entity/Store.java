@@ -14,6 +14,7 @@ import java.util.UUID;
 @Table(name = "p_stores")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor @Builder
+@ToString
 public class Store {
 
     @Id
