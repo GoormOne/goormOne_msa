@@ -37,6 +37,13 @@ spring:
       connection-timeout: 30000
       validation-timeout: 3000
       auto-commit: false
+  jpa:
+    hibernate:
+      ddl-auto: none           # validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
 
 aws:
   region: ap-northeast-2
@@ -54,13 +61,7 @@ aws:
     org.springframework.cloud.loadbalancer: DEBUG
     org.springframework.cloud.gateway.server.mvc: DEBUG
 
-  jpa:
-    hibernate:
-      ddl-auto: none           # validate
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-    open-in-view: false
+
 
 server:
   port: 8089
@@ -118,7 +119,6 @@ server:
 eureka:
   client:
     enabled: false
-
 
 logging:
   pattern:
