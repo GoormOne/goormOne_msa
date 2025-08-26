@@ -113,6 +113,9 @@ aws:
       admin: admin
       owner: owner
       customer: customer
+  credentials:
+    access-key: AKIAXETF2IMIKHLD6BEJ
+    secret-key: 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
     org.springframework.cloud.loadbalancer: DEBUG
     org.springframework.cloud.gateway.server.mvc: DEBUG
 
