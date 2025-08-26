@@ -9,8 +9,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.example.msaorderservice.order.dto.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,13 +22,6 @@ import com.example.common.entity.PaymentStatus;
 import com.example.msaorderservice.cart.dto.MenuLookUp;
 import com.example.msaorderservice.cart.entity.CartEntity;
 import com.example.msaorderservice.cart.entity.CartItemEntity;
-import com.example.msaorderservice.order.dto.OrderCreateReq;
-import com.example.msaorderservice.order.dto.OrderCreateRes;
-import com.example.msaorderservice.order.dto.OrderLineRes;
-import com.example.msaorderservice.order.dto.CustomerOrderDetailRes;
-import com.example.msaorderservice.order.dto.OrderSummaryRes;
-import com.example.msaorderservice.order.dto.OwnerOrderDetailRes;
-import com.example.msaorderservice.order.dto.StoreLookUp;
 import com.example.msaorderservice.order.entity.OrderAuditEntity;
 import com.example.msaorderservice.order.entity.OrderEntity;
 import com.example.msaorderservice.order.entity.OrderItemEntity;
@@ -38,6 +35,7 @@ import com.example.msaorderservice.cart.service.MenuClient;
 
 import lombok.RequiredArgsConstructor;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -124,29 +122,37 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
-	@Transactional(readOnly = true)
 	public Page<OrderSummaryRes> getMyOrders(UUID customerId, Pageable pageable) {
+		return null;
+	}
+
+	@Cacheable(
+			value = "myOrders",
+			key = "#customerId + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
+	@Transactional(readOnly = true)
+	public PageCache<OrderSummaryRes> getMyOrdersCache(UUID customerId, Pageable pageable) {
+
 		Page<OrderEntity> page = orderRepository.findByCustomerId(customerId, pageable);
 
 		List<UUID> orderIds = page.stream().map(OrderEntity::getOrderId).toList();
 
 		Map<UUID, List<OrderItemEntity>> itemsByOrderId = orderItemRepository
-			.findByOrderId_OrderIdIn(orderIds)
-			.stream()
-			.collect(Collectors.groupingBy(it -> it.getOrderId().getOrderId()));
+				.findByOrderId_OrderIdIn(orderIds)
+				.stream()
+				.collect(Collectors.groupingBy(it -> it.getOrderId().getOrderId()));
 
 		Map<UUID, OffsetDateTime> createdAtByOrderId = orderAuditRepository.findAllById(orderIds)
-			.stream()
-			.collect(Collectors.toMap(OrderAuditEntity::getAuditId, OrderAuditEntity::getCreatedAt));
+				.stream()
+				.collect(Collectors.toMap(OrderAuditEntity::getAuditId, OrderAuditEntity::getCreatedAt));
 
 		Map<UUID, String> storeNameCache = new HashMap<>();
 
-		return page.map(o -> {
+		Page<OrderSummaryRes> result = page.map(o -> {
 			List<OrderItemEntity> items = itemsByOrderId.getOrDefault(o.getOrderId(), List.of());
 
 			String storeName = storeNameCache.computeIfAbsent(
-				o.getStoreId(),
-				sid -> storeClient.getStoreDetail(sid).getStoreName()
+					o.getStoreId(),
+					sid -> storeClient.getStoreDetail(sid).getStoreName()
 			);
 
 			OffsetDateTime createdAt = createdAtByOrderId.get(o.getOrderId());
@@ -158,23 +164,28 @@ public class OrderServiceImpl implements OrderService {
 			} else if (count == 1) {
 				preview = items.get(0).getMenuName();
 			} else {
-				preview = items.get(0).getMenuName() + " 외 " + (count - 1) + "개";
+				preview = items.get(0).getMenuName() + " 외  " + (count - 1) + "개";
 			}
 
 			return OrderSummaryRes.builder()
-				.orderId(o.getOrderId())
-				.storeId(o.getStoreId())
-				.storeName(storeName)
-				.orderStatus(o.getOrderStatus())
-				.totalPrice(o.getTotalPrice())
-				.createdAt(createdAt)
-				.summaryTitle(preview)
-				.itemCount(count)
-				.build();
+					.orderId(o.getOrderId())
+					.storeId(o.getStoreId())
+					.storeName(storeName)
+					.orderStatus(o.getOrderStatus())
+					.totalPrice(o.getTotalPrice())
+					.createdAt(createdAt)
+					.summaryTitle(preview)
+					.itemCount(count)
+					.build();
 		});
+		return PageCache.fromPage(result);
 	}
 
 	@Override
+	@Cacheable(
+			value = "myOrderDetail",
+			key = "#customerId + '_' + #orderId"
+	)
 	@Transactional(readOnly = true)
 	public CustomerOrderDetailRes getMyOrderDetail(UUID customerId, UUID orderId) {
 		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)
@@ -209,51 +220,75 @@ public class OrderServiceImpl implements OrderService {
 
 
 	@Override
+	public PageCache<OrderSummaryRes> getOwnerOrders(UUID ownerId, UUID storeId, Pageable pageable) {
+		return getOwnerOrdersCache(ownerId, storeId, pageable);
+	}
+
+	@Cacheable(
+			value = "ownerOrder",
+			key = "#ownerId + '_' + #storeId + '_' + #pageable.pageNumber + '_' + #pageable.pageSize"
+	)
 	@Transactional(readOnly = true)
-	public Page<OrderSummaryRes> getOwnerOrders(UUID ownerId, UUID storeId, Pageable pageable) {
+	public PageCache<OrderSummaryRes> getOwnerOrdersCache(UUID ownerId, UUID storeId, Pageable pageable) {
+
 
 		StoreLookUp store = storeClient.getStoreDetail(storeId);
+
 
 		UUID ownerFromStore = store.getOwnerId();
 		if (ownerFromStore != null && !ownerFromStore.equals(ownerId)) {
 			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
 		}
 
-		Page<OrderEntity> page = orderRepository.findByStoreIdIn(List.of(storeId), pageable);
 
-		List<UUID> orderIds = page.stream().map(OrderEntity::getOrderId).toList();
+		Page<OrderEntity> page = orderRepository.findByStoreIdIn(List.of(storeId), pageable);
+		List<UUID> orderIds = page.stream()
+				.map(OrderEntity::getOrderId)
+				.toList();
+
 
 		Map<UUID, List<OrderItemEntity>> itemsByOrderId = orderItemRepository
-			.findByOrderId_OrderIdIn(orderIds).stream()
-			.collect(Collectors.groupingBy(it -> it.getOrderId().getOrderId()));
+				.findByOrderId_OrderIdIn(orderIds)
+				.stream()
+				.collect(Collectors.groupingBy(it -> it.getOrderId().getOrderId()));
+
 
 		Map<UUID, OffsetDateTime> createdAtByOrderId = orderAuditRepository
-			.findAllById(orderIds).stream()
-			.collect(Collectors.toMap(OrderAuditEntity::getAuditId, OrderAuditEntity::getCreatedAt));
+				.findAllById(orderIds)
+				.stream()
+				.collect(Collectors.toMap(OrderAuditEntity::getAuditId, OrderAuditEntity::getCreatedAt));
 
 		final String storeName = store.getStoreName();
 
-		return page.map(o -> {
+
+		Page<OrderSummaryRes> mappedPage = page.map(o -> {
 			List<OrderItemEntity> items = itemsByOrderId.getOrDefault(o.getOrderId(), List.of());
 			String first = items.isEmpty() ? "-" : items.get(0).getMenuName();
 			int extra = Math.max(0, items.size() - 1);
 			String preview = items.isEmpty() ? "-" : (extra > 0 ? first + " 외 " + extra + "개" : first);
 
 			return OrderSummaryRes.builder()
-				.orderId(o.getOrderId())
-				.storeId(o.getStoreId())
-				.storeName(storeName)
-				.orderStatus(o.getOrderStatus())
-				.totalPrice(o.getTotalPrice())
-				.createdAt(createdAtByOrderId.get(o.getOrderId()))
-				.summaryTitle(preview)
-				.itemCount(items.size())
-				.build();
+					.orderId(o.getOrderId())
+					.storeId(o.getStoreId())
+					.storeName(storeName)
+					.orderStatus(o.getOrderStatus())
+					.totalPrice(o.getTotalPrice())
+					.createdAt(createdAtByOrderId.get(o.getOrderId()))
+					.summaryTitle(preview)
+					.itemCount(items.size())
+					.build();
 		});
+
+
+		return PageCache.fromPage(mappedPage);
 	}
 
 
 	@Override
+	@Cacheable(
+			value = "ownerOrderDetail",
+			key = "#ownerId + '_' + #storeId"
+	)
 	@Transactional(readOnly = true)
 	public OwnerOrderDetailRes getOwnerOrderDetail(UUID orderId, UUID storeId, UUID ownerId) {
 

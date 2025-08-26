@@ -15,6 +15,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
 
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    //redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+    // Redisson 클라이언트를 사용하기 위한 의존성 (이것도 그대로 유지)
+    implementation 'org.redisson:redisson-spring-boot-starter:3.50.0'
+
     runtimeOnly 'org.postgresql:postgresql:42.7.3'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
