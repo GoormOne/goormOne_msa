@@ -1,6 +1,7 @@
 package com.example.storeservice.aop;
 
 import java.lang.reflect.Method;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -18,6 +19,8 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 
+import com.example.storeservice.global.exception.InventoryProcessingException;
+
 import lombok.RequiredArgsConstructor;
 
 @Aspect
@@ -33,12 +36,33 @@ public class DistributedLockAspect {
 	public Object around(ProceedingJoinPoint joinPoint, DistributedLock lock) throws Throwable {
 		String key = buildKey(joinPoint, lock.key());
 		RLock rLock = redissonClient.getLock(key);
+
+		final int maxRetires = 5;
+		final long baseBackOffMs = 200L;
+
 		boolean acquired = false;
-		try {
+		int attempts = 0;
+
+		while (attempts < maxRetires && !acquired) {
+			attempts++;
 			acquired = rLock.tryLock(lock.waitTime(), lock.leaseTime(), lock.timeUnit());
-			if (!acquired) {
-				throw new IllegalStateException("분산락 획득 실패: " + key);
+			if (!acquired && attempts < maxRetires) {
+				long jitter = ThreadLocalRandom.current().nextLong(0, 30);
+				long sleep = baseBackOffMs * attempts + jitter;
+				try {
+					Thread.sleep(sleep);
+				} catch (InventoryProcessingException e) {
+					Thread.currentThread().interrupt();
+					break;
+				}
 			}
+		}
+
+		if (!acquired) {
+			throw new InventoryProcessingException("분산락 획득 실패: " + key);
+		}
+
+		try {
 			return joinPoint.proceed();
 		} finally{
 			if (acquired && rLock.isHeldByCurrentThread()) {
