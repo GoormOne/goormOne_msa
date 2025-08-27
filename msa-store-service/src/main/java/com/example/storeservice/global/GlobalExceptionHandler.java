@@ -4,6 +4,7 @@ package com.example.storeservice.global;
 import com.example.common.dto.ApiResponse;
 import com.example.common.exception.BusinessException;
 import com.example.common.exception.CommonCode;
+import com.example.storeservice.global.exception.InventoryProcessingException;
 import com.example.storeservice.global.exception.StoreAlreadyDeletedException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
@@ -99,12 +100,11 @@ public class GlobalExceptionHandler {
     }
 
     // 낙관적 락 충돌 → 409
-    @ExceptionHandler({jakarta.persistence.OptimisticLockException.class,
-        org.hibernate.StaleObjectStateException.class})
-    public ResponseEntity<ApiResponse<?>> handleOptimisticLock(Exception ex) {
-        log.warn("Optimistic lock conflict: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-            .body(ApiResponse.fail(CommonCode.CONCURRENCY_CONFLICT));
+    @ExceptionHandler(InventoryProcessingException.class)
+    public ResponseEntity<ApiResponse<?>> handleLockNotAcquired(InventoryProcessingException ex) {
+        log.warn("Lock contention: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT) // or TOO_MANY_REQUESTS
+            .body(ApiResponse.fail(CommonCode.CONCURRENCY_CONFLICT, "다른 요청이 처리 중입니다. 잠시 후 다시 시도해주세요."));
     }
 
     private CommonCode mapStatusToCommonCode(HttpStatus status) {
