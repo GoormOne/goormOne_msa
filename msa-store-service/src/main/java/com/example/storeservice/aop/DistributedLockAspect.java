@@ -37,16 +37,16 @@ public class DistributedLockAspect {
 		String key = buildKey(joinPoint, lock.key());
 		RLock rLock = redissonClient.getLock(key);
 
-		final int maxRetires = 5;
+		final int maxRetries = 5;
 		final long baseBackOffMs = 200L;
 
 		boolean acquired = false;
 		int attempts = 0;
 
-		while (attempts < maxRetires && !acquired) {
+		while (attempts < maxRetries && !acquired) {
 			attempts++;
 			acquired = rLock.tryLock(lock.waitTime(), lock.leaseTime(), lock.timeUnit());
-			if (!acquired && attempts < maxRetires) {
+			if (!acquired && attempts < maxRetries) {
 				long jitter = ThreadLocalRandom.current().nextLong(0, 30);
 				long sleep = baseBackOffMs * attempts + jitter;
 				try {
