@@ -28,3 +28,5 @@ include(
         "msa-order-service",
         "msa-payment-service"
 )
+
+include 'msa-auth-lambda'
