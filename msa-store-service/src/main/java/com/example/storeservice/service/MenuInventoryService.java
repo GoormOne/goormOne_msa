@@ -4,12 +4,14 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.hibernate.StaleObjectStateException;
+import org.redisson.api.RedissonClient;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.example.storeservice.aop.DistributedLock;
 import com.example.storeservice.entity.Menu;
 import com.example.storeservice.entity.MenuInventory;
 import com.example.storeservice.global.exception.InvalidQuantityException;
@@ -30,6 +32,7 @@ public class MenuInventoryService {
 	private final MenuInventoryRepository inventoryRepo;
 	private final MenuRepository menuRepo;
 	private final PlatformTransactionManager transactionManager;
+	private final RedissonClient redissonClient;
 
 	private static final int MAX_ATTEMPTS = 5;
 	private static final long BASE_BACKOFF_MS = 15;
@@ -75,6 +78,7 @@ public class MenuInventoryService {
 		inventoryRepo.save(inventory);
 	}
 
+	@DistributedLock(key = "menu:#{#menuId}", waitTime = 5, leaseTime = 30)
 	public void reserve(UUID menuId, int qty) {
 		validateQty(qty);
 
@@ -88,6 +92,7 @@ public class MenuInventoryService {
 		}));
 	}
 
+	@DistributedLock(key = "menu:#{#menuId}", waitTime = 5, leaseTime = 30)
 	public void confirm(UUID menuId, int qty) {
 		validateQty(qty);
 
@@ -100,6 +105,7 @@ public class MenuInventoryService {
 		}));
 	}
 
+	@DistributedLock(key = "menu:#{#menuId}", waitTime = 5, leaseTime = 30)
 	public void release(UUID menuId, int qty) {
 		validateQty(qty);
 
