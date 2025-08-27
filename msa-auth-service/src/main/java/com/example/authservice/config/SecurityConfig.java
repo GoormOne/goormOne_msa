@@ -39,7 +39,8 @@ public class SecurityConfig {
                                 "/auth/logout",
                                 "/actuator/health")
                         .permitAll()
-                        .requestMatchers("/internal/auth/**").permitAll() // 게이트웨이 내부용 조회. (필요 시 추가 보안 적용)
+                        .requestMatchers("/internal/auth/**").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()// 게이트웨이 내부용 조회. (필요 시 추가 보안 적용)
                         .anyRequest().permitAll())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(json401())
