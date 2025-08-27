@@ -1,17 +1,15 @@
-
 spring:
   application:
-    name: msa-store-service
+   name: msa-store-service
   profiles:
     active: local
 
   data:
-
     redis:
-#      host: localhost
-      host: 3.35.168.60
+      host: localhost
+#      host: 3.35.168.60
       port: 6379
-      clientName: ksy
+      clientName: KSY
 
     cache:
       type: redis
@@ -52,7 +50,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
 
-
 management:
   endpoints:
     web:
@@ -67,7 +64,6 @@ spring:
   config:
     activate:
       on-profile: local
-
   cloud:
     aws:
       credentials:

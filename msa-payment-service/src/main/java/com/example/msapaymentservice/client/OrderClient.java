@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -25,7 +26,8 @@ public class OrderClient {
 		this.restTemplate = restTemplate;
 	}
 
-	private static final String STORE_BASE = "http://msa-order-service";
+	@Value("${order.service.url}")
+	private String STORE_BASE;
 
 	public OrderCheckoutView getCheckout(UUID orderId, UUID customerId) {
 		String url = STORE_BASE + "/internal/orders/" + orderId + "/checkout";

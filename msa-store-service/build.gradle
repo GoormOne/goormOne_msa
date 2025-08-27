@@ -8,6 +8,17 @@ dependencies {
 	implementation project(':msa-common')
 
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+
+	implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.1.1")
+	implementation "io.awspring.cloud:spring-cloud-aws-starter"
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
+	implementation "io.awspring.cloud:spring-cloud-aws-starter-secrets-manager"
+	implementation 'io.awspring.cloud:spring-cloud-aws-s3'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'				// ✅ Dto 검증
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'					// ✅ health check
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'	// ✅ Eureka client
@@ -22,6 +33,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
 	// Redisson 클라이언트를 사용하기 위한 의존성 (이것도 그대로 유지)
 	implementation 'org.redisson:redisson-spring-boot-starter:3.50.0'
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
 
 	runtimeOnly 'org.postgresql:postgresql'
 	compileOnly 'org.projectlombok:lombok'
@@ -33,6 +45,14 @@ dependencies {
 	testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 	testImplementation 'org.mockito:mockito-core:5.12.0'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+test {
+	useJUnitPlatform()
+	testLogging {
+		events "passed", "skipped", "failed", "standardOut", "standardError"
+		showStandardStreams = true
+	}
 }
 
 // queryDSL의 Q class가 생기는 위치를 통일
