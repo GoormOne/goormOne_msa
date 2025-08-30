@@ -50,12 +50,17 @@ spring:
   config:
     activate:
       on-profile: dev
+  cloud:
+    loadbalancer:
+      enabled: false
+
 server:
   port: 8080
 
 eureka:
   client:
     enabled: false
+
 
 logging:
   pattern:

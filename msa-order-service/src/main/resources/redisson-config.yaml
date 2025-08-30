@@ -1,6 +1,6 @@
 singleServerConfig:
-  address: "redis://3.35.168.60:6379"
-  # password: "your-password"
+  address: "redis://192.168.3.208:6379"
+
   connectionPoolSize: 16
   connectionMinimumIdleSize: 4
 threads: 8

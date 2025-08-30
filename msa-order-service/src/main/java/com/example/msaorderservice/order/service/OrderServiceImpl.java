@@ -218,7 +218,8 @@ public class OrderServiceImpl implements OrderService {
 	@Transactional(readOnly = true)
 	public CustomerOrderDetailRes getMyOrderDetail(UUID customerId, UUID orderId) {
 		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)
-			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다., customerId: " + customerId + ", orderId: " + orderId));
+
 
 		List<OrderItemEntity> items = orderItemRepository.findByOrderId_OrderId(orderId);
 

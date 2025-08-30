@@ -26,6 +26,7 @@ dependencies {
     implementation "io.awspring.cloud:spring-cloud-aws-starter-secrets-manager"
 
 
+
     // DB
     implementation 'org.postgresql:postgresql'
 

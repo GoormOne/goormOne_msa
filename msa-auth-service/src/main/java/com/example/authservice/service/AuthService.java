@@ -40,7 +40,7 @@ public class AuthService {
     private final JdbcTemplate jdbcTemplate;
     private final CognitoProperties props;
 
-    // === Register ===
+    // === Register (CUSTOMER) ===
     @Transactional
     public RegisterRes registerCustomer(RegisterCustomerReq req) {
         // 중복 검사
@@ -49,35 +49,54 @@ public class AuthService {
         customerRepository.findByEmail(req.getEmail())
                 .ifPresent(x -> { throw new IllegalArgumentException("DUPLICATE_EMAIL"); });
 
-        UUID id = UUID.randomUUID();
-
-        Customer customer = Customer.builder()
-                .customerId(id)
-                .username(req.getUsername())
-                .password(passwordEncoder.encode(req.getPassword()))
-                .name(req.getName())
-                .birth(req.getBirth())
-                .email(req.getEmail())
-                .emailVerified(true)
-                .isBanned(false)
-                .build();
-
-        CustomerAudit audit = CustomerAudit.builder().build();
-        audit.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
-        audit.setCreatedBy(id);
-
-        customer.attachAudit(audit);
-
-        Customer saved = customerRepository.save(customer);
-
-        // Cognito Admin API
-        cognitoService.createUserAndSetPasswordAndGroup(
-                req.getUsername(), req.getPassword(), req.getEmail(), req.getName(), req.getBirth(), "CUSTOMER"
+        // 1) Cognito 유저 생성 & sub 조회
+        String sub = cognitoService.createUserAndReturnSub(
+                req.getUsername(),
+                req.getPassword(),
+                req.getEmail(),
+                req.getName(),
+                req.getBirth(),
+                "CUSTOMER"
         );
 
-        return new RegisterRes(saved.getCustomerId(), saved.getUsername());
+        UUID id = UUID.fromString(sub);
+
+        try {
+            // 2) DB 저장 (PK = sub)
+            Customer customer = Customer.builder()
+                    .customerId(id)
+                    .username(req.getUsername())
+                    .password(passwordEncoder.encode(req.getPassword()))
+                    .name(req.getName())
+                    .birth(req.getBirth())
+                    .email(req.getEmail())
+                    .emailVerified(true)
+                    .isBanned(false)
+                    .build();
+
+            CustomerAudit audit = CustomerAudit.builder().build();
+            customer.attachAudit(audit);
+            // 감사 필드(작성자 등) — AuditBaseEntity를 상속한 구조라면 아래와 같이 설정
+            audit.setAuditId(id);
+            audit.setCreatedBy(id);
+
+            Customer saved = customerRepository.save(customer);
+
+            return new RegisterRes(saved.getCustomerId(), saved.getUsername());
+
+        } catch (RuntimeException e) {
+            // 3) 보상 트랜잭션: DB 실패 시 Cognito 롤백
+            try {
+                cognitoService.deleteUser(req.getUsername());
+            } catch (Exception ex) {
+                // 보상 실패는 로깅만
+                log.error("[REGISTER_CUSTOMER] compensation deleteUser failed: {}", ex.getMessage(), ex);
+            }
+            throw e;
+        }
     }
 
+    // === Register (OWNER) ===
     @Transactional
     public RegisterRes registerOwner(RegisterOwnerReq req) {
         // 중복 검사
@@ -86,32 +105,49 @@ public class AuthService {
         ownerRepository.findByEmail(req.getEmail())
                 .ifPresent(x -> { throw new IllegalArgumentException("DUPLICATE_EMAIL"); });
 
-        UUID id = UUID.randomUUID();
-
-        Owner owner = Owner.builder()
-                .ownerId(id)
-                .username(req.getUsername())
-                .password(passwordEncoder.encode(req.getPassword()))
-                .name(req.getName())
-                .birth(req.getBirth())
-                .email(req.getEmail())
-                .emailVerified(true)
-                .isBanned(false)
-                .build();
-
-        OwnerAudit audit = OwnerAudit.builder().build();
-        audit.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
-        audit.setCreatedBy(id);
-
-        owner.attachAudit(audit);
-
-        Owner saved = ownerRepository.save(owner);
-
-        cognitoService.createUserAndSetPasswordAndGroup(
-                req.getUsername(), req.getPassword(), req.getEmail(), req.getName(), req.getBirth(), "OWNER"
+        // 1) Cognito 유저 생성 & sub 조회
+        String sub = cognitoService.createUserAndReturnSub(
+                req.getUsername(),
+                req.getPassword(),
+                req.getEmail(),
+                req.getName(),
+                req.getBirth(),
+                "OWNER"
         );
 
-        return new RegisterRes(saved.getOwnerId(), saved.getUsername());
+        UUID id = UUID.fromString(sub);
+
+        try {
+            // 2) DB 저장 (PK = sub)
+            Owner owner = Owner.builder()
+                    .ownerId(id)
+                    .username(req.getUsername())
+                    .password(passwordEncoder.encode(req.getPassword()))
+                    .name(req.getName())
+                    .birth(req.getBirth())
+                    .email(req.getEmail())
+                    .emailVerified(true)
+                    .isBanned(false)
+                    .build();
+
+            OwnerAudit audit = OwnerAudit.builder().build();
+            owner.attachAudit(audit);
+            audit.setAuditId(id);
+            audit.setCreatedBy(id);
+
+            Owner saved = ownerRepository.save(owner);
+
+            return new RegisterRes(saved.getOwnerId(), saved.getUsername());
+
+        } catch (RuntimeException e) {
+            // 3) 보상 트랜잭션: DB 실패 시 Cognito 롤백
+            try {
+                cognitoService.deleteUser(req.getUsername());
+            } catch (Exception ex) {
+                log.error("[REGISTER_OWNER] compensation deleteUser failed: {}", ex.getMessage(), ex);
+            }
+            throw e;
+        }
     }
 
     // === Login ===

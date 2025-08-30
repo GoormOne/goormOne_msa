@@ -1,5 +1,5 @@
 singleServerConfig:
-  address: "redis://localhost:6379"
+  address: "redis://192.168.3.208:6379"
   # password: "your-password"
   connectionPoolSize: 16
   connectionMinimumIdleSize: 4
