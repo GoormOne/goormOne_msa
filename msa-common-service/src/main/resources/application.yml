@@ -1,0 +1,70 @@
+spring:
+  application:
+   name: msa-common-service
+
+  profiles:
+    active: local
+
+  kafka:
+    bootstrap-servers: localhost:29092
+    consumer:
+      group-id: store-consumer
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    # (SASL/SSL 쓰면 여기에 security 설정 추가)
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+server:
+  port: 8079
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+logging:
+  level:
+    org.springframework.cloud.loadbalancer: DEBUG
+    org.springframework.cloud.gateway.server.mvc: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  cloud:
+    loadbalancer:
+      enabled: false
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    enabled: false
+
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+    org.springframework.web.servlet.DispatcherServlet: TRACE

@@ -1,0 +1,113 @@
+spring:
+  application:
+    name: msa-payment-service
+  profiles:
+    active: local
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env # 디버깅을 위해 env 추가
+  endpoint:
+    health:
+      show-details: when_authorized
+toss:
+  api-url: https://api.tosspayments.com
+  secret-key: test_sk_GePWvyJnrKblk4AJ4qbEVgLzN97E
+  client-key: test_ck_Ba5PzR0Arn9bqEYORBDXVvmYnNeD
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: Goorm1!!
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 2
+      idle-timeout: 300000        # 5m
+      max-lifetime: 1500000       # 25m
+      keepalive-time: 1200000     # 20m
+      connection-timeout: 30000
+      validation-timeout: 3000
+      auto-commit: false
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+server:
+  port: 8086
+eureka:
+   client:
+     register-with-eureka: true
+     fetch-registry: true
+     service-url:
+       defaultZone: http://localhost:8761/eureka/
+
+order:
+  service:
+    url: http://msa-order-service
+store:
+  url: http://msa-store-service
+
+
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+    import: ["aws-secretsmanager:dev"]
+
+  datasource:
+    url: jdbc:postgresql://${db_host}:5432/postgres
+    driver-class-name: org.postgresql.Driver
+    username: ${db_username}
+    password: ${db_password}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  cloud:
+    loadbalancer:
+        enabled: false
+
+server:
+  port: 8080
+
+eureka:
+   client:
+     enabled: false
+
+order:
+  service:
+    url: http://msa-order-service:8080 # 클라우드 orderservice url
+store:
+  url: http://msa-store-service:8080
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+    org.springframework.web.servlet.DispatcherServlet: TRACE

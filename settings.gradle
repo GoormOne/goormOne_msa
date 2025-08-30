@@ -17,6 +17,16 @@ dependencyResolutionManagement {
 
 rootProject.name = "goormOne_msa"
 
-include("apiGateway")
-include("commonLibrary")
-include("storeService")
+include(
+        "msa-gateway",
+        "msa-eureka",
+        "msa-common",
+        "msa-common-service",
+        "msa-auth-service",
+        "msa-user-service",
+        "msa-store-service",
+        "msa-order-service",
+        "msa-payment-service"
+)
+
+include 'msa-auth-lambda'

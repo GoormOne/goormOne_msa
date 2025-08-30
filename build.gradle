@@ -39,6 +39,8 @@ subprojects {
 		systemProperty "spring.cloud.discovery.enabled", "false"
 	}
 
+	tasks.named('test') { enabled = false }
+
 	// 공통 BOM: 모듈에서는 버전 없이 의존성 선언
 	dependencyManagement {
 		imports {

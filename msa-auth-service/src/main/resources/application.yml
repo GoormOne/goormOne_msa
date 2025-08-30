@@ -1,0 +1,136 @@
+spring:
+  application:
+    name: msa-auth-service
+
+  profiles:
+    active: local
+
+  config:
+    import: optional:file:.env[.properties]
+
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: Goorm1!!
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 2
+      idle-timeout: 300000        # 5m
+      max-lifetime: 1500000       # 25m
+      keepalive-time: 1200000     # 20m
+      connection-timeout: 30000
+      validation-timeout: 3000
+      auto-commit: false
+  jpa:
+    hibernate:
+      ddl-auto: none           # validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
+aws:
+  region: ap-northeast-2
+  cognito:
+    user-pool-id: ${AWS_COGNITO_USER_POOL_ID}
+    app-client-id: ${AWS_COGNITO_APP_CLIENT_ID}
+    app-client-secret: ${AWS_COGNITO_APP_CLIENT_SECRET}
+    groups:
+      admin: admin
+      owner: owner
+      customer: customer
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+    org.springframework.cloud.loadbalancer: DEBUG
+    org.springframework.cloud.gateway.server.mvc: DEBUG
+
+
+
+server:
+  port: 8089
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+logging:
+  level:
+    root: INFO
+    com.example.authservice: DEBUG
+    software.amazon.awssdk: INFO
+
+
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+    import: ["aws-secretsmanager:dev"]
+
+  datasource:
+    url: jdbc:postgresql://${db_host}:5432/postgres
+    driver-class-name: org.postgresql.Driver
+    username: ${db_username}
+    password: ${db_password}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  cloud:
+    loadbalancer:
+      enabled: false
+aws:
+  cognito:
+    user-pool-id: ${user_pool_id}
+    app-client-id: ${client_id}
+    app-client-secret: ${client_secrets}
+    groups:
+      admin: admin
+      owner: owner
+      customer: customer
+  credentials:
+    access-key: AKIAXETF2IMIKHLD6BEJ
+    secret-key: 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
+    org.springframework.cloud.loadbalancer: DEBUG
+    org.springframework.cloud.gateway.server.mvc: DEBUG
+
+
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    enabled: false
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+    org.springframework.web.servlet.DispatcherServlet: TRACE
