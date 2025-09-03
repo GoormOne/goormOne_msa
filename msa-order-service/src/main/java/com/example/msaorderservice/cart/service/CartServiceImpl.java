@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.slf4j.MDC;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +17,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.common.exception.BusinessException;
+import com.example.common.exception.CommonCode;
 import com.example.msaorderservice.cart.dto.CartItemAddReq;
 import com.example.msaorderservice.cart.dto.CartItemRes;
 import com.example.msaorderservice.cart.dto.CartItemsPageRes;
@@ -41,20 +44,24 @@ public class CartServiceImpl implements CartService {
 	@Override
 	@Transactional
 	public CartItemEntity addItem(CartItemAddReq req) {
-		CartEntity cart = cartRepository.findByCustomerIdAndStoreId(req.getCustomerId(), req.getStoreId())
-			.orElse(null);
 
-		if (cart == null) {
-			cart = cartRepository.save(
-				CartEntity.builder()
-					.customerId(req.getCustomerId())
-					.storeId(req.getStoreId())
-					.build()
-			);
-		}
+		CartEntity cart = cartRepository.findByCustomerIdAndStoreId(req.getCustomerId(), req.getStoreId())
+			.orElseGet(() -> cartRepository.save(
+					CartEntity.builder()
+						.customerId(req.getCustomerId())
+						.storeId(req.getStoreId())
+						.build()
+			));
+
+		MDC.put("cartId", String.valueOf(cart.getCartId()));
 
 		cartItemRepository.findByCartIdAndMenuId(cart.getCartId(), req.getMenuId())
-			.ifPresent(it -> {throw new IllegalStateException("이미 장바구니에 담긴 메뉴입니다.");});
+			.ifPresent(it -> {
+				throw new BusinessException(
+					CommonCode.CART_ALREADY
+				);
+
+			});
 
 		CartItemEntity item = CartItemEntity.builder()
 			.cartId(cart.getCartId())

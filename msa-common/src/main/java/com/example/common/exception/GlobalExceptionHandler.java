@@ -8,6 +8,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientResponseException;
 
 import com.example.common.dto.ApiResponse;
 
@@ -96,20 +98,32 @@ public class GlobalExceptionHandler {
 	}
 
 	// 4xx/5xx 응답(바디 확인 가능)
-	@ExceptionHandler(org.springframework.web.client.RestClientResponseException.class)
+	@ExceptionHandler(RestClientResponseException.class)
 	public ResponseEntity<ApiResponse<Void>> handleRestClientResp(
-		org.springframework.web.client.RestClientResponseException ex, HttpServletRequest req) {
-		log.error("[REST_CLIENT] uri={} status={} body={}", req.getRequestURI(), ex.getRawStatusCode(), ex.getResponseBodyAsString(), ex);
-		return ResponseEntity.status(CommonCode.CONFLICT.getHttpStatus())
-			.body(ApiResponse.fail(CommonCode.CONFLICT, "외부 서비스 호출 중 오류가 발생했습니다."));
+		RestClientResponseException ex, HttpServletRequest req) {
+
+		log.error("[REST_CLIENT] uri={} status={} body={}",
+			req.getRequestURI(), ex.getRawStatusCode(), ex.getResponseBodyAsString(), ex);
+
+		// ✅ 네가 가진 코드들로만 매핑
+		CommonCode code = switch (ex.getRawStatusCode()) {
+			case 400 -> CommonCode.BAD_REQUEST;
+			case 401 -> CommonCode.UNAUTHORIZED;
+			case 403 -> CommonCode.FORBIDDEN;
+			case 404 -> CommonCode.NOT_FOUND;
+			default -> CommonCode.INTERNAL_SERVER_ERROR; // 5xx 포함
+		};
+
+		String msg = "외부 서비스 호출 중 오류가 발생했습니다. (status=" + ex.getRawStatusCode() + ")";
+		return ResponseEntity.status(code.getHttpStatus())
+			.body(ApiResponse.fail(code, msg));
 	}
 
-	// 네트워크/타임아웃
-	@ExceptionHandler(org.springframework.web.client.ResourceAccessException.class)
+	@ExceptionHandler(ResourceAccessException.class)
 	public ResponseEntity<ApiResponse<Void>> handleResourceAccess(
-		org.springframework.web.client.ResourceAccessException ex, HttpServletRequest req) {
+		ResourceAccessException ex, HttpServletRequest req) {
 		log.error("[REST_IO] uri={} msg={}", req.getRequestURI(), ex.getMessage(), ex);
-		return ResponseEntity.status(CommonCode.CONFLICT.getHttpStatus())
-			.body(ApiResponse.fail(CommonCode.CONFLICT, "외부 서비스 연결 실패. 잠시 후 재시도해주세요."));
+		return ResponseEntity.status(CommonCode.INTERNAL_SERVER_ERROR.getHttpStatus())
+			.body(ApiResponse.fail(CommonCode.INTERNAL_SERVER_ERROR, "외부 서비스 연결 실패. 잠시 후 재시도해주세요."));
 	}
 }

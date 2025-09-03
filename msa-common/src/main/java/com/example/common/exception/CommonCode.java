@@ -40,7 +40,8 @@ public enum CommonCode {
     CART_NOT_FOUND(HttpStatus.NOT_FOUND, 4400, "장바구니를 찾을 수 없습니다."),
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, 4401, "장바구니 항목을 찾을 수 없습니다."),
     CART_INVALID_QUANTITY(HttpStatus.BAD_REQUEST, 4402, "유효하지 않은 수량입니다."),
-    CART_CONFLICT(HttpStatus.CONFLICT, 4403, "장바구니 처리 중 충돌이 발생했습니다.");
+    CART_CONFLICT(HttpStatus.CONFLICT, 4403, "장바구니 처리 중 충돌이 발생했습니다."),
+    CART_ALREADY(HttpStatus.CONFLICT, 4404, "이미 장바구니에 담긴 메뉴입니다.");
 
     private final HttpStatus httpStatus;
     private final int code;

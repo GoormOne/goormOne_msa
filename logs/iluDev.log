@@ -1,0 +1,515 @@
+2025-09-04 05:59:19.417 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final     [cartId= orderId=]
+2025-09-04 05:59:19.453 [main] INFO  c.e.m.MsaOrderServiceApplication - Starting MsaOrderServiceApplication using Java 17.0.15 with PID 58532 (/Users/idong-gyu/goormOne_msa/msa-order-service/build/classes/java/main started by idong-gyu in /Users/idong-gyu/goormOne_msa)     [cartId= orderId=]
+2025-09-04 05:59:19.453 [main] INFO  c.e.m.MsaOrderServiceApplication - The following 1 profile is active: "local"     [cartId= orderId=]
+2025-09-04 05:59:20.242 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode     [cartId= orderId=]
+2025-09-04 05:59:20.243 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.     [cartId= orderId=]
+2025-09-04 05:59:20.439 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 192 ms. Found 5 JPA repository interfaces.     [cartId= orderId=]
+2025-09-04 05:59:20.453 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode     [cartId= orderId=]
+2025-09-04 05:59:20.453 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.     [cartId= orderId=]
+2025-09-04 05:59:20.466 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.example.msaorderservice.cart.repository.CartItemRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository     [cartId= orderId=]
+2025-09-04 05:59:20.467 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.example.msaorderservice.cart.repository.CartRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository     [cartId= orderId=]
+2025-09-04 05:59:20.467 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.example.msaorderservice.order.repository.OrderAuditRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository     [cartId= orderId=]
+2025-09-04 05:59:20.467 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.example.msaorderservice.order.repository.OrderItemRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository     [cartId= orderId=]
+2025-09-04 05:59:20.467 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.example.msaorderservice.order.repository.OrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository     [cartId= orderId=]
+2025-09-04 05:59:20.468 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 5 ms. Found 0 Redis repository interfaces.     [cartId= orderId=]
+2025-09-04 05:59:20.713 [main] INFO  o.s.cloud.context.scope.GenericScope - BeanFactory id=86e9dda9-bd0b-389a-84e1-f4dd1fb52b9d     [cartId= orderId=]
+2025-09-04 05:59:21.120 [main] WARN  o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig' of type [org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). The currently created BeanPostProcessor [lbRestClientPostProcessor] is declared through a non-static factory method on that class; consider declaring it as static instead.     [cartId= orderId=]
+2025-09-04 05:59:21.123 [main] WARN  o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'deferringLoadBalancerInterceptor' of type [org.springframework.cloud.client.loadbalancer.DeferringLoadBalancerInterceptor] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected into a currently created BeanPostProcessor [lbRestClientPostProcessor]? Check the corresponding BeanPostProcessor declaration and its dependencies.     [cartId= orderId=]
+2025-09-04 05:59:21.689 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8085 (http)     [cartId= orderId=]
+2025-09-04 05:59:21.701 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8085"]     [cartId= orderId=]
+2025-09-04 05:59:21.704 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]     [cartId= orderId=]
+2025-09-04 05:59:21.704 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.26]     [cartId= orderId=]
+2025-09-04 05:59:21.751 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext     [cartId= orderId=]
+2025-09-04 05:59:21.751 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 2255 ms     [cartId= orderId=]
+2025-09-04 05:59:22.110 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]     [cartId= orderId=]
+2025-09-04 05:59:22.151 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.5.2.Final     [cartId= orderId=]
+2025-09-04 05:59:22.173 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled     [cartId= orderId=]
+2025-09-04 05:59:22.369 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer     [cartId= orderId=]
+2025-09-04 05:59:22.389 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...     [cartId= orderId=]
+2025-09-04 05:59:22.746 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@451f3f66     [cartId= orderId=]
+2025-09-04 05:59:22.747 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.     [cartId= orderId=]
+2025-09-04 05:59:22.784 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)     [cartId= orderId=]
+2025-09-04 05:59:23.495 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)     [cartId= orderId=]
+2025-09-04 05:59:23.499 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'     [cartId= orderId=]
+2025-09-04 05:59:24.079 [main] INFO  org.redisson.Version - Redisson 3.50.0     [cartId= orderId=]
+2025-09-04 05:59:24.167 [main] WARN  i.n.r.d.DnsServerAddressStreamProviders - Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider in the classpath, fallback to system defaults. This may result in incorrect DNS resolutions on MacOS. Check whether you have a dependency on 'io.netty:netty-resolver-dns-native-macos'     [cartId= orderId=]
+2025-09-04 05:59:24.300 [redisson-netty-1-6] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for localhost/127.0.0.1:6379     [cartId= orderId=]
+2025-09-04 05:59:24.370 [redisson-netty-1-20] INFO  o.r.connection.ConnectionsHolder - 24 connections initialized for localhost/127.0.0.1:6379     [cartId= orderId=]
+2025-09-04 05:59:24.890 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator'     [cartId= orderId=]
+2025-09-04 05:59:25.402 [main] INFO  o.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration - Eureka HTTP Client uses RestTemplate.     [cartId= orderId=]
+2025-09-04 05:59:25.444 [main] WARN  o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger - Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.     [cartId= orderId=]
+2025-09-04 05:59:25.489 [main] INFO  o.s.c.n.eureka.InstanceInfoFactory - Setting initial instance status as: STARTING     [cartId= orderId=]
+2025-09-04 05:59:25.499 [main] INFO  c.netflix.discovery.DiscoveryClient - Initializing Eureka in region us-east-1     [cartId= orderId=]
+2025-09-04 05:59:25.501 [main] INFO  c.n.d.s.r.aws.ConfigClusterResolver - Resolving eureka endpoints via configuration     [cartId= orderId=]
+2025-09-04 05:59:25.504 [main] INFO  c.netflix.discovery.DiscoveryClient - Disable delta property : false     [cartId= orderId=]
+2025-09-04 05:59:25.504 [main] INFO  c.netflix.discovery.DiscoveryClient - Single vip registry refresh property : null     [cartId= orderId=]
+2025-09-04 05:59:25.504 [main] INFO  c.netflix.discovery.DiscoveryClient - Force full registry fetch : false     [cartId= orderId=]
+2025-09-04 05:59:25.504 [main] INFO  c.netflix.discovery.DiscoveryClient - Application is null : false     [cartId= orderId=]
+2025-09-04 05:59:25.504 [main] INFO  c.netflix.discovery.DiscoveryClient - Registered Applications size is zero : true     [cartId= orderId=]
+2025-09-04 05:59:25.504 [main] INFO  c.netflix.discovery.DiscoveryClient - Application version is -1: true     [cartId= orderId=]
+2025-09-04 05:59:25.504 [main] INFO  c.netflix.discovery.DiscoveryClient - Getting all instance registry info from the eureka server     [cartId= orderId=]
+2025-09-04 05:59:25.744 [main] INFO  c.netflix.discovery.DiscoveryClient - The response status is 200     [cartId= orderId=]
+2025-09-04 05:59:25.746 [main] INFO  c.netflix.discovery.DiscoveryClient - Starting heartbeat executor: renew interval is: 30     [cartId= orderId=]
+2025-09-04 05:59:25.747 [main] INFO  c.n.discovery.InstanceInfoReplicator - InstanceInfoReplicator onDemand update allowed rate per min is 4     [cartId= orderId=]
+2025-09-04 05:59:25.748 [main] INFO  c.netflix.discovery.DiscoveryClient - Discovery Client initialized at timestamp 1756933165748 with initial instances count: 0     [cartId= orderId=]
+2025-09-04 05:59:25.753 [main] INFO  o.s.c.n.e.s.EurekaServiceRegistry - Registering application MSA-ORDER-SERVICE with eureka with status UP     [cartId= orderId=]
+2025-09-04 05:59:25.753 [main] INFO  c.netflix.discovery.DiscoveryClient - Saw local status change event StatusChangeEvent [timestamp=1756933165753, current=UP, previous=STARTING]     [cartId= orderId=]
+2025-09-04 05:59:25.754 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8085"]     [cartId= orderId=]
+2025-09-04 05:59:25.755 [DiscoveryClient-InstanceInfoReplicator-%d] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:f3a72a3d948d91b48e38abd38f27f7b5: registering service...     [cartId= orderId=]
+2025-09-04 05:59:25.765 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8085 (http) with context path '/'     [cartId= orderId=]
+2025-09-04 05:59:25.765 [main] INFO  o.s.c.n.e.s.EurekaAutoServiceRegistration - Updating port to 8085     [cartId= orderId=]
+2025-09-04 05:59:25.781 [main] INFO  c.e.m.MsaOrderServiceApplication - Started MsaOrderServiceApplication in 6.651 seconds (process running for 7.069)     [cartId= orderId=]
+2025-09-04 05:59:25.859 [DiscoveryClient-InstanceInfoReplicator-%d] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:f3a72a3d948d91b48e38abd38f27f7b5 - registration status: 204     [cartId= orderId=]
+2025-09-04 05:59:26.107 [RMI TCP Connection(3)-127.0.0.1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'     [cartId= orderId=]
+2025-09-04 05:59:26.107 [RMI TCP Connection(3)-127.0.0.1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'     [cartId= orderId=]
+2025-09-04 05:59:26.109 [RMI TCP Connection(3)-127.0.0.1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 2 ms     [cartId= orderId=]
+2025-09-04 05:59:55.749 [DiscoveryClient-CacheRefreshExecutor-%d] INFO  c.netflix.discovery.DiscoveryClient - Disable delta property : false     [cartId= orderId=]
+2025-09-04 05:59:55.751 [DiscoveryClient-CacheRefreshExecutor-%d] INFO  c.netflix.discovery.DiscoveryClient - Single vip registry refresh property : null     [cartId= orderId=]
+2025-09-04 05:59:55.751 [DiscoveryClient-CacheRefreshExecutor-%d] INFO  c.netflix.discovery.DiscoveryClient - Force full registry fetch : false     [cartId= orderId=]
+2025-09-04 05:59:55.751 [DiscoveryClient-CacheRefreshExecutor-%d] INFO  c.netflix.discovery.DiscoveryClient - Application is null : false     [cartId= orderId=]
+2025-09-04 05:59:55.751 [DiscoveryClient-CacheRefreshExecutor-%d] INFO  c.netflix.discovery.DiscoveryClient - Registered Applications size is zero : true     [cartId= orderId=]
+2025-09-04 05:59:55.751 [DiscoveryClient-CacheRefreshExecutor-%d] INFO  c.netflix.discovery.DiscoveryClient - Application version is -1: false     [cartId= orderId=]
+2025-09-04 05:59:55.752 [DiscoveryClient-CacheRefreshExecutor-%d] INFO  c.netflix.discovery.DiscoveryClient - Getting all instance registry info from the eureka server     [cartId= orderId=]
+2025-09-04 05:59:55.780 [DiscoveryClient-CacheRefreshExecutor-%d] INFO  c.netflix.discovery.DiscoveryClient - The response status is 200     [cartId= orderId=]
+2025-09-04 06:03:23.267 [SpringApplicationShutdownHook] INFO  o.s.c.n.e.s.EurekaServiceRegistry - Unregistering application MSA-ORDER-SERVICE with eureka with status DOWN     [cartId= orderId=]
+2025-09-04 06:03:23.269 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - Saw local status change event StatusChangeEvent [timestamp=1756933403269, current=DOWN, previous=UP]     [cartId= orderId=]
+2025-09-04 06:03:23.269 [DiscoveryClient-InstanceInfoReplicator-%d] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:f3a72a3d948d91b48e38abd38f27f7b5: registering service...     [cartId= orderId=]
+2025-09-04 06:03:23.303 [DiscoveryClient-InstanceInfoReplicator-%d] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:f3a72a3d948d91b48e38abd38f27f7b5 - registration status: 204     [cartId= orderId=]
+2025-09-04 06:03:23.361 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'     [cartId= orderId=]
+2025-09-04 06:03:23.365 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...     [cartId= orderId=]
+2025-09-04 06:03:23.386 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.     [cartId= orderId=]
+2025-09-04 06:03:23.387 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - Shutting down DiscoveryClient ...     [cartId= orderId=]
+2025-09-04 06:03:26.393 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - Unregistering ...     [cartId= orderId=]
+2025-09-04 06:03:26.393 [DiscoveryClient-%d] WARN  c.n.discovery.TimedSupervisorTask - task supervisor shutting down, can't accept the task     [cartId= orderId=]
+2025-09-04 06:03:26.410 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:f3a72a3d948d91b48e38abd38f27f7b5 - deregister  status: 200     [cartId= orderId=]
+2025-09-04 06:03:26.411 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - Completed shut down of DiscoveryClient     [cartId= orderId=]
+2025-09-04 06:03:28.598 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final [cartId= orderId=]
+2025-09-04 06:03:28.613 [main] INFO  c.e.m.MsaOrderServiceApplication - Starting MsaOrderServiceApplication using Java 17.0.15 with PID 58631 (/Users/idong-gyu/goormOne_msa/msa-order-service/build/classes/java/main started by idong-gyu in /Users/idong-gyu/goormOne_msa) [cartId= orderId=]
+2025-09-04 06:03:28.613 [main] INFO  c.e.m.MsaOrderServiceApplication - The following 1 profile is active: "local" [cartId= orderId=]
+2025-09-04 06:03:29.494 [main] WARN  o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig' of type [org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). The currently created BeanPostProcessor [lbRestClientPostProcessor] is declared through a non-static factory method on that class; consider declaring it as static instead. [cartId= orderId=]
+2025-09-04 06:03:29.496 [main] WARN  o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'deferringLoadBalancerInterceptor' of type [org.springframework.cloud.client.loadbalancer.DeferringLoadBalancerInterceptor] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected into a currently created BeanPostProcessor [lbRestClientPostProcessor]? Check the corresponding BeanPostProcessor declaration and its dependencies. [cartId= orderId=]
+2025-09-04 06:03:29.609 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8085"] [cartId= orderId=]
+2025-09-04 06:03:29.610 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat] [cartId= orderId=]
+2025-09-04 06:03:29.610 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.26] [cartId= orderId=]
+2025-09-04 06:03:29.641 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext [cartId= orderId=]
+2025-09-04 06:03:29.776 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default] [cartId= orderId=]
+2025-09-04 06:03:29.794 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.5.2.Final [cartId= orderId=]
+2025-09-04 06:03:29.805 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled [cartId= orderId=]
+2025-09-04 06:03:29.915 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting... [cartId= orderId=]
+2025-09-04 06:03:30.158 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@7789526e [cartId= orderId=]
+2025-09-04 06:03:30.158 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed. [cartId= orderId=]
+2025-09-04 06:03:30.180 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default) [cartId= orderId=]
+2025-09-04 06:03:30.553 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration) [cartId= orderId=]
+2025-09-04 06:03:30.864 [main] INFO  org.redisson.Version - Redisson 3.50.0 [cartId= orderId=]
+2025-09-04 06:03:30.907 [main] WARN  i.n.r.d.DnsServerAddressStreamProviders - Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider in the classpath, fallback to system defaults. This may result in incorrect DNS resolutions on MacOS. Check whether you have a dependency on 'io.netty:netty-resolver-dns-native-macos' [cartId= orderId=]
+2025-09-04 06:03:30.974 [redisson-netty-1-6] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for localhost/127.0.0.1:6379 [cartId= orderId=]
+2025-09-04 06:03:31.009 [redisson-netty-1-20] INFO  o.r.connection.ConnectionsHolder - 24 connections initialized for localhost/127.0.0.1:6379 [cartId= orderId=]
+2025-09-04 06:03:31.578 [main] WARN  o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger - Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath. [cartId= orderId=]
+2025-09-04 06:03:31.619 [main] INFO  c.netflix.discovery.DiscoveryClient - Initializing Eureka in region us-east-1 [cartId= orderId=]
+2025-09-04 06:03:31.620 [main] INFO  c.n.d.s.r.aws.ConfigClusterResolver - Resolving eureka endpoints via configuration [cartId= orderId=]
+2025-09-04 06:03:31.622 [main] INFO  c.netflix.discovery.DiscoveryClient - Disable delta property : false [cartId= orderId=]
+2025-09-04 06:03:31.622 [main] INFO  c.netflix.discovery.DiscoveryClient - Single vip registry refresh property : null [cartId= orderId=]
+2025-09-04 06:03:31.622 [main] INFO  c.netflix.discovery.DiscoveryClient - Force full registry fetch : false [cartId= orderId=]
+2025-09-04 06:03:31.622 [main] INFO  c.netflix.discovery.DiscoveryClient - Application is null : false [cartId= orderId=]
+2025-09-04 06:03:31.622 [main] INFO  c.netflix.discovery.DiscoveryClient - Registered Applications size is zero : true [cartId= orderId=]
+2025-09-04 06:03:31.622 [main] INFO  c.netflix.discovery.DiscoveryClient - Application version is -1: true [cartId= orderId=]
+2025-09-04 06:03:31.623 [main] INFO  c.netflix.discovery.DiscoveryClient - Getting all instance registry info from the eureka server [cartId= orderId=]
+2025-09-04 06:03:31.696 [main] INFO  c.netflix.discovery.DiscoveryClient - The response status is 200 [cartId= orderId=]
+2025-09-04 06:03:31.696 [main] INFO  c.netflix.discovery.DiscoveryClient - Starting heartbeat executor: renew interval is: 30 [cartId= orderId=]
+2025-09-04 06:03:31.697 [main] INFO  c.n.discovery.InstanceInfoReplicator - InstanceInfoReplicator onDemand update allowed rate per min is 4 [cartId= orderId=]
+2025-09-04 06:03:31.697 [main] INFO  c.netflix.discovery.DiscoveryClient - Discovery Client initialized at timestamp 1756933411697 with initial instances count: 3 [cartId= orderId=]
+2025-09-04 06:03:31.700 [main] INFO  c.netflix.discovery.DiscoveryClient - Saw local status change event StatusChangeEvent [timestamp=1756933411700, current=UP, previous=STARTING] [cartId= orderId=]
+2025-09-04 06:03:31.701 [DiscoveryClient-InstanceInfoReplicator-%d] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:7c28a0a92936810118ac2c2c72607a64: registering service... [cartId= orderId=]
+2025-09-04 06:03:31.701 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8085"] [cartId= orderId=]
+2025-09-04 06:03:31.715 [DiscoveryClient-InstanceInfoReplicator-%d] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:7c28a0a92936810118ac2c2c72607a64 - registration status: 204 [cartId= orderId=]
+2025-09-04 06:03:31.716 [main] INFO  c.e.m.MsaOrderServiceApplication - Started MsaOrderServiceApplication in 3.295 seconds (process running for 3.522) [cartId= orderId=]
+2025-09-04 06:03:31.904 [RMI TCP Connection(3)-127.0.0.1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet' [cartId= orderId=]
+2025-09-04 06:04:21.034 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - Saw local status change event StatusChangeEvent [timestamp=1756933461034, current=DOWN, previous=UP] [cartId= orderId=]
+2025-09-04 06:04:21.039 [DiscoveryClient-InstanceInfoReplicator-%d] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:7c28a0a92936810118ac2c2c72607a64: registering service... [cartId= orderId=]
+2025-09-04 06:04:21.092 [DiscoveryClient-InstanceInfoReplicator-%d] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:7c28a0a92936810118ac2c2c72607a64 - registration status: 204 [cartId= orderId=]
+2025-09-04 06:04:21.139 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated... [cartId= orderId=]
+2025-09-04 06:04:21.158 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed. [cartId= orderId=]
+2025-09-04 06:04:21.159 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - Shutting down DiscoveryClient ... [cartId= orderId=]
+2025-09-04 06:04:24.162 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - Unregistering ... [cartId= orderId=]
+2025-09-04 06:04:24.169 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:7c28a0a92936810118ac2c2c72607a64 - deregister  status: 200 [cartId= orderId=]
+2025-09-04 06:04:24.169 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - Completed shut down of DiscoveryClient [cartId= orderId=]
+2025-09-04 06:04:26.021 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final [cartId=] [orderId=]
+2025-09-04 06:04:26.037 [main] INFO  c.e.m.MsaOrderServiceApplication - Starting MsaOrderServiceApplication using Java 17.0.15 with PID 58646 (/Users/idong-gyu/goormOne_msa/msa-order-service/build/classes/java/main started by idong-gyu in /Users/idong-gyu/goormOne_msa) [cartId=] [orderId=]
+2025-09-04 06:04:26.037 [main] INFO  c.e.m.MsaOrderServiceApplication - The following 1 profile is active: "local" [cartId=] [orderId=]
+2025-09-04 06:04:26.949 [main] WARN  o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig' of type [org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). The currently created BeanPostProcessor [lbRestClientPostProcessor] is declared through a non-static factory method on that class; consider declaring it as static instead. [cartId=] [orderId=]
+2025-09-04 06:04:26.951 [main] WARN  o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'deferringLoadBalancerInterceptor' of type [org.springframework.cloud.client.loadbalancer.DeferringLoadBalancerInterceptor] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected into a currently created BeanPostProcessor [lbRestClientPostProcessor]? Check the corresponding BeanPostProcessor declaration and its dependencies. [cartId=] [orderId=]
+2025-09-04 06:04:27.068 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8085"] [cartId=] [orderId=]
+2025-09-04 06:04:27.069 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat] [cartId=] [orderId=]
+2025-09-04 06:04:27.069 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.26] [cartId=] [orderId=]
+2025-09-04 06:04:27.101 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext [cartId=] [orderId=]
+2025-09-04 06:04:27.231 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default] [cartId=] [orderId=]
+2025-09-04 06:04:27.249 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.5.2.Final [cartId=] [orderId=]
+2025-09-04 06:04:27.259 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled [cartId=] [orderId=]
+2025-09-04 06:04:27.368 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting... [cartId=] [orderId=]
+2025-09-04 06:04:27.589 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@7789526e [cartId=] [orderId=]
+2025-09-04 06:04:27.590 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed. [cartId=] [orderId=]
+2025-09-04 06:04:27.613 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default) [cartId=] [orderId=]
+2025-09-04 06:04:27.969 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration) [cartId=] [orderId=]
+2025-09-04 06:04:28.275 [main] INFO  org.redisson.Version - Redisson 3.50.0 [cartId=] [orderId=]
+2025-09-04 06:04:28.317 [main] WARN  i.n.r.d.DnsServerAddressStreamProviders - Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider in the classpath, fallback to system defaults. This may result in incorrect DNS resolutions on MacOS. Check whether you have a dependency on 'io.netty:netty-resolver-dns-native-macos' [cartId=] [orderId=]
+2025-09-04 06:04:28.380 [redisson-netty-1-6] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for localhost/127.0.0.1:6379 [cartId=] [orderId=]
+2025-09-04 06:04:28.413 [redisson-netty-1-20] INFO  o.r.connection.ConnectionsHolder - 24 connections initialized for localhost/127.0.0.1:6379 [cartId=] [orderId=]
+2025-09-04 06:04:28.984 [main] WARN  o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger - Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath. [cartId=] [orderId=]
+2025-09-04 06:04:29.023 [main] INFO  c.netflix.discovery.DiscoveryClient - Initializing Eureka in region us-east-1 [cartId=] [orderId=]
+2025-09-04 06:04:29.024 [main] INFO  c.n.d.s.r.aws.ConfigClusterResolver - Resolving eureka endpoints via configuration [cartId=] [orderId=]
+2025-09-04 06:04:29.027 [main] INFO  c.netflix.discovery.DiscoveryClient - Disable delta property : false [cartId=] [orderId=]
+2025-09-04 06:04:29.027 [main] INFO  c.netflix.discovery.DiscoveryClient - Single vip registry refresh property : null [cartId=] [orderId=]
+2025-09-04 06:04:29.027 [main] INFO  c.netflix.discovery.DiscoveryClient - Force full registry fetch : false [cartId=] [orderId=]
+2025-09-04 06:04:29.027 [main] INFO  c.netflix.discovery.DiscoveryClient - Application is null : false [cartId=] [orderId=]
+2025-09-04 06:04:29.027 [main] INFO  c.netflix.discovery.DiscoveryClient - Registered Applications size is zero : true [cartId=] [orderId=]
+2025-09-04 06:04:29.027 [main] INFO  c.netflix.discovery.DiscoveryClient - Application version is -1: true [cartId=] [orderId=]
+2025-09-04 06:04:29.027 [main] INFO  c.netflix.discovery.DiscoveryClient - Getting all instance registry info from the eureka server [cartId=] [orderId=]
+2025-09-04 06:04:29.091 [main] INFO  c.netflix.discovery.DiscoveryClient - The response status is 200 [cartId=] [orderId=]
+2025-09-04 06:04:29.091 [main] INFO  c.netflix.discovery.DiscoveryClient - Starting heartbeat executor: renew interval is: 30 [cartId=] [orderId=]
+2025-09-04 06:04:29.092 [main] INFO  c.n.discovery.InstanceInfoReplicator - InstanceInfoReplicator onDemand update allowed rate per min is 4 [cartId=] [orderId=]
+2025-09-04 06:04:29.092 [main] INFO  c.netflix.discovery.DiscoveryClient - Discovery Client initialized at timestamp 1756933469092 with initial instances count: 4 [cartId=] [orderId=]
+2025-09-04 06:04:29.095 [main] INFO  c.netflix.discovery.DiscoveryClient - Saw local status change event StatusChangeEvent [timestamp=1756933469095, current=UP, previous=STARTING] [cartId=] [orderId=]
+2025-09-04 06:04:29.095 [DiscoveryClient-InstanceInfoReplicator-%d] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:7c36b81a9247ab08a8c420d04eb3e7e4: registering service... [cartId=] [orderId=]
+2025-09-04 06:04:29.096 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8085"] [cartId=] [orderId=]
+2025-09-04 06:04:29.109 [DiscoveryClient-InstanceInfoReplicator-%d] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:7c36b81a9247ab08a8c420d04eb3e7e4 - registration status: 204 [cartId=] [orderId=]
+2025-09-04 06:04:29.111 [main] INFO  c.e.m.MsaOrderServiceApplication - Started MsaOrderServiceApplication in 3.283 seconds (process running for 3.518) [cartId=] [orderId=]
+2025-09-04 06:04:29.337 [RMI TCP Connection(3)-127.0.0.1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet' [cartId=] [orderId=]
+2025-09-04 06:04:43.182 [http-nio-8085-exec-2] ERROR c.e.c.e.GlobalExceptionHandler - [BUSINESS] code=4403 uri=/carts/add msg=장바구니 처리 중 충돌이 발생했습니다. detail=이미 장바구니에 담긴 메뉴입니다. customerId = cdc0085a-7928-4920-aa59-94f1d6cf1cef, storeId = 4c537d0c-8cbb-4c2b-bfb2-9fc559bdd6f9, cartId = dcba2662-cece-470f-acfe-1db329919cb1 [cartId=dcba2662-cece-470f-acfe-1db329919cb1] [orderId=]
+com.example.common.exception.BusinessException: 장바구니 처리 중 충돌이 발생했습니다.
+	at com.example.msaorderservice.cart.service.CartServiceImpl.lambda$addItem$1(CartServiceImpl.java:64)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at com.example.msaorderservice.cart.service.CartServiceImpl.addItem(CartServiceImpl.java:59)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:379)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720)
+	at com.example.msaorderservice.cart.service.CartServiceImpl$$SpringCGLIB$$0.addItem(<generated>)
+	at com.example.msaorderservice.cart.controller.CartController.addItem(CartController.java:40)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:255)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:188)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:926)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:831)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:479)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:340)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:82)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:128)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:323)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:224)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:230)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:352)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:268)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:113)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:389)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:904)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1741)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+2025-09-04 06:07:35.399 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - Saw local status change event StatusChangeEvent [timestamp=1756933655399, current=DOWN, previous=UP] [cartId=] [orderId=]
+2025-09-04 06:07:35.400 [DiscoveryClient-InstanceInfoReplicator-%d] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:7c36b81a9247ab08a8c420d04eb3e7e4: registering service... [cartId=] [orderId=]
+2025-09-04 06:07:35.415 [DiscoveryClient-InstanceInfoReplicator-%d] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:7c36b81a9247ab08a8c420d04eb3e7e4 - registration status: 204 [cartId=] [orderId=]
+2025-09-04 06:07:35.507 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated... [cartId=] [orderId=]
+2025-09-04 06:07:35.526 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed. [cartId=] [orderId=]
+2025-09-04 06:07:35.527 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - Shutting down DiscoveryClient ... [cartId=] [orderId=]
+2025-09-04 06:07:38.530 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - Unregistering ... [cartId=] [orderId=]
+2025-09-04 06:07:38.546 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:7c36b81a9247ab08a8c420d04eb3e7e4 - deregister  status: 200 [cartId=] [orderId=]
+2025-09-04 06:07:38.547 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - Completed shut down of DiscoveryClient [cartId=] [orderId=]
+2025-09-04 06:07:42.915 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final [cartId=] [orderId=]
+2025-09-04 06:07:43.145 [main] INFO  c.e.m.MsaOrderServiceApplication - Starting MsaOrderServiceApplication using Java 17.0.15 with PID 58713 (/Users/idong-gyu/goormOne_msa/msa-order-service/build/classes/java/main started by idong-gyu in /Users/idong-gyu/goormOne_msa) [cartId=] [orderId=]
+2025-09-04 06:07:43.146 [main] INFO  c.e.m.MsaOrderServiceApplication - The following 1 profile is active: "local" [cartId=] [orderId=]
+2025-09-04 06:07:44.863 [main] WARN  o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig' of type [org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). The currently created BeanPostProcessor [lbRestClientPostProcessor] is declared through a non-static factory method on that class; consider declaring it as static instead. [cartId=] [orderId=]
+2025-09-04 06:07:44.864 [main] WARN  o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'deferringLoadBalancerInterceptor' of type [org.springframework.cloud.client.loadbalancer.DeferringLoadBalancerInterceptor] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected into a currently created BeanPostProcessor [lbRestClientPostProcessor]? Check the corresponding BeanPostProcessor declaration and its dependencies. [cartId=] [orderId=]
+2025-09-04 06:07:44.979 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8085"] [cartId=] [orderId=]
+2025-09-04 06:07:44.979 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat] [cartId=] [orderId=]
+2025-09-04 06:07:44.979 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.26] [cartId=] [orderId=]
+2025-09-04 06:07:45.010 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext [cartId=] [orderId=]
+2025-09-04 06:07:45.171 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default] [cartId=] [orderId=]
+2025-09-04 06:07:45.194 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.5.2.Final [cartId=] [orderId=]
+2025-09-04 06:07:45.206 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled [cartId=] [orderId=]
+2025-09-04 06:07:45.334 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting... [cartId=] [orderId=]
+2025-09-04 06:07:45.566 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@233d2b76 [cartId=] [orderId=]
+2025-09-04 06:07:45.567 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed. [cartId=] [orderId=]
+2025-09-04 06:07:45.589 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default) [cartId=] [orderId=]
+2025-09-04 06:07:45.980 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration) [cartId=] [orderId=]
+2025-09-04 06:07:46.341 [main] INFO  org.redisson.Version - Redisson 3.50.0 [cartId=] [orderId=]
+2025-09-04 06:07:46.405 [main] WARN  i.n.r.d.DnsServerAddressStreamProviders - Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider in the classpath, fallback to system defaults. This may result in incorrect DNS resolutions on MacOS. Check whether you have a dependency on 'io.netty:netty-resolver-dns-native-macos' [cartId=] [orderId=]
+2025-09-04 06:07:46.488 [redisson-netty-1-6] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for localhost/127.0.0.1:6379 [cartId=] [orderId=]
+2025-09-04 06:07:46.526 [redisson-netty-1-20] INFO  o.r.connection.ConnectionsHolder - 24 connections initialized for localhost/127.0.0.1:6379 [cartId=] [orderId=]
+2025-09-04 06:07:47.158 [main] WARN  o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger - Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath. [cartId=] [orderId=]
+2025-09-04 06:07:47.200 [main] INFO  c.netflix.discovery.DiscoveryClient - Initializing Eureka in region us-east-1 [cartId=] [orderId=]
+2025-09-04 06:07:47.202 [main] INFO  c.n.d.s.r.aws.ConfigClusterResolver - Resolving eureka endpoints via configuration [cartId=] [orderId=]
+2025-09-04 06:07:47.204 [main] INFO  c.netflix.discovery.DiscoveryClient - Disable delta property : false [cartId=] [orderId=]
+2025-09-04 06:07:47.205 [main] INFO  c.netflix.discovery.DiscoveryClient - Single vip registry refresh property : null [cartId=] [orderId=]
+2025-09-04 06:07:47.205 [main] INFO  c.netflix.discovery.DiscoveryClient - Force full registry fetch : false [cartId=] [orderId=]
+2025-09-04 06:07:47.205 [main] INFO  c.netflix.discovery.DiscoveryClient - Application is null : false [cartId=] [orderId=]
+2025-09-04 06:07:47.205 [main] INFO  c.netflix.discovery.DiscoveryClient - Registered Applications size is zero : true [cartId=] [orderId=]
+2025-09-04 06:07:47.205 [main] INFO  c.netflix.discovery.DiscoveryClient - Application version is -1: true [cartId=] [orderId=]
+2025-09-04 06:07:47.205 [main] INFO  c.netflix.discovery.DiscoveryClient - Getting all instance registry info from the eureka server [cartId=] [orderId=]
+2025-09-04 06:07:47.291 [main] INFO  c.netflix.discovery.DiscoveryClient - The response status is 200 [cartId=] [orderId=]
+2025-09-04 06:07:47.292 [main] INFO  c.netflix.discovery.DiscoveryClient - Starting heartbeat executor: renew interval is: 30 [cartId=] [orderId=]
+2025-09-04 06:07:47.293 [main] INFO  c.n.discovery.InstanceInfoReplicator - InstanceInfoReplicator onDemand update allowed rate per min is 4 [cartId=] [orderId=]
+2025-09-04 06:07:47.293 [main] INFO  c.netflix.discovery.DiscoveryClient - Discovery Client initialized at timestamp 1756933667293 with initial instances count: 3 [cartId=] [orderId=]
+2025-09-04 06:07:47.297 [main] INFO  c.netflix.discovery.DiscoveryClient - Saw local status change event StatusChangeEvent [timestamp=1756933667297, current=UP, previous=STARTING] [cartId=] [orderId=]
+2025-09-04 06:07:47.297 [DiscoveryClient-InstanceInfoReplicator-%d] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:b8c0e03f18288f571ab4c120263eb53a: registering service... [cartId=] [orderId=]
+2025-09-04 06:07:47.297 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8085"] [cartId=] [orderId=]
+2025-09-04 06:07:47.316 [DiscoveryClient-InstanceInfoReplicator-%d] INFO  c.netflix.discovery.DiscoveryClient - DiscoveryClient_MSA-ORDER-SERVICE/msa-order-service:b8c0e03f18288f571ab4c120263eb53a - registration status: 204 [cartId=] [orderId=]
+2025-09-04 06:07:47.317 [main] INFO  c.e.m.MsaOrderServiceApplication - Started MsaOrderServiceApplication in 5.129 seconds (process running for 5.499) [cartId=] [orderId=]
+2025-09-04 06:07:47.794 [RMI TCP Connection(3)-127.0.0.1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet' [cartId=] [orderId=]
+2025-09-04 06:07:56.070 [http-nio-8085-exec-2] ERROR c.e.c.e.GlobalExceptionHandler - [BUSINESS] code=4404 uri=/carts/add msg=이미 장바구니에 담긴 메뉴입니다. detail=null [cartId=dcba2662-cece-470f-acfe-1db329919cb1] [orderId=]
+com.example.common.exception.BusinessException: 이미 장바구니에 담긴 메뉴입니다.
+	at com.example.msaorderservice.cart.service.CartServiceImpl.lambda$addItem$1(CartServiceImpl.java:60)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at com.example.msaorderservice.cart.service.CartServiceImpl.addItem(CartServiceImpl.java:59)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:379)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720)
+	at com.example.msaorderservice.cart.service.CartServiceImpl$$SpringCGLIB$$0.addItem(<generated>)
+	at com.example.msaorderservice.cart.controller.CartController.addItem(CartController.java:40)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:255)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:188)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:926)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:831)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:479)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:340)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:82)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:128)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:323)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:224)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:230)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:352)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:268)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:113)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:389)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:904)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1741)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+2025-09-04 06:12:47.195 [AsyncResolver-bootstrap-executor-%d] INFO  c.n.d.s.r.aws.ConfigClusterResolver - Resolving eureka endpoints via configuration [cartId=] [orderId=]
