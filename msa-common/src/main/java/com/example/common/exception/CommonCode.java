@@ -34,7 +34,13 @@ public enum CommonCode {
     INVENTORY_NOT_FOUND(HttpStatus.NOT_FOUND, 4300, "재고 정보를 찾을 수 없습니다."),
     OUT_OF_STOCK(HttpStatus.BAD_REQUEST, 4301, "재고가 부족합니다."),
     RESERVED_NOT_ENOUGH(HttpStatus.BAD_REQUEST, 4302, "예약 수량이 부족합니다."),
-    CONCURRENCY_CONFLICT(HttpStatus.CONFLICT, 4303, "동시에 처리 요청이 충돌했습니다. 다시 시도해주세요.");
+    CONCURRENCY_CONFLICT(HttpStatus.CONFLICT, 4303, "동시에 처리 요청이 충돌했습니다. 다시 시도해주세요."),
+
+    // 장바구니 관련 오류
+    CART_NOT_FOUND(HttpStatus.NOT_FOUND, 4400, "장바구니를 찾을 수 없습니다."),
+    CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, 4401, "장바구니 항목을 찾을 수 없습니다."),
+    CART_INVALID_QUANTITY(HttpStatus.BAD_REQUEST, 4402, "유효하지 않은 수량입니다."),
+    CART_CONFLICT(HttpStatus.CONFLICT, 4403, "장바구니 처리 중 충돌이 발생했습니다.");
 
     private final HttpStatus httpStatus;
     private final int code;
