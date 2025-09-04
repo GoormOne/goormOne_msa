@@ -105,7 +105,6 @@ public class GlobalExceptionHandler {
 		log.error("[REST_CLIENT] uri={} status={} body={}",
 			req.getRequestURI(), ex.getRawStatusCode(), ex.getResponseBodyAsString(), ex);
 
-		// ✅ 네가 가진 코드들로만 매핑
 		CommonCode code = switch (ex.getRawStatusCode()) {
 			case 400 -> CommonCode.BAD_REQUEST;
 			case 401 -> CommonCode.UNAUTHORIZED;
