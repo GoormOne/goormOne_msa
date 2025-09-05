@@ -26,6 +26,7 @@ public enum CommonCode {
     // ✅ 상점 관련 오류
     STORE_NOT_FOUND(HttpStatus.NOT_FOUND, 4200, "없는 상점입니다."),
     STORE_DELETED(HttpStatus.GONE, 4201, "지워진 상점입니다."),
+    STORE_AUTH_FAIL(HttpStatus.FORBIDDEN, 4202, "해당 매장의 소유자가 아닙니다."),
 
     // ✅ 서버 오류
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 5000, "서버 오류"),
@@ -35,6 +36,7 @@ public enum CommonCode {
     OUT_OF_STOCK(HttpStatus.BAD_REQUEST, 4301, "재고가 부족합니다."),
     RESERVED_NOT_ENOUGH(HttpStatus.BAD_REQUEST, 4302, "예약 수량이 부족합니다."),
     CONCURRENCY_CONFLICT(HttpStatus.CONFLICT, 4303, "동시에 처리 요청이 충돌했습니다. 다시 시도해주세요."),
+    RESERVED_FAIL_RETRY(HttpStatus.CONFLICT, 4304, "재고 예약에 실패했습니다. 다시 시도해주세요."),
 
     // 장바구니 관련 오류
     CART_NOT_FOUND(HttpStatus.NOT_FOUND, 4400, "장바구니를 찾을 수 없습니다."),
@@ -43,7 +45,11 @@ public enum CommonCode {
     CART_CONFLICT(HttpStatus.CONFLICT, 4403, "장바구니 처리 중 충돌이 발생했습니다."),
     CART_ALREADY(HttpStatus.CONFLICT, 4404, "이미 장바구니에 담긴 메뉴입니다."),
     CART_ITEM_ID_FAIL(HttpStatus.NOT_FOUND, 4405, "해당 상품ID는 고객님의 장바구니에 존재하지 않습니다."),
-    CART_ITEM_QUANTITY(HttpStatus.BAD_REQUEST, 4406, "최소 수량은 1개 이상입니다.");
+    CART_ITEM_QUANTITY(HttpStatus.BAD_REQUEST, 4406, "최소 수량은 1개 이상입니다."),
+
+    // 주문 관련 오류
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, 4500, "주문을 찾을 수 없습니다."),
+    ORDER_CANCEL_FAIL(HttpStatus.BAD_REQUEST, 4501, "현재 상태에서는 취소할 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final int code;

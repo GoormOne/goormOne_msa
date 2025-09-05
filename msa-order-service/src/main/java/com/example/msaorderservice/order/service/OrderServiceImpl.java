@@ -10,6 +10,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.example.common.exception.BusinessException;
+import com.example.common.exception.CommonCode;
 import com.example.msaorderservice.order.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -65,10 +67,10 @@ public class OrderServiceImpl implements OrderService {
 	@Transactional
 	public OrderCreateRes createOrder(UUID customerId, OrderCreateReq req) {
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
-			.orElseThrow(() -> new IllegalStateException("장바구니가 없습니다."));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 		var cartItems = cartItemRepository.findByCartId(cart.getCartId(), Pageable.unpaged()).getContent();
 		if (cartItems.isEmpty())
-			throw new IllegalStateException("장바구니가 비어 있습니다.");
+			throw new BusinessException(CommonCode.CART_ITEM_NOT_FOUND);
 
 		UUID storeId = cart.getStoreId();
 
@@ -122,7 +124,7 @@ public class OrderServiceImpl implements OrderService {
 					menuInventoryClient.release(item.getMenuId(), item.getQuantity());
 				} catch (Exception ignore) {}
 			}
-			throw new IllegalStateException("재고 예약에 실패했습니다. 다시 시도해주세요.");
+			throw new BusinessException(CommonCode.RESERVED_FAIL_RETRY);
 		}
 
 		order.setTotalPrice(total);
@@ -218,7 +220,7 @@ public class OrderServiceImpl implements OrderService {
 	@Transactional(readOnly = true)
 	public CustomerOrderDetailRes getMyOrderDetail(UUID customerId, UUID orderId) {
 		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)
-			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다., customerId: " + customerId + ", orderId: " + orderId));
+			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_NOT_FOUND));
 
 
 		List<OrderItemEntity> items = orderItemRepository.findByOrderId_OrderId(orderId);
@@ -267,7 +269,7 @@ public class OrderServiceImpl implements OrderService {
 
 		UUID ownerFromStore = store.getOwnerId();
 		if (ownerFromStore != null && !ownerFromStore.equals(ownerId)) {
-			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+			throw new BusinessException(CommonCode.STORE_AUTH_FAIL);
 		}
 
 
@@ -323,13 +325,13 @@ public class OrderServiceImpl implements OrderService {
 	public OwnerOrderDetailRes getOwnerOrderDetail(UUID orderId, UUID storeId, UUID ownerId) {
 
 		OrderEntity order = orderRepository.findById(orderId)
-			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_NOT_FOUND));
 
 		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
 
 		UUID ownerFromStore = store.getOwnerId();
 		if (ownerFromStore != null && !ownerFromStore.equals(ownerId)) {
-			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+			throw new BusinessException(CommonCode.STORE_AUTH_FAIL);
 		}
 
 		List<OrderItemEntity> items = orderItemRepository.findByOrderId_OrderId(orderId);
@@ -363,13 +365,13 @@ public class OrderServiceImpl implements OrderService {
 	@Transactional
 	public OwnerOrderDetailRes updateOrderStatusByOwner(UUID ownerId, UUID orderId, OrderStatus newStatus) {
 		OrderEntity order = orderRepository.findById(orderId)
-			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_NOT_FOUND));
 
 		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
 
 		UUID ownerFromStore = store.getOwnerId();
 		if (Objects.equals(ownerFromStore, ownerId)) {
-			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+			throw new BusinessException(CommonCode.STORE_AUTH_FAIL);
 		}
 
 		OrderStatus oldStatus = order.getOrderStatus();
@@ -421,7 +423,7 @@ public class OrderServiceImpl implements OrderService {
 
 	public CustomerOrderDetailRes cancelMyOrder(UUID customerId, UUID orderId) {
 		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)
-			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_NOT_FOUND));
 
 		if (order.getOrderStatus() == OrderStatus.CANCELED) {
 			return getMyOrderDetail(customerId, orderId);
@@ -432,7 +434,7 @@ public class OrderServiceImpl implements OrderService {
 			|| order.getOrderStatus() == OrderStatus.DELIVERING
 			|| order.getOrderStatus() == OrderStatus.COMPLETED)
 			&& order.getPaymentStatus() == PaymentStatus.PAID) {
-			throw new IllegalStateException("현재 상태에서는 취소할 수 없습니다.");
+			throw new BusinessException(CommonCode.ORDER_CANCEL_FAIL);
 		}
 
 		if (order.getPaymentStatus() == PaymentStatus.PAID) {
@@ -461,13 +463,13 @@ public class OrderServiceImpl implements OrderService {
 
 	public OwnerOrderDetailRes cancelStoreOrder(UUID ownerId, UUID storeId, UUID orderId) {
 		OrderEntity order = orderRepository.findById(orderId)
-			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_NOT_FOUND));
 
 		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
 
 		UUID ownerFromStore = store.getOwnerId();
 		if (Objects.equals(ownerFromStore, ownerId)) {
-			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+			throw new BusinessException(CommonCode.STORE_AUTH_FAIL);
 		}
 
 		if (order.getOrderStatus() == OrderStatus.CANCELED) {
@@ -475,7 +477,7 @@ public class OrderServiceImpl implements OrderService {
 		}
 
 		if (order.getOrderStatus() == OrderStatus.CONFIRMED) {
-			throw new IllegalStateException("현재 상태에서는 취소할 수 없습니다.");
+			throw new BusinessException(CommonCode.ORDER_CANCEL_FAIL);
 		}
 
 		if (order.getPaymentStatus() == PaymentStatus.PAID) {
