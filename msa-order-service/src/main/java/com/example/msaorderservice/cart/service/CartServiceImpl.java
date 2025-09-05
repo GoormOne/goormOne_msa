@@ -75,14 +75,15 @@ public class CartServiceImpl implements CartService {
 	@Override
 	@Cacheable(
 			value = "myCartItem",
-			key = "#customerId + '::' + #page + '::' + #size")
+			key = "#customerId + '::' + #page + '::' + #size",
+			unless = "#result == null || #result.items == null || #result.items.isEmpty()")
 	@Transactional(readOnly = true)
 	public CartItemsPageRes getMyCartItemsPage(UUID customerId, Integer page, Integer size) {
 		int p = (page == null || page < 0) ? 0 : page;
 		int s = (size == null || size <= 0) ? 10 : Math.min(size, 100);
 
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
-			.orElseThrow(() -> new NoSuchElementException("cart not found for user"));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 
 		UUID storeId = cart.getStoreId();
 
@@ -138,7 +139,7 @@ public class CartServiceImpl implements CartService {
 	@Transactional
 	public void clearCartItems(UUID customerId) {
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
-			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + customerId));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 
 		cartItemRepository.deleteByCartId(cart.getCartId());
 	}
@@ -147,13 +148,13 @@ public class CartServiceImpl implements CartService {
 	@Transactional
 	public void deleteCartItem(UUID customerId, UUID cartItemId) {
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
-			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + customerId));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 
 		CartItemEntity item = cartItemRepository.findByCartItemId(cartItemId)
-			.orElseThrow(() -> new EntityNotFoundException("CartItem not found: " + cartItemId));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_ITEM_NOT_FOUND));
 
 		if (!item.getCartId().equals(cart.getCartId())) {
-			throw new IllegalStateException("CartItem does not belong to user's cart.");
+			throw new BusinessException(CommonCode.CART_ITEM_ID_FAIL);
 		}
 
 		cartItemRepository.delete(item);
@@ -163,7 +164,7 @@ public class CartServiceImpl implements CartService {
 	@Transactional
 	public void deleteCart(UUID customerId) {
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
-			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + customerId));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 
 		cartItemRepository.deleteByCartId(cart.getCartId());
 		cartRepository.delete(cart);
@@ -173,10 +174,10 @@ public class CartServiceImpl implements CartService {
 	@Transactional
 	public void increaseQuantity(UUID customerId, UUID menuId) {
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
-			.orElseThrow(() -> new IllegalArgumentException("Cart not found for user"));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 
 		CartItemEntity cartItem = cartItemRepository.findByCartIdAndMenuId(cart.getCartId(), menuId)
-			.orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_ITEM_NOT_FOUND));
 		cartItem.setQuantity(cartItem.getQuantity() + 1);
 		cartItemRepository.save(cartItem);
 	}
@@ -185,16 +186,16 @@ public class CartServiceImpl implements CartService {
 	@Transactional
 	public void decreaseQuantity(UUID customerId, UUID menuId) {
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
-			.orElseThrow(() -> new IllegalArgumentException("Cart not found for user"));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 
 		CartItemEntity cartItem = cartItemRepository.findByCartIdAndMenuId(cart.getCartId(), menuId)
-			.orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_ITEM_NOT_FOUND));
 
 		if (cartItem.getQuantity() > 1) {
 			cartItem.setQuantity(cartItem.getQuantity() - 1);
 			cartItemRepository.save(cartItem);
 		} else {
-			throw new IllegalArgumentException("Minimum order quantity is 1");
+			throw new BusinessException(CommonCode.CART_ITEM_QUANTITY);
 		}
 	}
 }
