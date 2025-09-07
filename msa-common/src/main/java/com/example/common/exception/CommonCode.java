@@ -49,7 +49,9 @@ public enum CommonCode {
 
     // 주문 관련 오류
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, 4500, "주문을 찾을 수 없습니다."),
-    ORDER_CANCEL_FAIL(HttpStatus.BAD_REQUEST, 4501, "현재 상태에서는 취소할 수 없습니다.");
+    ORDER_CANCEL_FAIL(HttpStatus.BAD_REQUEST, 4501, "현재 상태에서는 취소할 수 없습니다."),
+    ORDER_CREATE(HttpStatus.ACCEPTED,4502, "주문 생성이 완료되었습니다."),
+    ORDER_SEARCH(HttpStatus.ACCEPTED, 4503, "주문 조회가 완료되었습니다.");
 
     private final HttpStatus httpStatus;
     private final int code;

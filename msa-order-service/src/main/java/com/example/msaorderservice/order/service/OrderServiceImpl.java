@@ -142,6 +142,8 @@ public class OrderServiceImpl implements OrderService {
 
 		orderAuditRepository.save(audit);
 
+		log.info(CommonCode.ORDER_CREATE.getMessage());
+
 		return new OrderCreateRes(
 			order.getOrderId(),
 			storeId,
@@ -198,6 +200,8 @@ public class OrderServiceImpl implements OrderService {
 				preview = items.get(0).getMenuName() + " 외  " + (count - 1) + "개";
 			}
 
+			log.info(CommonCode.ORDER_SEARCH.getMessage());
+
 			return OrderSummaryRes.builder()
 					.orderId(o.getOrderId())
 					.storeId(o.getStoreId())
@@ -229,6 +233,8 @@ public class OrderServiceImpl implements OrderService {
 		OffsetDateTime createdAt = orderAuditRepository.findById(orderId)
 			.map(OrderAuditEntity::getCreatedAt)
 			.orElse(null);
+
+		log.info(CommonCode.ORDER_SEARCH.getMessage());
 
 		return CustomerOrderDetailRes.builder()
 			.orderId(order.getOrderId())
@@ -311,6 +317,7 @@ public class OrderServiceImpl implements OrderService {
 					.build();
 		});
 
+		log.info(CommonCode.ORDER_SEARCH.getMessage());
 
 		return PageCache.fromPage(mappedPage);
 	}
@@ -340,6 +347,8 @@ public class OrderServiceImpl implements OrderService {
 		OffsetDateTime createdAt = orderAuditRepository.findById(orderId)
 			.map(OrderAuditEntity::getCreatedAt)
 			.orElse(null);
+
+		log.info(CommonCode.ORDER_SEARCH.getMessage());
 
 		return OwnerOrderDetailRes.builder()
 			.orderId(order.getOrderId())
@@ -402,6 +411,8 @@ public class OrderServiceImpl implements OrderService {
 			.map(OrderAuditEntity::getCreatedAt)
 			.orElse(null);
 
+		log.info(CommonCode.ORDER_SEARCH.getMessage());
+
 		return OwnerOrderDetailRes.builder()
 			.orderId(order.getOrderId())
 			.storeId(order.getStoreId())
@@ -458,6 +469,8 @@ public class OrderServiceImpl implements OrderService {
 			orderAuditRepository.save(a);
 		});
 
+		log.info(CommonCode.ORDER_SEARCH.getMessage());
+
 		return getMyOrderDetail(customerId, orderId);
 	}
 
@@ -495,6 +508,8 @@ public class OrderServiceImpl implements OrderService {
 			a.setUpdatedBy(ownerId);
 			orderAuditRepository.save(a);
 		});
+
+		log.info(CommonCode.ORDER_SEARCH.getMessage());
 
 		return getOwnerOrderDetail(ownerId, storeId, orderId);
 	}
