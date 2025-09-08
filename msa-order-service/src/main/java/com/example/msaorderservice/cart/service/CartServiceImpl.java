@@ -69,6 +69,8 @@ public class CartServiceImpl implements CartService {
 			.quantity(req.getQuantity())
 			.build();
 
+		log.info(CommonCode.CART_CREATE.getMessage());
+
 		return cartItemRepository.save(item);
 	}
 
@@ -124,6 +126,8 @@ public class CartServiceImpl implements CartService {
 				.build());
 		}
 
+		log.info(CommonCode.CART_SEARCH_COMPLETE.getMessage());
+
 		return CartItemsPageRes.builder()
 			.storeId(cart.getStoreId())
 			.page(p)
@@ -142,6 +146,8 @@ public class CartServiceImpl implements CartService {
 			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 
 		cartItemRepository.deleteByCartId(cart.getCartId());
+
+		log.info(CommonCode.CART_ITEM_CLEAR.getMessage());
 	}
 
 	@Override
@@ -158,6 +164,8 @@ public class CartServiceImpl implements CartService {
 		}
 
 		cartItemRepository.delete(item);
+
+		log.info(CommonCode.CART_ITEM_DELETE.getMessage());
 	}
 
 	@Override
@@ -168,6 +176,8 @@ public class CartServiceImpl implements CartService {
 
 		cartItemRepository.deleteByCartId(cart.getCartId());
 		cartRepository.delete(cart);
+
+		log.info(CommonCode.CART_DELETE.getMessage());
 	}
 
 	@Override
@@ -180,6 +190,8 @@ public class CartServiceImpl implements CartService {
 			.orElseThrow(() -> new BusinessException(CommonCode.CART_ITEM_NOT_FOUND));
 		cartItem.setQuantity(cartItem.getQuantity() + 1);
 		cartItemRepository.save(cartItem);
+
+		log.info(CommonCode.CART_ITEM_INCREASE.getMessage());
 	}
 
 	@Override
@@ -197,5 +209,7 @@ public class CartServiceImpl implements CartService {
 		} else {
 			throw new BusinessException(CommonCode.CART_ITEM_QUANTITY);
 		}
+
+		log.info(CommonCode.CART_ITEM_DECREASE.getMessage());
 	}
 }

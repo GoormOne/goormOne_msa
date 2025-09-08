@@ -411,7 +411,7 @@ public class OrderServiceImpl implements OrderService {
 			.map(OrderAuditEntity::getCreatedAt)
 			.orElse(null);
 
-		log.info(CommonCode.ORDER_SEARCH.getMessage());
+		log.info(CommonCode.ORDER_UPDATE.getMessage());
 
 		return OwnerOrderDetailRes.builder()
 			.orderId(order.getOrderId())
@@ -469,7 +469,7 @@ public class OrderServiceImpl implements OrderService {
 			orderAuditRepository.save(a);
 		});
 
-		log.info(CommonCode.ORDER_SEARCH.getMessage());
+		log.info(CommonCode.ORDER_CANCEL.getMessage());
 
 		return getMyOrderDetail(customerId, orderId);
 	}
@@ -509,24 +509,8 @@ public class OrderServiceImpl implements OrderService {
 			orderAuditRepository.save(a);
 		});
 
-		log.info(CommonCode.ORDER_SEARCH.getMessage());
+		log.info(CommonCode.ORDER_CANCEL.getMessage());
 
 		return getOwnerOrderDetail(ownerId, storeId, orderId);
-	}
-
-	private OrderSummaryRes toOrderSummary(OrderEntity o, List<OrderItemEntity> items, OffsetDateTime createdAt, String storeName) {
-		String firstMenu = items.isEmpty() ? null : items.get(0).getMenuName();
-		int extraCount = Math.max(0, items.size() - 1);
-		String menuSummary = (firstMenu == null) ? null : (extraCount > 0 ? firstMenu + " 외 " + extraCount + "개" : firstMenu);
-
-		return OrderSummaryRes.builder()
-			.orderId(o.getOrderId())
-			.storeId(o.getStoreId())
-			.storeName(storeName)
-			.orderStatus(o.getOrderStatus())
-			.totalPrice(o.getTotalPrice())
-			.createdAt(createdAt)
-			.summaryTitle(menuSummary)
-			.build();
 	}
 }

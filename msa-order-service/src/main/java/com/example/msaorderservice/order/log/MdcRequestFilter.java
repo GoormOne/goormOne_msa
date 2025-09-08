@@ -2,6 +2,7 @@ package com.example.msaorderservice.order.log;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import org.slf4j.MDC;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -30,6 +31,19 @@ public class MdcRequestFilter extends OncePerRequestFilter {
 		// 요청 시작에 기본 컨텍스트 주입
 		MDC.put("correlationId", corr);
 		if (user != null && !user.isBlank()) MDC.put("customerId", user);
+
+		String orderId = req.getParameter("orderId");
+		if (orderId == null || orderId.isBlank()) {
+			var matcher = Pattern.compile("([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})")
+				.matcher(req.getRequestURI());
+			if (matcher.find()) {
+				orderId = matcher.group(1);
+			}
+		}
+
+		if (orderId != null && !orderId.isBlank()) {
+			MDC.put("orderId", orderId);
+		}
 
 		try {
 			chain.doFilter(req, res);

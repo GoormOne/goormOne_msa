@@ -2,6 +2,7 @@ package com.example.msaorderservice.cart.log;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
@@ -28,14 +29,25 @@ public class MdcRequestFilter extends OncePerRequestFilter {
 
 		String user = req.getHeader(HDR_USER_ID);
 
-		// 요청 시작에 기본 컨텍스트 주입
 		MDC.put("correlationId", corr);
 		if (user != null && !user.isBlank()) MDC.put("customerId", user);
+
+		String cartId = req.getParameter("cartId");
+		if (cartId == null || cartId.isBlank()) {
+			var matcher = Pattern.compile("([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})")
+				.matcher(req.getRequestURI());
+			if (matcher.find()) {
+				cartId = matcher.group(1);
+			}
+		}
+
+		if (cartId != null && !cartId.isBlank()) {
+			MDC.put("cartId", cartId);
+		}
 
 		try {
 			chain.doFilter(req, res);
 		} finally {
-			// 누수 방지: 무조건 비우기
 			MDC.clear();
 		}
 	}

@@ -9,7 +9,7 @@
     <!-- 콘솔: 컬러 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %clr([%thread]){faint} %clr(%-5level) %clr(%logger{36}){cyan}%replace(%X{cartId:-}){'^(.+)$',' [cartId:$1]'} %replace(%X{orderId:-}){'^(.+)$',' [orderId:$1]'} - %msg %n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %clr([%thread]){faint} %clr(%-5level) %clr(%logger{36}){cyan}%replace(%X{paymentId:-}){'^(.+)$',' paymentId:$1'} %replace(%X{orderId:-}){'^(.+)$',' orderId:$1'} - %msg %n</pattern>
         </encoder>
     </appender>
 
@@ -17,11 +17,11 @@
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_DIR}/iluDev.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_DIR}/orderLog.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_DIR}/paymentLog.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg %replace(%X{cartId:-}){'^(.+)$',' [cartId=$1]'} %replace(%X{orderId:-}){'^(.+)$',' [orderId=$1]'}%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg %replace(%X{paymentId:-}){'^(.+)$',' paymentId=$1'} %replace(%X{orderId:-}){'^(.+)$',' [orderId=$1]'}%n</pattern>
         </encoder>
     </appender>
 
