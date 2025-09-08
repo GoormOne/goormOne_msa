@@ -2,6 +2,7 @@ package com.example.msaorderservice.order.client;
 
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StoreClient {
 	private final RestTemplate restTemplate;
-	private static final String STORE_BASE = "http://msa-store-service";
+	@Value("${store.service.url}")
+	private String STORE_BASE;
 
 	public StoreLookUp getStoreDetail(UUID storeId) {
 		String url = STORE_BASE + "/stores/{storeId}";

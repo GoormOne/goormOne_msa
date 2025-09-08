@@ -27,24 +27,15 @@ public class CognitoService {
      * - 표준 속성: email, name, (옵션) birthdate(yyyy-MM-dd), email_verified=true
      * - ①의 정교한 예외 매핑 유지
      */
-    public void createUserAndSetPasswordAndGroup(
+    public String createUserAndReturnSub(
             String username,
             String rawPassword,
             String email,
             String name,
-            LocalDate birth,     // null 허용
-            String groupName     // null/blank 허용
+            LocalDate birth,
+            String groupName
     ) {
-        createUserAndSetPasswordAndGroup(
-                username,
-                rawPassword,
-                email,
-                name,
-                birth,
-                groupName,
-                null,      // custom attrs
-                true       // email_verified
-        );
+        return createUserAndReturnSub(username, rawPassword, email, name, birth, groupName, null, true);
     }
 
     /**
@@ -52,14 +43,15 @@ public class CognitoService {
      * - 예: Map.of("custom:user_id", customerId.toString())
      * - emailVerified 정책도 호출부에서 제어 가능
      */
-    public void createUserAndSetPasswordAndGroup(
+    // Cognito 유저 생성 + 비번 설정 + 그룹 매핑 후 sub 반환
+    public String createUserAndReturnSub(
             String username,
             String rawPassword,
             String email,
             String name,
-            LocalDate birth,                       // null 허용
-            String groupName,                      // null/blank 허용
-            Map<String, String> customAttrsToSet,  // null 허용
+            LocalDate birth,          // null 허용
+            String groupName,         // null/blank 허용
+            Map<String, String> customAttrsToSet, // null 허용
             boolean emailVerified
     ) {
         try {
@@ -100,7 +92,7 @@ public class CognitoService {
             client.adminSetUserPassword(pwReq);
             log.info("[COGNITO] AdminSetUserPassword OK username={}", username);
 
-            // 4) 그룹 매핑
+            // 4) 그룹 매핑 (옵션)
             if (groupName != null && !groupName.isBlank()) {
                 AdminAddUserToGroupRequest addReq = AdminAddUserToGroupRequest.builder()
                         .userPoolId(props.getUserPoolId())
@@ -111,16 +103,39 @@ public class CognitoService {
                 log.info("[COGNITO] AdminAddUserToGroup OK username={}, group={}", username, groupName);
             }
 
+            // 5) sub 조회
+            AdminGetUserResponse getRes = client.adminGetUser(
+                    AdminGetUserRequest.builder()
+                            .userPoolId(props.getUserPoolId())
+                            .username(username)
+                            .build()
+            );
+
+            String sub = getRes.userAttributes().stream()
+                    .filter(a -> "sub".equals(a.name()))
+                    .map(AttributeType::value)
+                    .findFirst()
+                    .orElseThrow(() -> new CognitoCreateException(HttpStatus.BAD_GATEWAY, "COGNITO_SUB_NOT_FOUND"));
+
+            log.info("[COGNITO] sub resolved username={}, sub={}", username, sub);
+            return sub;
+
         } catch (UsernameExistsException e) {
-            throw new CognitoCreateException(HttpStatus.CONFLICT, "USERNAME_EXISTS");
+            // 이미 존재하는 계정
+            throw new CognitoCreateException(HttpStatus.CONFLICT, "COGNITO_USERNAME_EXISTS");
         } catch (InvalidPasswordException e) {
-            throw new CognitoCreateException(HttpStatus.BAD_REQUEST, "INVALID_PASSWORD_POLICY");
-        } catch (ResourceNotFoundException e) {
-            throw new CognitoCreateException(HttpStatus.NOT_FOUND, "USERPOOL_OR_GROUP_NOT_FOUND");
-        } catch (CognitoIdentityProviderException e) {
-            throw new CognitoCreateException(HttpStatus.BAD_REQUEST, "AWS_COGNITO_ERROR: " + e.awsErrorDetails().errorMessage());
+            throw new CognitoCreateException(HttpStatus.BAD_REQUEST, "COGNITO_INVALID_PASSWORD");
+        } catch (InvalidParameterException e) {
+            throw new CognitoCreateException(HttpStatus.BAD_REQUEST, "COGNITO_INVALID_PARAMETER");
+        } catch (TooManyRequestsException e) {
+            throw new CognitoCreateException(HttpStatus.TOO_MANY_REQUESTS, "COGNITO_RATE_LIMITED");
+        } catch (NotAuthorizedException e) {
+            throw new CognitoCreateException(HttpStatus.FORBIDDEN, "COGNITO_NOT_AUTHORIZED");
+        } catch (UserLambdaValidationException e) {
+            throw new CognitoCreateException(HttpStatus.BAD_GATEWAY, "COGNITO_LAMBDA_VALIDATION_FAILED");
         } catch (Exception e) {
-            throw new CognitoCreateException(HttpStatus.BAD_REQUEST, "UNKNOWN_ERROR: " + e.getMessage());
+            log.error("[COGNITO] createUserAndReturnSub failed: {}", e.getMessage(), e);
+            throw new CognitoCreateException(HttpStatus.BAD_GATEWAY, "COGNITO_CREATE_FAILED");
         }
     }
 
@@ -228,10 +243,10 @@ public class CognitoService {
 //                .build());
 //    }
 //
-//    public void deleteUser(String username) {
-//        client.adminDeleteUser(AdminDeleteUserRequest.builder()
-//                .userPoolId(props.getUserPoolId())
-//                .username(username)
-//                .build());
-//    }
+    public void deleteUser(String username) {
+        client.adminDeleteUser(AdminDeleteUserRequest.builder()
+                .userPoolId(props.getUserPoolId())
+                .username(username)
+                .build());
+    }
 }

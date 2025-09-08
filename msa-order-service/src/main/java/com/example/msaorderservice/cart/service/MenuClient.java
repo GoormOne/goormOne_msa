@@ -3,6 +3,7 @@ package com.example.msaorderservice.cart.service;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+
 public class MenuClient {
 	private final RestTemplate restTemplate;
 
-	private static final String STORE_BASE = "http://msa-store-service";
+	@Value("${store.service.url}")
+	private  String STORE_BASE;
 
 	public MenuLookUp getMenuDetail(UUID storeId, UUID menuId) {
 		String url = STORE_BASE + "/stores/{storeId}/menu/{menuId}";

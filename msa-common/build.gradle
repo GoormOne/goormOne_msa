@@ -31,3 +31,8 @@ dependencies {
 
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 }
+
+
+tasks.named("jar") {
+	enabled = true
+}

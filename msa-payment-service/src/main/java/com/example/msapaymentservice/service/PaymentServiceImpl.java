@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.common.dto.OrderCheckoutView;
 import com.example.common.entity.PaymentStatus;
+import com.example.common.exception.BusinessException;
+import com.example.common.exception.CommonCode;
 import com.example.msapaymentservice.client.OrderClient;
 import com.example.msapaymentservice.client.StoreClient;
 import com.example.msapaymentservice.client.TossPaymentClient;
@@ -40,6 +42,7 @@ public class PaymentServiceImpl implements PaymentService {
 	@Override
 	@Transactional(readOnly = true)
 	public OrderCheckoutView getCheckout(UUID customerId, UUID orderId) {
+		log.info(CommonCode.ORDER_SEARCH.getMessage());
 		return orderClient.getCheckout(orderId, customerId);
 	}
 
@@ -70,6 +73,7 @@ public class PaymentServiceImpl implements PaymentService {
 
 		orderClient.updateOrderStatus(payment.getOrderId(), customerId, PaymentStatus.REFUNDED);
 
+		log.info(CommonCode.PAYMENT_CANCEL_SUCCESS.getMessage());
 
 		return ResponseEntity.ok(tossRaw);
 	}
@@ -82,6 +86,7 @@ public class PaymentServiceImpl implements PaymentService {
 			return Page.empty(pageable);
 		}
 
+		log.info(CommonCode.PAYMENT_SEARCH_SUCCESS.getMessage());
 
 		return paymentRepository.findByOrderIdIn(orderIds, pageable)
 			.map(this::toSummary);
@@ -95,7 +100,7 @@ public class PaymentServiceImpl implements PaymentService {
 			storeId, ownerId, store.getOwnerId());
 
 		if (store.getOwnerId() == null || !store.getOwnerId().equals(ownerId)) {
-			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+			throw new BusinessException(CommonCode.STORE_AUTH_FAIL);
 		}
 
 
@@ -104,6 +109,7 @@ public class PaymentServiceImpl implements PaymentService {
 			return Page.empty(pageable);
 		}
 
+		log.info(CommonCode.PAYMENT_SEARCH_SUCCESS.getMessage());
 
 		return paymentRepository.findByOrderIdIn(orderIds, pageable)
 			.map(this::toSummary);
@@ -145,6 +151,7 @@ public class PaymentServiceImpl implements PaymentService {
 			paymentRepository.save(fail);
 
 			orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.FAILED);
+
 			return;
 		}
 
@@ -181,6 +188,8 @@ public class PaymentServiceImpl implements PaymentService {
 		paymentAuditRepository.save(audit);
 
 		orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.PAID);
+
+		log.info(CommonCode.PAYMENT_COMPLETE.getMessage());
 	}
 
 	@Override
@@ -205,5 +214,7 @@ public class PaymentServiceImpl implements PaymentService {
 		paymentAuditRepository.save(audit);
 
 		orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.FAILED);
+
+		log.info(CommonCode.PAYMENT_FAILED.getMessage());
 	}
 }

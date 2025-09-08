@@ -1,9 +1,9 @@
-server:
-  port: 8079
-
 spring:
   application:
    name: msa-common-service
+
+  profiles:
+    active: local
 
   kafka:
     bootstrap-servers: localhost:29092
@@ -23,6 +23,13 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+server:
+  port: 8079
 
 eureka:
   instance:
@@ -37,3 +44,27 @@ logging:
   level:
     org.springframework.cloud.loadbalancer: DEBUG
     org.springframework.cloud.gateway.server.mvc: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  cloud:
+    loadbalancer:
+      enabled: false
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    enabled: false
+
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+    org.springframework.web.servlet.DispatcherServlet: TRACE

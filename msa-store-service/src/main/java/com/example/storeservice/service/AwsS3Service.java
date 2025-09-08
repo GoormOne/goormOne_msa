@@ -28,6 +28,7 @@ public class AwsS3Service {
     private String bucketName;
     private final S3Presigner s3Presigner;
 
+
     public String uploadFile(MultipartFile multipartFile) {
 
         String fileName = UUID.randomUUID().toString();
