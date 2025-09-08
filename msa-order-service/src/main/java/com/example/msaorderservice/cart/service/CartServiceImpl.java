@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.slf4j.MDC;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +17,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.common.exception.BusinessException;
+import com.example.common.exception.CommonCode;
 import com.example.msaorderservice.cart.dto.CartItemAddReq;
 import com.example.msaorderservice.cart.dto.CartItemRes;
 import com.example.msaorderservice.cart.dto.CartItemsPageRes;
@@ -41,20 +44,24 @@ public class CartServiceImpl implements CartService {
 	@Override
 	@Transactional
 	public CartItemEntity addItem(CartItemAddReq req) {
-		CartEntity cart = cartRepository.findByCustomerIdAndStoreId(req.getCustomerId(), req.getStoreId())
-			.orElse(null);
 
-		if (cart == null) {
-			cart = cartRepository.save(
-				CartEntity.builder()
-					.customerId(req.getCustomerId())
-					.storeId(req.getStoreId())
-					.build()
-			);
-		}
+		CartEntity cart = cartRepository.findByCustomerIdAndStoreId(req.getCustomerId(), req.getStoreId())
+			.orElseGet(() -> cartRepository.save(
+					CartEntity.builder()
+						.customerId(req.getCustomerId())
+						.storeId(req.getStoreId())
+						.build()
+			));
+
+		MDC.put("cartId", String.valueOf(cart.getCartId()));
 
 		cartItemRepository.findByCartIdAndMenuId(cart.getCartId(), req.getMenuId())
-			.ifPresent(it -> {throw new IllegalStateException("이미 장바구니에 담긴 메뉴입니다.");});
+			.ifPresent(it -> {
+				throw new BusinessException(
+					CommonCode.CART_ALREADY
+				);
+
+			});
 
 		CartItemEntity item = CartItemEntity.builder()
 			.cartId(cart.getCartId())
@@ -62,20 +69,23 @@ public class CartServiceImpl implements CartService {
 			.quantity(req.getQuantity())
 			.build();
 
+		log.info(CommonCode.CART_CREATE.getMessage());
+
 		return cartItemRepository.save(item);
 	}
 
 	@Override
 	@Cacheable(
 			value = "myCartItem",
-			key = "#customerId + '::' + #page + '::' + #size")
+			key = "#customerId + '::' + #page + '::' + #size",
+			unless = "#result == null || #result.items == null || #result.items.isEmpty()")
 	@Transactional(readOnly = true)
 	public CartItemsPageRes getMyCartItemsPage(UUID customerId, Integer page, Integer size) {
 		int p = (page == null || page < 0) ? 0 : page;
 		int s = (size == null || size <= 0) ? 10 : Math.min(size, 100);
 
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
-			.orElseThrow(() -> new NoSuchElementException("cart not found for user"));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 
 		UUID storeId = cart.getStoreId();
 
@@ -116,6 +126,8 @@ public class CartServiceImpl implements CartService {
 				.build());
 		}
 
+		log.info(CommonCode.CART_SEARCH_COMPLETE.getMessage());
+
 		return CartItemsPageRes.builder()
 			.storeId(cart.getStoreId())
 			.page(p)
@@ -131,63 +143,73 @@ public class CartServiceImpl implements CartService {
 	@Transactional
 	public void clearCartItems(UUID customerId) {
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
-			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + customerId));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 
 		cartItemRepository.deleteByCartId(cart.getCartId());
+
+		log.info(CommonCode.CART_ITEM_CLEAR.getMessage());
 	}
 
 	@Override
 	@Transactional
 	public void deleteCartItem(UUID customerId, UUID cartItemId) {
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
-			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + customerId));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 
 		CartItemEntity item = cartItemRepository.findByCartItemId(cartItemId)
-			.orElseThrow(() -> new EntityNotFoundException("CartItem not found: " + cartItemId));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_ITEM_NOT_FOUND));
 
 		if (!item.getCartId().equals(cart.getCartId())) {
-			throw new IllegalStateException("CartItem does not belong to user's cart.");
+			throw new BusinessException(CommonCode.CART_ITEM_ID_FAIL);
 		}
 
 		cartItemRepository.delete(item);
+
+		log.info(CommonCode.CART_ITEM_DELETE.getMessage());
 	}
 
 	@Override
 	@Transactional
 	public void deleteCart(UUID customerId) {
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
-			.orElseThrow(() -> new EntityNotFoundException("Cart not found for user: " + customerId));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 
 		cartItemRepository.deleteByCartId(cart.getCartId());
 		cartRepository.delete(cart);
+
+		log.info(CommonCode.CART_DELETE.getMessage());
 	}
 
 	@Override
 	@Transactional
 	public void increaseQuantity(UUID customerId, UUID menuId) {
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
-			.orElseThrow(() -> new IllegalArgumentException("Cart not found for user"));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 
 		CartItemEntity cartItem = cartItemRepository.findByCartIdAndMenuId(cart.getCartId(), menuId)
-			.orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_ITEM_NOT_FOUND));
 		cartItem.setQuantity(cartItem.getQuantity() + 1);
 		cartItemRepository.save(cartItem);
+
+		log.info(CommonCode.CART_ITEM_INCREASE.getMessage());
 	}
 
 	@Override
 	@Transactional
 	public void decreaseQuantity(UUID customerId, UUID menuId) {
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
-			.orElseThrow(() -> new IllegalArgumentException("Cart not found for user"));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 
 		CartItemEntity cartItem = cartItemRepository.findByCartIdAndMenuId(cart.getCartId(), menuId)
-			.orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_ITEM_NOT_FOUND));
 
 		if (cartItem.getQuantity() > 1) {
 			cartItem.setQuantity(cartItem.getQuantity() - 1);
 			cartItemRepository.save(cartItem);
 		} else {
-			throw new IllegalArgumentException("Minimum order quantity is 1");
+			throw new BusinessException(CommonCode.CART_ITEM_QUANTITY);
 		}
+
+		log.info(CommonCode.CART_ITEM_DECREASE.getMessage());
 	}
 }
