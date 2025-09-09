@@ -12,10 +12,10 @@ on:
 env:
   AWS_REGION: ap-northeast-2
   SERVICE_DIR: msa-order-service
-  ECR_REPOSITORY: order-service         # ECR 리포지토리 및 ECS 서비스 이름
+  ECR_REPOSITORY: order-service
   CONTAINER_NAME: msa-order-service     # Task Definition 안의 컨테이너 이름
 
-# GitHub Actions Runner에 부여할 권한
+# GitHub Actions Runner에 부여할   권한
 permissions:
   id-token: write
   contents: read
