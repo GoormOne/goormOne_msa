@@ -26,34 +26,61 @@ spring:
         - id: msa-user-service
           uri: lb://msa-user-service
           predicates:
-            - Path=/users/**, /internal/users/**
+            - Path=/users/**,/internal/users/**
           filters:
             - PreserveHostHeader
         - id: msa-auth-service
           uri: lb://msa-auth-service
           predicates:
-            - Path=/auth/**, /internal/auth/**
+            - Path=/auth/**,/internal/auth/**
           filters:
             - PreserveHostHeader
+
+        - id: msa-store-service-docs
+          uri: lb://MSA-STORE-SERVICE
+          predicates:
+            - Path=/stores/v3/api-docs/**,/stores/swagger-ui/**,/stores/swagger-ui.html
+          filters:
+            - PreserveHostHeader
+            - StripPrefix=1
+            - RemoveRequestHeader=Authorization
         - id: msa-store-service
           uri: lb://MSA-STORE-SERVICE
           predicates:
-            - Path=/stores/**, /internal/**
+            - Path=/stores/**,/internal/stores/**
           filters:
             - PreserveHostHeader
-        - id: msa-order-service
+
+        - id: msa-order-service-docs
           uri: lb://MSA-ORDER-SERVICE
           predicates:
-            - Path= /carts/** ,/orders/** ,/internal/**
+            - Path=/orders/v3/api-docs/**,/orders/swagger-ui/**,/orders/swagger-ui.html
           filters:
             - PreserveHostHeader
+            - StripPrefix=1
+            - RemoveRequestHeader=Authorization
+        - id: msa-order-service-api
+          uri: lb://MSA-ORDER-SERVICE
+          predicates:
+            - Path=/carts/**,/orders/**,/internal/orders/**
+          filters:
+            - PreserveHostHeader
+
+        - id: msa-payment-service-docs
+          uri: lb://MSA-PAYMENT-SERVICE
+          predicates:
+            - Path=/payments/v3/api-docs/**,/payments/swagger-ui/**,/payments/swagger-ui.html,/tosspayment.html/**
+          filters:
+            - PreserveHostHeader
+            - StripPrefix=1
+            - RemoveRequestHeader=Authorization
         - id: msa-payment-service
           uri: lb://MSA-PAYMENT-SERVICE
           predicates:
-            - Path=/payments/**, /internal/**, /tosspayment.html/**
+            - Path=/payments/**,/internal/payments/**,/tosspayment.html/**
           filters:
             - PreserveHostHeader
-#          # CircuitBreaker + fallback / RateLimiter: 게이트웨이 품질 안전장치
+      #          # CircuitBreaker + fallback / RateLimiter: 게이트웨이 품질 안전장치
 #          # RewritePath: 내부 서비스 경로 정리
 #          # Actuator: /actuator/gateway/routes 등 관측
 #          filters:
