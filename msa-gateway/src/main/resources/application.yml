@@ -27,6 +27,8 @@ spring:
           uri: lb://msa-user-service
           predicates:
             - Path=/users/**, /internal/users/**
+          filters:
+            - PreserveHostHeader
         - id: msa-auth-service
           uri: lb://msa-auth-service
           predicates:
@@ -34,9 +36,23 @@ spring:
           filters:
             - PreserveHostHeader
         - id: msa-store-service
-          uri: lb://msa-store-service
+          uri: lb://MSA-STORE-SERVICE
           predicates:
-            - Path=/stores/**
+            - Path=/stores/**, /internal/**
+          filters:
+            - PreserveHostHeader
+        - id: msa-order-service
+          uri: lb://MSA-ORDER-SERVICE
+          predicates:
+            - Path= /carts/** ,/orders/** ,/internal/**
+          filters:
+            - PreserveHostHeader
+        - id: msa-payment-service
+          uri: lb://MSA-PAYMENT-SERVICE
+          predicates:
+            - Path=/payments/**, /internal/**, /tosspayment.html/**
+          filters:
+            - PreserveHostHeader
 #          # CircuitBreaker + fallback / RateLimiter: 게이트웨이 품질 안전장치
 #          # RewritePath: 내부 서비스 경로 정리
 #          # Actuator: /actuator/gateway/routes 등 관측
@@ -89,3 +105,14 @@ cognito:
   groups-claim: cognito:groups
   username-claim: cognito:username
   name-claim: name
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui
+    urls:
+      - name: order-service
+        url: /orders/v3/api-docs
+      - name: payment-service
+        url: /payments/v3/api-docs
+      - name: store-service
+        url: /stores/v3/api-docs

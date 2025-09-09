@@ -25,9 +25,12 @@ public class SecurityConfig {
 		http
 			.csrf(csrf -> csrf.disable())
 			.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/payments/**").permitAll()
-				.requestMatchers("/internal/**").permitAll()
-				.requestMatchers("/tosspayment.html/**").permitAll()
+				.requestMatchers(
+					"/swagger-ui.html", "/swagger-ui/**",
+					"/webjars/**",
+					"/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs/swagger-config"
+				).permitAll()
+				.requestMatchers("/payments/**", "/internal/**", "/tosspayment.html/**").permitAll()
 				.requestMatchers("/actuator/health").permitAll()
 				.anyRequest().authenticated()
 			);
