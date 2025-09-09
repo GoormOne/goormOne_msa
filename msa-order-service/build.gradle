@@ -24,6 +24,9 @@ dependencies {
     // Redisson 클라이언트를 사용하기 위한 의존성 (이것도 그대로 유지)
     implementation 'org.redisson:redisson-spring-boot-starter:3.50.0'
 
+    implementation 'org.springframework.kafka:spring-kafka'                     // Spring Kafka
+    implementation 'org.projectlombok:lombok'                                   // lombok
+
     runtimeOnly 'org.postgresql:postgresql:42.7.3'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -33,6 +36,8 @@ dependencies {
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
     implementation "io.awspring.cloud:spring-cloud-aws-starter-secrets-manager"
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // Spring Boot Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'  // Spring Boot Test
+    testImplementation 'org.springframework.kafka:spring-kafka-test'        // Spring Kafka Test
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'            // Junit5
 }
