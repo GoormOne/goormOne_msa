@@ -5,17 +5,7 @@ spring:
     active: local
 
 
-  data:
-    redis:
-#      host: localhost
-      host: 192.168.3.208
-      port: 6379
-      clientName: ksy
 
-    cache:
-      type: redis
-      redisson:
-        file: classpath:redisson-config.yaml
 
 
 
@@ -42,6 +32,17 @@ spring:
   config:
     activate:
       on-profile: local
+  data:
+    redis:
+      #      host: localhost
+      host: localhost
+      port: 6379
+      clientName: ksy
+
+    cache:
+      type: redis
+      redisson:
+        file: classpath:redisson-config.yaml
   datasource:
     url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres
     driver-class-name: org.postgresql.Driver
@@ -94,6 +95,18 @@ spring:
     activate:
       on-profile: dev
     import: [ "aws-secretsmanager:dev" ]
+  data:
+    redis:
+      #      host: localhost
+      host: ${REDIS_HOST}
+      port: 6379
+      clientName: ksy
+
+    cache:
+      type: redis
+      redisson:
+        file: classpath:redisson-config.yaml
+
   datasource:
     url: jdbc:postgresql://${db_host}:5432/postgres
     driver-class-name: org.postgresql.Driver

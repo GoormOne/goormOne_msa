@@ -4,17 +4,7 @@ spring:
   profiles:
     active: local
 
-  data:
-    redis:
-#      host: localhost
-      host: 192.168.3.208
-      port: 6379
-      clientName: KSY
 
-    cache:
-      type: redis
-      redisson:
-        file: classpath:redisson-config.yaml
 
     mongodb:
       uri: mongodb+srv://ksm3255:!4786buch@team1mongodb.oh0o0np.mongodb.net/?retryWrites=true&w=majority&appName=Team1Mongodb
@@ -66,11 +56,22 @@ spring:
   config:
     activate:
       on-profile: local
+  data:
+    redis:
+      #      host: localhost
+      host: localhost
+      port: 6379
+      clientName: KSY
+
+    cache:
+      type: redis
+      redisson:
+        file: classpath:redisson-config.yaml
   cloud:
     aws:
       credentials:
-        accessKey: AKIAXETF2IMIEZGTIAVC
-        secretKey: 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
+        accessKey: AKIAXETF2IMIOMXMTDPD
+        secretKey: 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
       s3:
         bucket: groom-team-1-image-bucket
       region:
@@ -100,6 +101,17 @@ spring:
     activate:
       on-profile: dev
     import: ["aws-secretsmanager:dev"]
+  data:
+    redis:
+      #      host: localhost
+      host: ${REDIS_HOST}
+      port: 6379
+      clientName: KSY
+
+    cache:
+      type: redis
+      redisson:
+        file: classpath:redisson-config.yaml
 
   datasource:
     url: jdbc:postgresql://${db_host}:5432/postgres
