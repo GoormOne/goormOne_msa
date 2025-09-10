@@ -67,6 +67,10 @@ public class OrderServiceImpl implements OrderService {
 	@Override
 	@Transactional
 	public OrderCreateRes createOrder(UUID customerId, OrderCreateReq req) {
+		if (orderRepository.existsByCustomerIdAndPaymentStatus(customerId, PaymentStatus.PENDING)) {
+			throw new BusinessException(CommonCode.ORDER_IS_NOT_PAID);
+		}
+
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
 			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 		var cartItems = cartItemRepository.findByCartId(cart.getCartId(), Pageable.unpaged()).getContent();

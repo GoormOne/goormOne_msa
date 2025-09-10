@@ -22,4 +22,6 @@ public interface OrderRepository extends JpaRepository<OrderEntity, UUID> {
 	Optional<OrderEntity> findByOrderIdAndStoreId(UUID orderId, UUID storeId);
 
 	Optional<OrderEntity> findTopByCustomerIdAndPaymentStatus(UUID customerId, PaymentStatus paymentStatus);
+
+	boolean existsByCustomerIdAndPaymentStatus(UUID customerId, PaymentStatus paymentStatus);
 }

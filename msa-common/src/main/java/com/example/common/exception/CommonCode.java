@@ -63,6 +63,7 @@ public enum CommonCode {
     ORDER_UPDATE(HttpStatus.ACCEPTED, 4504, "주문 상태 업데이트 완료."),
     ORDER_CANCEL(HttpStatus.ACCEPTED, 4505, "주문 취소 완료."),
     ORDER_IS_NOT_PENDING(HttpStatus.NOT_FOUND, 4506, "PENDING 주문이 없습니다."),
+    ORDER_IS_NOT_PAID(HttpStatus.CONFLICT, 4507, "이전에 완료되지 않은 주문이 있습니다,"),
 
     // 결제 관련
     PAYMENT_COMPLETE(HttpStatus.ACCEPTED, 4600, "결제가 정상처리 되었습니다."),

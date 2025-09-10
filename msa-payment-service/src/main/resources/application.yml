@@ -68,7 +68,8 @@ order:
     url: http://msa-order-service
 store:
   url: http://msa-store-service
-
+payments:
+  redirect-base-url: http://localhost:8086/tosspayment.html
 
 
 ---

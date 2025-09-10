@@ -82,7 +82,7 @@ public class OrderInternalController {
 			.build();
 	}
 
-	@GetMapping("latest-pending")
+	@GetMapping("/latest-pending")
 	public ResponseEntity<LatestPendingOrderRes> getLastPending(@RequestHeader("X-User-Id") UUID customerId) {
 		var order = orderService.findLatestPendingOrder(customerId)
 			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_IS_NOT_PENDING));
