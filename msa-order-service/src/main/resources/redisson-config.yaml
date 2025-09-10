@@ -1,5 +1,5 @@
 singleServerConfig:
-  address: "redis://192.168.3.208:6379"
+  address: "redis://192.168.3.191:6379"
 
   connectionPoolSize: 16
   connectionMinimumIdleSize: 4
