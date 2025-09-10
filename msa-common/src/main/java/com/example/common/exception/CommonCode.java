@@ -22,6 +22,7 @@ public enum CommonCode {
     USER_DELETED(HttpStatus.GONE, 4101, "지워진 유저입니다."),
     USER_DUPLICATED(HttpStatus.CONFLICT, 4102, "이미 존재하는 유저입니다."),
     EMAIL_DUPLICATED(HttpStatus.CONFLICT, 4103, "이미 존재하는 이메일입니다."),
+    USER_REQUIRED(HttpStatus.BAD_REQUEST, 4104, "customerId is required."),
 
     // ✅ 상점 관련 오류
     STORE_NOT_FOUND(HttpStatus.NOT_FOUND, 4200, "없는 상점입니다."),
@@ -61,6 +62,7 @@ public enum CommonCode {
     ORDER_SEARCH(HttpStatus.ACCEPTED, 4503, "주문 조회가 완료되었습니다."),
     ORDER_UPDATE(HttpStatus.ACCEPTED, 4504, "주문 상태 업데이트 완료."),
     ORDER_CANCEL(HttpStatus.ACCEPTED, 4505, "주문 취소 완료."),
+    ORDER_IS_NOT_PENDING(HttpStatus.NOT_FOUND, 4506, "PENDING 주문이 없습니다."),
 
     // 결제 관련
     PAYMENT_COMPLETE(HttpStatus.ACCEPTED, 4600, "결제가 정상처리 되었습니다."),

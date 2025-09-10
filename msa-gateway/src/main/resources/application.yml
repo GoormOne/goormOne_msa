@@ -69,7 +69,7 @@ spring:
         - id: msa-payment-service-docs
           uri: lb://MSA-PAYMENT-SERVICE
           predicates:
-            - Path=/payments/v3/api-docs/**,/payments/swagger-ui/**,/payments/swagger-ui.html,/tosspayment.html/**
+            - Path=/payments/v3/api-docs/**,/payments/swagger-ui/**,/payments/swagger-ui.html,/tosspayment.html
           filters:
             - PreserveHostHeader
             - StripPrefix=1
@@ -77,7 +77,7 @@ spring:
         - id: msa-payment-service
           uri: lb://MSA-PAYMENT-SERVICE
           predicates:
-            - Path=/payments/**,/internal/payments/**,/tosspayment.html/**
+            - Path=/payments/**,/internal/payments/**,/tosspayment.html
           filters:
             - PreserveHostHeader
       #          # CircuitBreaker + fallback / RateLimiter: 게이트웨이 품질 안전장치

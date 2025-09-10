@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -512,5 +513,17 @@ public class OrderServiceImpl implements OrderService {
 		log.info(CommonCode.ORDER_CANCEL.getMessage());
 
 		return getOwnerOrderDetail(ownerId, storeId, orderId);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Optional<OrderEntity> findLatestPendingOrder(UUID customerId) {
+		if (customerId == null) {
+			throw new BusinessException(CommonCode.USER_REQUIRED);
+		}
+		return orderRepository.findTopByCustomerIdAndPaymentStatus(
+			customerId,
+			PaymentStatus.PENDING
+		);
 	}
 }
