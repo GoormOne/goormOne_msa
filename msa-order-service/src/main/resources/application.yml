@@ -23,12 +23,6 @@ store:
   service:
     url: http://msa-store-service
 
-
-
-
-
-
-
 management:
   endpoints:
     web:
@@ -37,6 +31,8 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+      probes:
+        enabled: true
 
 logging:
   level:
@@ -91,9 +87,6 @@ logging:
   level:
     org.springframework.cloud.loadbalancer: DEBUG
     org.springframework.cloud.gateway.server.mvc: DEBUG
-
-
-
 
 ---
 spring:
