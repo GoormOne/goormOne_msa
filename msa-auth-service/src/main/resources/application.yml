@@ -8,21 +8,7 @@ spring:
   config:
     import: optional:file:.env[.properties]
 
-aws:
-  region: ap-northeast-2
-  cognito:
-    user-pool-id: ${AWS_COGNITO_USER_POOL_ID}
-    app-client-id: ${AWS_COGNITO_APP_CLIENT_ID}
-    app-client-secret: ${AWS_COGNITO_APP_CLIENT_SECRET}
-    groups:
-      admin: admin
-      owner: owner
-      customer: customer
-  credentials:
-    access-key: ${AWS_ACCESS_KEY_ID}
-    secret-key: ${AWS_SECRET_ACCESS_KEY}
-    org.springframework.cloud.loadbalancer: DEBUG
-    org.springframework.cloud.gateway.server.mvc: DEBUG
+
 
 management:
   endpoints:
@@ -32,8 +18,6 @@ management:
   endpoint:
     health:
       show-details: when_authorized
-      probes:
-        enabled: true
 ---
 spring:
   config:
@@ -60,6 +44,24 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
+
+aws:
+  region: ap-northeast-2
+  cognito:
+    user-pool-id: ${AWS_COGNITO_USER_POOL_ID}
+    app-client-id: ${AWS_COGNITO_APP_CLIENT_ID}
+    app-client-secret: ${AWS_COGNITO_APP_CLIENT_SECRET}
+    groups:
+      admin: admin
+      owner: owner
+      customer: customer
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+    org.springframework.cloud.loadbalancer: DEBUG
+    org.springframework.cloud.gateway.server.mvc: DEBUG
+
+
 
 server:
   port: 8089
@@ -102,6 +104,21 @@ spring:
   cloud:
     loadbalancer:
       enabled: false
+aws:
+  cognito:
+    user-pool-id: ${user_pool_id}
+    app-client-id: ${client_id}
+    app-client-secret: ${client_secrets}
+    groups:
+      admin: admin
+      owner: owner
+      customer: customer
+  credentials:
+    access-key: AKIAXETF2IMIKHLD6BEJ
+    secret-key: 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
+    org.springframework.cloud.loadbalancer: DEBUG
+    org.springframework.cloud.gateway.server.mvc: DEBUG
+
 
 
 server:
