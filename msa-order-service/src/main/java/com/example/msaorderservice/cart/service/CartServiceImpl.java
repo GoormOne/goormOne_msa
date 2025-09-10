@@ -9,7 +9,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.slf4j.MDC;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +43,8 @@ public class CartServiceImpl implements CartService {
 	private final CartRepository cartRepository;
 	private final CartItemRepository cartItemRepository;
 	private final MenuClient menuClient;
+	private final ApplicationEventPublisher publisher;
+	private final CartCacheVersionService versionService;
 
 	@Override
 	@Transactional
@@ -57,10 +62,7 @@ public class CartServiceImpl implements CartService {
 
 		cartItemRepository.findByCartIdAndMenuId(cart.getCartId(), req.getMenuId())
 			.ifPresent(it -> {
-				throw new BusinessException(
-					CommonCode.CART_ALREADY
-				);
-
+				throw new BusinessException(CommonCode.CART_ALREADY);
 			});
 
 		CartItemEntity item = CartItemEntity.builder()
@@ -69,16 +71,21 @@ public class CartServiceImpl implements CartService {
 			.quantity(req.getQuantity())
 			.build();
 
+
+		CartItemEntity saved = cartItemRepository.save(item);
 		log.info(CommonCode.CART_CREATE.getMessage());
 
-		return cartItemRepository.save(item);
+		publisher.publishEvent(new CartCacheInvalidateListener.CartChangedEvent(req.getCustomerId()));
+
+		return saved;
 	}
 
 	@Override
 	@Cacheable(
-			value = "myCartItem",
-			key = "#customerId + '::' + #page + '::' + #size",
-			unless = "#result == null || #result.items == null || #result.items.isEmpty()")
+		value = "myCartItem",
+		key = "#customerId + '::v' + @cartCacheVersionService.getVersion(#customerId) + '::' + #page + '::' + #size",
+		unless = "#result == null || #result.items == null || #result.items.isEmpty()"
+	)
 	@Transactional(readOnly = true)
 	public CartItemsPageRes getMyCartItemsPage(UUID customerId, Integer page, Integer size) {
 		int p = (page == null || page < 0) ? 0 : page;
@@ -148,6 +155,7 @@ public class CartServiceImpl implements CartService {
 		cartItemRepository.deleteByCartId(cart.getCartId());
 
 		log.info(CommonCode.CART_ITEM_CLEAR.getMessage());
+		publisher.publishEvent(new CartCacheInvalidateListener.CartChangedEvent(customerId));
 	}
 
 	@Override
@@ -166,6 +174,7 @@ public class CartServiceImpl implements CartService {
 		cartItemRepository.delete(item);
 
 		log.info(CommonCode.CART_ITEM_DELETE.getMessage());
+		publisher.publishEvent(new CartCacheInvalidateListener.CartChangedEvent(customerId));
 	}
 
 	@Override
@@ -178,6 +187,8 @@ public class CartServiceImpl implements CartService {
 		cartRepository.delete(cart);
 
 		log.info(CommonCode.CART_DELETE.getMessage());
+
+		publisher.publishEvent(new CartCacheInvalidateListener.CartChangedEvent(customerId));
 	}
 
 	@Override
@@ -192,6 +203,8 @@ public class CartServiceImpl implements CartService {
 		cartItemRepository.save(cartItem);
 
 		log.info(CommonCode.CART_ITEM_INCREASE.getMessage());
+
+		publisher.publishEvent(new CartCacheInvalidateListener.CartChangedEvent(customerId));
 	}
 
 	@Override
@@ -211,5 +224,7 @@ public class CartServiceImpl implements CartService {
 		}
 
 		log.info(CommonCode.CART_ITEM_DECREASE.getMessage());
+
+		publisher.publishEvent(new CartCacheInvalidateListener.CartChangedEvent(customerId));
 	}
 }
