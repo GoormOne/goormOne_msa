@@ -130,8 +130,10 @@ spring:
 
     aws:
       credentials:
-        accessKey: ${AWS_ACCESS_KEY_ID}
-        secretKey: ${AWS_SECRET_ACCESS_KEY}
+#        accessKey: ${AWS_ACCESS_KEY_ID}
+#        secretKey: ${AWS_SECRET_ACCESS_KEY}
+        accessKey: AKIAXETF2IMIOMXMTDPD
+        secretKey: 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
       s3:
         bucket: ${s3_bucket_name}
       region:
