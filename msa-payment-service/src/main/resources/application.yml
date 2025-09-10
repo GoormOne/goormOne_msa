@@ -12,6 +12,8 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+      probes:
+        enabled: true
 toss:
   api-url: https://api.tosspayments.com
   secret-key: test_sk_GePWvyJnrKblk4AJ4qbEVgLzN97E
