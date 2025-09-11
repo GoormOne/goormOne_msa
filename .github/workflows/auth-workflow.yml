@@ -56,21 +56,35 @@ jobs:
             -f ./${{ env.SERVICE_DIR }}/Dockerfile . \
             --push
           echo "image=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "image_sha=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT   
 
-      # --- ECS Task Definition 업데이트 ---
-      - name: Render Amazon ECS task definition
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: ./${{ env.SERVICE_DIR }}/task-definition.json
-          container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ steps.build-image.outputs.image }}
 
-      # --- ECS 서비스 배포 ---
-      - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      - name: Configure kubectl
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ env.ECR_REPOSITORY }}
-          cluster: DevCluster
-          wait-for-service-stability: true
+          role-to-assume: arn:aws:iam::490913547024:role/gitactionToEKS
+          aws-region: ap-northeast-2
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name Groom-EKS-Cluster --region ap-northeast-2
+
+      - name: Update Kubernetes deployment
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+          IMAGE_SHA: ${{ steps.build-image.outputs.image_sha }}
+        run: |
+          kubectl set image deployment/auth-service \
+            ${CONTAINER_NAME}=$IMAGE_SHA -n default
+          kubectl rollout status deployment/auth-service -n default
+
+#      # --- ECS Task Definition 업데이트 ---
+#      - name: Render Amazon ECS task definition
+#        id: task-def
+#        uses: aws-actions/amazon-ecs-render-task-definition@v1
+#        with:
+#          task-definition: ./${{ env.SERVICE_DIR }}/task-definition.json
+#          container-name: ${{ env.CONTAINER_NAME }}
+#          image: ${{ steps.build-image.outputs.image }}
+
+
