@@ -1,20 +1,28 @@
 package com.example.msapaymentservice.service;
 
+import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.example.common.dto.OrderCheckoutView;
 import com.example.common.entity.PaymentStatus;
+import com.example.common.exception.BusinessException;
+import com.example.common.exception.CommonCode;
 import com.example.msapaymentservice.client.OrderClient;
 import com.example.msapaymentservice.client.StoreClient;
 import com.example.msapaymentservice.client.TossPaymentClient;
+import com.example.msapaymentservice.dto.LatestPendingOrderRes;
 import com.example.msapaymentservice.dto.PaymentSearchRes;
 import com.example.msapaymentservice.dto.StoreClientRes;
 import com.example.msapaymentservice.dto.TossPaymentRes;
@@ -37,9 +45,32 @@ public class PaymentServiceImpl implements PaymentService {
 	private final TossPaymentClient tossPaymentClient;
 	private final PaymentAuditRepository paymentAuditRepository;
 
+	@Value("${payments.redirect-base-url}")
+	private String redirectBaseUrl;
+
+	@Override
+	@Transactional(readOnly = true)
+	public ResponseEntity<Void> redirectToCheckout(UUID customerId) {
+
+		LatestPendingOrderRes latest = orderClient.getLatestPendingOrder(customerId);
+		UUID orderId = latest.getOrderId();
+
+		orderClient.getCheckout(orderId, customerId);
+
+		String url = UriComponentsBuilder.fromHttpUrl(redirectBaseUrl)
+			.queryParam("orderId", orderId)
+			.queryParam("customerId", customerId)
+			.toUriString();
+
+		return ResponseEntity.status(HttpStatus.SEE_OTHER)
+			.location(URI.create(url))
+			.build();
+	}
+
 	@Override
 	@Transactional(readOnly = true)
 	public OrderCheckoutView getCheckout(UUID customerId, UUID orderId) {
+		log.info(CommonCode.ORDER_SEARCH.getMessage());
 		return orderClient.getCheckout(orderId, customerId);
 	}
 
@@ -70,6 +101,7 @@ public class PaymentServiceImpl implements PaymentService {
 
 		orderClient.updateOrderStatus(payment.getOrderId(), customerId, PaymentStatus.REFUNDED);
 
+		log.info(CommonCode.PAYMENT_CANCEL_SUCCESS.getMessage());
 
 		return ResponseEntity.ok(tossRaw);
 	}
@@ -82,6 +114,7 @@ public class PaymentServiceImpl implements PaymentService {
 			return Page.empty(pageable);
 		}
 
+		log.info(CommonCode.PAYMENT_SEARCH_SUCCESS.getMessage());
 
 		return paymentRepository.findByOrderIdIn(orderIds, pageable)
 			.map(this::toSummary);
@@ -95,7 +128,7 @@ public class PaymentServiceImpl implements PaymentService {
 			storeId, ownerId, store.getOwnerId());
 
 		if (store.getOwnerId() == null || !store.getOwnerId().equals(ownerId)) {
-			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+			throw new BusinessException(CommonCode.STORE_AUTH_FAIL);
 		}
 
 
@@ -104,6 +137,7 @@ public class PaymentServiceImpl implements PaymentService {
 			return Page.empty(pageable);
 		}
 
+		log.info(CommonCode.PAYMENT_SEARCH_SUCCESS.getMessage());
 
 		return paymentRepository.findByOrderIdIn(orderIds, pageable)
 			.map(this::toSummary);
@@ -145,6 +179,7 @@ public class PaymentServiceImpl implements PaymentService {
 			paymentRepository.save(fail);
 
 			orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.FAILED);
+
 			return;
 		}
 
@@ -181,6 +216,8 @@ public class PaymentServiceImpl implements PaymentService {
 		paymentAuditRepository.save(audit);
 
 		orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.PAID);
+
+		log.info(CommonCode.PAYMENT_COMPLETE.getMessage());
 	}
 
 	@Override
@@ -205,5 +242,7 @@ public class PaymentServiceImpl implements PaymentService {
 		paymentAuditRepository.save(audit);
 
 		orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.FAILED);
+
+		log.info(CommonCode.PAYMENT_FAILED.getMessage());
 	}
 }

@@ -44,11 +44,11 @@ public class CartController {
 	}
 
 	@GetMapping
-	public CartItemsPageRes getMyCartItems(//@RequestHeader("X-User-Id") UUID customerId,
-										   @AuthenticationPrincipal CartEntity cart,
+	public CartItemsPageRes getMyCartItems(@RequestHeader("X-User-Id") UUID customerId,
+										   // @AuthenticationPrincipal CartEntity cart,
 		@RequestParam(required = false) Integer page,
 		@RequestParam(required = false) Integer size) {
-		return cartService.getMyCartItemsPage(cart.getCustomerId(), page, size);
+		return cartService.getMyCartItemsPage(customerId, page, size);
 	}
 
 	@DeleteMapping("/items")
