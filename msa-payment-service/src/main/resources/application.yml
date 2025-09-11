@@ -56,6 +56,7 @@ management:
 
 server:
   port: 8086
+
 eureka:
    client:
      register-with-eureka: true
@@ -68,7 +69,8 @@ order:
     url: http://msa-order-service
 store:
   url: http://msa-store-service
-
+payments:
+  redirect-base-url: http://localhost:8086/tosspayment.html
 
 
 ---
@@ -105,6 +107,8 @@ order:
     url: http://msa-order-service:8080 # 클라우드 orderservice url
 store:
   url: http://msa-store-service:8080
+payments:
+  redirect-base-url: http://msa-payment-service:8080/tosspayment.html
 
 logging:
   pattern:

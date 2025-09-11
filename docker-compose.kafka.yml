@@ -1,0 +1,39 @@
+services:
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    ports:
+      - "29092:29092"
+    environment:
+      # Kafka 노드의 고유 식별자
+      KAFKA_NODE_ID: 1
+      # 브로커와 컨트롤러 역할 지정
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      # KRaft 컨트롤러 투표자 설정
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      # Kafka가 수신할 주소와 포트 설정
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:9092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:29092'
+      # 클라이언트에게 공개할 리스너 주소
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092'
+      # 리스너별 보안 프로토콜 매핑
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      # 컨트롤러 리스너 이름
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      # 브로커 간 통신용 리스너 이름
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      # 오프셋 토픽 복제 팩터
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      # 트랜잭션 상태 로그 복제 팩터
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      # Kafka 클러스터 이름
+      CLUSTER_ID: 'ciWo7IWazngRchmPES6q5A=='
+      # Kafka 부트스트랩 서버 주소
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "9090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    depends_on:
+      - kafka
