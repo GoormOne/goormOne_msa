@@ -57,17 +57,17 @@ jobs:
             --push
           echo "image_sha=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Configure AWS credentials for EKS
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::490913547024:role/gitactionToEKS
-          aws-region: ${{ env.AWS_REGION }}
+#      - name: Configure AWS credentials for EKS
+#        uses: aws-actions/configure-aws-credentials@v4
+#        with:
+#          role-to-assume: arn:aws:iam::490913547024:role/gitactionToEKS
+#          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Update kubeconfig
-        run: aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
-
-      - name: Update Kubernetes deployment
-        run: |
-          kubectl set image deployment/${{ env.CONTAINER_NAME }} \
-            ${{ env.CONTAINER_NAME }}=${{ steps.build-image.outputs.image_sha }} -n default
-          kubectl rollout status deployment/${{ env.CONTAINER_NAME }} -n default
+#      - name: Update kubeconfig
+#        run: aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
+#
+#      - name: Update Kubernetes deployment
+#        run: |
+#          kubectl set image deployment/${{ env.CONTAINER_NAME }} \
+#            ${{ env.CONTAINER_NAME }}=${{ steps.build-image.outputs.image_sha }} -n default
+#          kubectl rollout status deployment/${{ env.CONTAINER_NAME }} -n default
