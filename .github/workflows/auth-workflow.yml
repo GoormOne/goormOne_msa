@@ -13,7 +13,7 @@ env:
   AWS_REGION: ap-northeast-2
   SERVICE_DIR: msa-auth-service
   ECR_REPOSITORY: auth-service         # ECR 리포지토리 및 ECS 서비스 이름
-  CONTAINER_NAME: msa-auth-service     # Task Definition 안의 컨테이너 이름
+  CONTAINER_NAME: auth-service     # Task Definition 안의 컨테이너 이름
 
 # GitHub Actions Runner에 부여할 권한
 permissions:
@@ -44,47 +44,33 @@ jobs:
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       # --- Docker 빌드 & ECR 푸시 ---
-      - name: Build, tag, and push image to Amazon ECR
+      - name: Build, tag, and push Docker image
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ steps.vars.outputs.sha_short }}
         run: |
-          chmod +x ./gradlew && ./gradlew :${{ env.SERVICE_DIR }}:build --no-daemon
-          docker buildx build --platform linux/amd64 \
+            chmod +x ./gradlew && ./gradlew :${{ env.SERVICE_DIR }}:build --no-daemon
+            docker buildx build --platform linux/amd64 \
             -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG \
             -f ./${{ env.SERVICE_DIR }}/Dockerfile . \
             --push
-          echo "image=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
-          echo "image_sha=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT   
-
-
-      - name: Configure kubectl
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::490913547024:role/gitactionToEKS
-          aws-region: ap-northeast-2
-
-      - name: Update kubeconfig
-        run: |
-          aws eks update-kubeconfig --name Groom-EKS-Cluster --region ap-northeast-2
-
-      - name: Update Kubernetes deployment
-        env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}
-          IMAGE_SHA: ${{ steps.build-image.outputs.image_sha }}
-        run: |
-          kubectl set image deployment/auth-service \
-            ${CONTAINER_NAME}=$IMAGE_SHA -n default
-          kubectl rollout status deployment/auth-service -n default
-
-#      # --- ECS Task Definition 업데이트 ---
-#      - name: Render Amazon ECS task definition
-#        id: task-def
-#        uses: aws-actions/amazon-ecs-render-task-definition@v1
-#        with:
-#          task-definition: ./${{ env.SERVICE_DIR }}/task-definition.json
-#          container-name: ${{ env.CONTAINER_NAME }}
-#          image: ${{ steps.build-image.outputs.image }}
-
-
+            echo "image_sha=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
+            
+            # --- AWS EKS 접근 인증 ---
+            - name: Configure AWS credentials for EKS
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                role-to-assume: arn:aws:iam::490913547024:role/gitactionToEKS
+                aws-region: ${{ env.AWS_REGION }}
+            
+            # --- Update kubeconfig ---
+            - name: Update kubeconfig
+              run: aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
+            
+            # --- Update Kubernetes Deployment ---
+            - name: Update Kubernetes deployment
+              run: |
+                kubectl set image deployment/${{ env.CONTAINER_NAME }} \
+                  ${{ env.CONTAINER_NAME }}=${{ steps.build-image.outputs.image_sha }} -n default
+                kubectl rollout status deployment/${{ env.CONTAINER_NAME }} -n default
