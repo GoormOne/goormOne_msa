@@ -1,14 +1,19 @@
 package com.example.msapaymentservice.service;
 
+import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.example.common.dto.OrderCheckoutView;
 import com.example.common.entity.PaymentStatus;
@@ -17,6 +22,7 @@ import com.example.common.exception.CommonCode;
 import com.example.msapaymentservice.client.OrderClient;
 import com.example.msapaymentservice.client.StoreClient;
 import com.example.msapaymentservice.client.TossPaymentClient;
+import com.example.msapaymentservice.dto.LatestPendingOrderRes;
 import com.example.msapaymentservice.dto.PaymentSearchRes;
 import com.example.msapaymentservice.dto.StoreClientRes;
 import com.example.msapaymentservice.dto.TossPaymentRes;
@@ -38,6 +44,28 @@ public class PaymentServiceImpl implements PaymentService {
 	private final PaymentRepository paymentRepository;
 	private final TossPaymentClient tossPaymentClient;
 	private final PaymentAuditRepository paymentAuditRepository;
+
+	@Value("${payments.redirect-base-url}")
+	private String redirectBaseUrl;
+
+	@Override
+	@Transactional(readOnly = true)
+	public ResponseEntity<Void> redirectToCheckout(UUID customerId) {
+
+		LatestPendingOrderRes latest = orderClient.getLatestPendingOrder(customerId);
+		UUID orderId = latest.getOrderId();
+
+		orderClient.getCheckout(orderId, customerId);
+
+		String url = UriComponentsBuilder.fromHttpUrl(redirectBaseUrl)
+			.queryParam("orderId", orderId)
+			.queryParam("customerId", customerId)
+			.toUriString();
+
+		return ResponseEntity.status(HttpStatus.SEE_OTHER)
+			.location(URI.create(url))
+			.build();
+	}
 
 	@Override
 	@Transactional(readOnly = true)
