@@ -50,14 +50,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
 
-  kafka:
-    bootstrap-servers: localhost:29092                                              # Kafka 접속 정보 저장
-    consumer:
-      group-id: test-group                                                          # Consumer Group
-      auto-offset-reset: earliest                                                   # Consumer가 저장된 offset을 찾지 못했을 때
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer    # 문자열 형태로 메시지 key값 역직렬화
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer  # 문자열 형태로 메시지 value값 역직렬화
-
 management:
   endpoints:
     web:
@@ -83,6 +75,15 @@ spring:
         static: ap-northeast-2
       stack:
         auto: false
+
+  kafka:
+    bootstrap-servers: localhost:29092                                              # Kafka 접속 정보 저장
+    consumer:
+      group-id: test-group                                                          # Consumer Group
+      auto-offset-reset: earliest                                                   # Consumer가 저장된 offset을 찾지 못했을 때
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer    # 문자열 형태로 메시지 key값 역직렬화
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer  # 문자열 형태로 메시지 value값 역직렬화
+
 server:
   port: 8081
 

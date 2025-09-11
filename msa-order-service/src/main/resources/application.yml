@@ -122,11 +122,11 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  kafka:
-    bootstrap-servers: localhost:29092                                          # Kafka 접속 정보 저장
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer    # 문자열 형태로 메시지 key값 직렬화
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer  # 문자열 형태로 메시지 value값 직렬화
+#  kafka:
+#    bootstrap-servers: localhost:29092                                          # Kafka 접속 정보 저장
+#    producer:
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer    # 문자열 형태로 메시지 key값 직렬화
+#      value-serializer: org.apache.kafka.common.serialization.StringSerializer  # 문자열 형태로 메시지 value값 직렬화
 
   cloud:
     loadbalancer:
