@@ -57,12 +57,8 @@ jobs:
             --push
           echo "image_sha=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      # --- EKS 카나리 배포 ---
-      - name: Configure AWS credentials for EKS
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::490913547024:role/gitactionToEKS
-          aws-region: ${{ env.AWS_REGION }}
+      # --- EKS 카나리 배포 (동일한 AWS 역할 사용) ---
+      # 이미 인증된 상태이므로 추가 인증 불필요
 
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
