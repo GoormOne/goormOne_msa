@@ -36,6 +36,9 @@ public class ReviewQuery {
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted = false;
 
+    @Column(name = "answer_text")
+    private String answerText;
+
 //    public  ReviewQuery(ReviewQueryDto reviewQueryDto,  UUID customerId) {
 //        this.menu = new Menu(reviewQueryDto.getMenuId());
 //        this.customerId = customerId;
