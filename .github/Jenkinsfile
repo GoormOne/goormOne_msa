@@ -24,74 +24,57 @@ pipeline {
             defaultValue: false,
             description: '모든 모듈 강제 빌드 여부'
         )
-        booleanParam(
-            name: 'INSTALL_TOOLS',
-            defaultValue: true,
-            description: 'Docker, AWS CLI 설치 여부'
-        )
     }
 
     stages {
-        stage('Setup Tools') {
-            when {
-                expression { params.INSTALL_TOOLS }
-            }
+        stage('Check Tools') {
             steps {
                 script {
-                    echo "Setting up Docker and AWS CLI..."
-
-                    // Docker 설치 확인 및 설치
-                    def dockerExists = sh(script: 'command -v docker', returnStatus: true) == 0
-                    if (!dockerExists) {
-                        echo "Installing Docker..."
-                        sh '''
-                            # Docker 설치 (Ubuntu/Debian 기준)
-                            sudo apt-get update -y
-                            sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-
-                            # Docker GPG 키 추가
-                            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
-                            # Docker 리포지토리 추가
-                            echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-                            # Docker 설치
-                            sudo apt-get update -y
-                            sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-
-                            # Jenkins 사용자를 docker 그룹에 추가
-                            sudo usermod -aG docker jenkins
-
-                            # Docker 서비스 시작
-                            sudo systemctl start docker
-                            sudo systemctl enable docker
-                        '''
-                    } else {
-                        echo "Docker already installed"
-                    }
-
-                    // AWS CLI 설치 확인 및 설치
-                    def awsCliExists = sh(script: 'command -v aws', returnStatus: true) == 0
-                    if (!awsCliExists) {
-                        echo "Installing AWS CLI..."
-                        sh '''
-                            # AWS CLI v2 설치
-                            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-                            unzip -q awscliv2.zip
-                            sudo ./aws/install
-                            rm -rf awscliv2.zip aws/
-                        '''
-                    } else {
-                        echo "AWS CLI already installed"
-                    }
-
-                    // 버전 확인
+                    echo "Checking available tools..."
+                    
+                    // 사용 가능한 도구들 확인
                     sh '''
-                        echo "=== Installed Tool Versions ==="
-                        docker --version
-                        aws --version
-                        echo "=============================="
+                        echo "=== System Information ==="
+                        whoami
+                        pwd
+                        echo "========================"
+                        
+                        echo "=== Available Tools ==="
+                        echo "Java:"
+                        java -version || echo "Java not found"
+                        
+                        echo "Docker:"
+                        docker --version || echo "Docker not found"
+                        
+                        echo "AWS CLI:"
+                        aws --version || echo "AWS CLI not found"
+                        
+                        echo "Git:"
+                        git --version || echo "Git not found"
+                        
+                        echo "Curl:"
+                        curl --version || echo "Curl not found"
+                        echo "========================"
                     '''
+                    
+                    // Docker 사용 가능 여부 확인
+                    def dockerAvailable = sh(script: 'command -v docker', returnStatus: true) == 0
+                    env.DOCKER_AVAILABLE = dockerAvailable.toString()
+                    
+                    // AWS CLI 사용 가능 여부 확인
+                    def awsAvailable = sh(script: 'command -v aws', returnStatus: true) == 0
+                    env.AWS_AVAILABLE = awsAvailable.toString()
+                    
+                    echo "Docker available: ${dockerAvailable}"
+                    echo "AWS CLI available: ${awsAvailable}"
+                    
+                    // 필수 도구가 없는 경우 경고
+                    if (!dockerAvailable) {
+                        echo "⚠️ Docker is not available. Please install Docker or use Docker-in-Docker setup."
+                    }
+                    if (!awsAvailable) {
+                        echo "⚠️ AWS CLI is not available. Please install AWS CLI or add it to the Jenkins image."
+                    }
                 }
             }
         }
@@ -179,12 +162,103 @@ pipeline {
                 }
             }
         }
-
+        
+        stage('Build Only (Without Docker)') {
+            when {
+                allOf {
+                    not { environment name: 'CHANGED_MODULES', value: '' }
+                    anyOf {
+                        environment name: 'DOCKER_AVAILABLE', value: 'false'
+                        environment name: 'AWS_AVAILABLE', value: 'false'
+                    }
+                }
+            }
+            steps {
+                script {
+                    def modules = readJSON text: env.MODULES_JSON
+                    def changedModules = env.CHANGED_MODULES.split(',')
+                    
+                    echo "⚠️ Docker or AWS CLI not available. Building without Docker deployment."
+                    
+                    changedModules.each { moduleName ->
+                        def moduleInfo = modules[moduleName]
+                        def servicePath = moduleInfo.path
+                        
+                        stage("Build ${moduleName} (Gradle Only)") {
+                            echo "Building module: ${moduleName} (Gradle only)"
+                            
+                            // Gradle 빌드만 수행
+                            sh """
+                                echo "Building ${servicePath}..."
+                                chmod +x ./gradlew || echo "gradlew not found, using system gradle"
+                                ./gradlew :${servicePath}:build --no-daemon --stacktrace || gradle :${servicePath}:build --no-daemon --stacktrace
+                            """
+                            
+                            echo "Module ${moduleName} Gradle build completed!"
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Install Docker & AWS CLI') {
+            when {
+                allOf {
+                    not { environment name: 'CHANGED_MODULES', value: '' }
+                    anyOf {
+                        environment name: 'DOCKER_AVAILABLE', value: 'false'
+                        environment name: 'AWS_AVAILABLE', value: 'false'
+                    }
+                }
+            }
+            steps {
+                script {
+                    echo "🔧 Installing missing tools..."
+                    
+                    // Docker 설치 (root 권한이 있는 경우)
+                    if (env.DOCKER_AVAILABLE == 'false') {
+                        sh '''
+                            # Docker 설치 시도
+                            apt-get update || echo "Cannot update packages"
+                            apt-get install -y docker.io || echo "Cannot install docker.io"
+                            
+                            # Docker 서비스 시작 시도
+                            service docker start || systemctl start docker || echo "Cannot start docker service"
+                            
+                            # Docker 버전 확인
+                            docker --version || echo "Docker still not available"
+                        '''
+                    }
+                    
+                    // AWS CLI 설치 (바이너리 다운로드 방식)
+                    if (env.AWS_AVAILABLE == 'false') {
+                        sh '''
+                            # AWS CLI 바이너리 직접 다운로드 및 설치
+                            cd /tmp
+                            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" || echo "Failed to download AWS CLI"
+                            unzip -o awscliv2.zip || echo "Failed to unzip AWS CLI"
+                            
+                            # 임시 디렉토리에 설치
+                            mkdir -p /tmp/aws-cli
+                            cp -r aws/* /tmp/aws-cli/ || echo "Failed to copy AWS CLI"
+                            
+                            # PATH에 추가할 수 있도록 심볼릭 링크 생성 시도
+                            ln -sf /tmp/aws-cli/dist/aws /usr/local/bin/aws || echo "Cannot create symlink, will use full path"
+                            
+                            # AWS CLI 버전 확인
+                            /tmp/aws-cli/dist/aws --version || aws --version || echo "AWS CLI still not available"
+                            
+                            # 정리
+                            rm -rf awscliv2.zip aws/ || echo "Cleanup failed"
+                        '''
+                    }
+                }
+            }
+        }
+        
         stage('Build and Deploy Changed Modules') {
             when {
-                not {
-                    environment name: 'CHANGED_MODULES', value: ''
-                }
+                not { environment name: 'CHANGED_MODULES', value: '' }
             }
             steps {
                 script {
@@ -201,12 +275,16 @@ pipeline {
                         ]
                     ]) {
                         sh """
-                            aws configure set aws_access_key_id \$AWS_ACCESS_KEY_ID
-                            aws configure set aws_secret_access_key \$AWS_SECRET_ACCESS_KEY
-                            aws configure set default.region ${env.AWS_REGION}
-
+                            # AWS CLI 경로 설정
+                            export AWS_CLI_PATH=\$(which aws || echo "/tmp/aws-cli/dist/aws")
+                            echo "Using AWS CLI at: \$AWS_CLI_PATH"
+                            
+                            \$AWS_CLI_PATH configure set aws_access_key_id \$AWS_ACCESS_KEY_ID
+                            \$AWS_CLI_PATH configure set aws_secret_access_key \$AWS_SECRET_ACCESS_KEY
+                            \$AWS_CLI_PATH configure set default.region ${env.AWS_REGION}
+                            
                             # ECR 로그인
-                            aws ecr get-login-password --region ${env.AWS_REGION} | \
+                            \$AWS_CLI_PATH ecr get-login-password --region ${env.AWS_REGION} | \
                             docker login --username AWS --password-stdin ${env.DOCKER_REGISTRY}
                         """
                     }
