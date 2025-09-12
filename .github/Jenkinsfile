@@ -1,0 +1,212 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = 'ap-northeast-2'
+        AWS_ACCOUNT_ID = '490913547024'
+        DOCKER_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+        // Git 정보
+        GIT_COMMIT_SHORT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+
+
+        AWS_CREDENTIALS = 'aws-ecr-credentials'
+    }
+
+    // 모듈 정보 정의
+    parameters {
+        choice(
+            name: 'TARGET_BRANCH',
+            choices: ['release/1.0.0', 'main'],
+            description: '빌드할 브랜치 선택'
+        )
+        booleanParam(
+            name: 'FORCE_BUILD_ALL',
+            defaultValue: false,
+            description: '모든 모듈 강제 빌드 여부'
+        )
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    // 변경된 파일들 확인
+                    def changedFiles = sh(
+                        script: "git diff --name-only HEAD~1 HEAD || git ls-files",
+                        returnStdout: true
+                    ).trim().split('\n')
+
+                    echo "Changed files: ${changedFiles}"
+                    env.CHANGED_FILES = changedFiles.join(' ')
+                }
+            }
+        }
+
+        stage('Determine Changed Modules') {
+            steps {
+                script {
+                    def modules = [
+                        'auth': [
+                            'path': 'msa-auth-service',
+                            'ecrRepo': 'auth-service',
+                            'containerName': 'auth-service'
+                        ],
+                        'common': [
+                            'path': 'msa-common-service',
+                            'ecrRepo': 'common-service',
+                            'containerName': 'msa-common-service'
+                        ],
+                        'order': [
+                            'path': 'msa-order-service',
+                            'ecrRepo': 'order-service',
+                            'containerName': 'msa-order-service'
+                        ],
+                        'payment': [
+                            'path': 'msa-payment-service',
+                            'ecrRepo': 'payment-service',
+                            'containerName': 'msa-payment-service'
+                        ],
+                        'store': [
+                            'path': 'msa-store-service',
+                            'ecrRepo': 'store-service',
+                            'containerName': 'msa-store-service'
+                        ],
+                        'user': [
+                            'path': 'msa-user-service',
+                            'ecrRepo': 'user-service',
+                            'containerName': 'msa-user-service'
+                        ]
+                    ]
+
+                    def changedModules = []
+                    def changedFiles = env.CHANGED_FILES.split(' ')
+
+                    if (params.FORCE_BUILD_ALL) {
+                        changedModules = modules.keySet().toList()
+                        echo "Force build all modules enabled"
+                    } else {
+                        modules.each { moduleName, moduleInfo ->
+                            def hasChanges = changedFiles.any { file ->
+                                file.startsWith(moduleInfo.path + '/')
+                            }
+                            if (hasChanges) {
+                                changedModules.add(moduleName)
+                            }
+                        }
+                    }
+
+                    env.CHANGED_MODULES = changedModules.join(',')
+                    env.MODULES_JSON = writeJSON returnText: true, json: modules
+
+                    echo "Changed modules: ${changedModules}"
+
+                    if (changedModules.isEmpty()) {
+                        echo "No modules changed. Skipping build."
+                        currentBuild.result = 'SUCCESS'
+                        return
+                    }
+                }
+            }
+        }
+
+        stage('Build and Deploy Changed Modules') {
+            when {
+                not {
+                    environment name: 'CHANGED_MODULES', value: ''
+                }
+            }
+            steps {
+                script {
+                    def modules = readJSON text: env.MODULES_JSON
+                    def changedModules = env.CHANGED_MODULES.split(',')
+
+                    // AWS ECR 로그인
+                    withAWS(credentials: env.AWS_CREDENTIALS, region: env.AWS_REGION) {
+                        sh """
+                            aws ecr get-login-password --region ${env.AWS_REGION} | \
+                            docker login --username AWS --password-stdin ${env.DOCKER_REGISTRY}
+                        """
+                    }
+
+                    // 각 변경된 모듈에 대해 병렬 실행
+                    def parallelBuilds = [:]
+
+                    changedModules.each { moduleName ->
+                        def moduleInfo = modules[moduleName]
+                        def servicePath = moduleInfo.path
+                        def ecrRepo = moduleInfo.ecrRepo
+                        def containerName = moduleInfo.containerName
+
+                        parallelBuilds["Build ${moduleName}"] = {
+                            stage("Build ${moduleName}") {
+                                echo "Building module: ${moduleName}"
+
+                                // Gradle 빌드
+                                sh """
+                                    chmod +x ./gradlew
+                                    ./gradlew :${servicePath}:build --no-daemon
+                                """
+
+                                // Docker 빌드 및 푸시
+                                def imageTag = "${env.DOCKER_REGISTRY}/${ecrRepo}:${env.GIT_COMMIT_SHORT}"
+
+                                sh """
+                                    docker buildx build --platform linux/amd64 \
+                                        -t ${imageTag} \
+                                        -f ./${servicePath}/Dockerfile . \
+                                        --push
+                                """
+
+                                echo "Successfully built and pushed: ${imageTag}"
+
+                                // 배포 단계 (EKS 주석 해제 시 활성화)
+                                /*
+                                withAWS(credentials: 'aws-eks-credentials', region: env.AWS_REGION) {
+                                    sh """
+                                        aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${env.AWS_REGION}
+                                        kubectl set image deployment/${containerName} \
+                                            ${containerName}=${imageTag} -n default
+                                        kubectl rollout status deployment/${containerName} -n default
+                                    """
+                                }
+                                */
+                            }
+                        }
+                    }
+
+                    // 병렬 실행
+                    parallel parallelBuilds
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Docker 이미지 정리
+            sh 'docker system prune -f || true'
+        }
+        success {
+            echo "Pipeline completed successfully!"
+            script {
+                if (env.CHANGED_MODULES) {
+                    def modules = env.CHANGED_MODULES.split(',')
+                    echo "Successfully built and deployed modules: ${modules.join(', ')}"
+                }
+            }
+        }
+        failure {
+            echo "Pipeline failed!"
+        }
+    }
+
+    triggers {
+        // GitHub webhook 트리거 설정 (Jenkins GitHub plugin 필요)
+        githubPush()
+
+        // 또는 SCM 폴링 (5분마다 체크)
+        // pollSCM('H/5 * * * *')
+    }
+}
