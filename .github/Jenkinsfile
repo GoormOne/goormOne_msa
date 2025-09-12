@@ -9,15 +9,14 @@ pipeline {
         // Git 정보
         GIT_COMMIT_SHORT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
 
-
+        // Jenkins에서 AWS 자격증명을 위한 credential ID (Jenkins에서 설정 필요)
         AWS_CREDENTIALS = 'aws-ecr-credentials'
     }
 
-    // 모듈 정보 정의
     parameters {
         choice(
             name: 'TARGET_BRANCH',
-            choices: ['release/1.0.0', 'main'],
+            choices: ['release/1.0.0', 'main', 'develop'],
             description: '빌드할 브랜치 선택'
         )
         booleanParam(
@@ -25,9 +24,78 @@ pipeline {
             defaultValue: false,
             description: '모든 모듈 강제 빌드 여부'
         )
+        booleanParam(
+            name: 'INSTALL_TOOLS',
+            defaultValue: true,
+            description: 'Docker, AWS CLI 설치 여부'
+        )
     }
 
     stages {
+        stage('Setup Tools') {
+            when {
+                params('INSTALL_TOOLS')
+            }
+            steps {
+                script {
+                    echo "Setting up Docker and AWS CLI..."
+
+                    // Docker 설치 확인 및 설치
+                    def dockerExists = sh(script: 'command -v docker', returnStatus: true) == 0
+                    if (!dockerExists) {
+                        echo "Installing Docker..."
+                        sh '''
+                            # Docker 설치 (Ubuntu/Debian 기준)
+                            sudo apt-get update -y
+                            sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+
+                            # Docker GPG 키 추가
+                            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+                            # Docker 리포지토리 추가
+                            echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+                            # Docker 설치
+                            sudo apt-get update -y
+                            sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
+                            # Jenkins 사용자를 docker 그룹에 추가
+                            sudo usermod -aG docker jenkins
+
+                            # Docker 서비스 시작
+                            sudo systemctl start docker
+                            sudo systemctl enable docker
+                        '''
+                    } else {
+                        echo "Docker already installed"
+                    }
+
+                    // AWS CLI 설치 확인 및 설치
+                    def awsCliExists = sh(script: 'command -v aws', returnStatus: true) == 0
+                    if (!awsCliExists) {
+                        echo "Installing AWS CLI..."
+                        sh '''
+                            # AWS CLI v2 설치
+                            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                            unzip -q awscliv2.zip
+                            sudo ./aws/install
+                            rm -rf awscliv2.zip aws/
+                        '''
+                    } else {
+                        echo "AWS CLI already installed"
+                    }
+
+                    // 버전 확인
+                    sh '''
+                        echo "=== Installed Tool Versions ==="
+                        docker --version
+                        aws --version
+                        echo "=============================="
+                    '''
+                }
+            }
+        }
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -47,6 +115,7 @@ pipeline {
         stage('Determine Changed Modules') {
             steps {
                 script {
+                    // 모듈 정보 정의 (GitHub Actions workflow 기반)
                     def modules = [
                         'auth': [
                             'path': 'msa-auth-service',
@@ -122,82 +191,117 @@ pipeline {
                     def modules = readJSON text: env.MODULES_JSON
                     def changedModules = env.CHANGED_MODULES.split(',')
 
-                    // PATH 환경변수에 aws-cli와 docker 추가
-                    withEnv(["PATH=/tmp/aws-cli/bin:/tmp/docker:${env.PATH}"]) {
+                    // AWS 자격증명 및 ECR 로그인
+                    withCredentials([
+                        [
+                            $class: 'AmazonWebServicesCredentialsBinding',
+                            credentialsId: env.AWS_CREDENTIALS,
+                            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                        ]
+                    ]) {
+                        sh """
+                            aws configure set aws_access_key_id \$AWS_ACCESS_KEY_ID
+                            aws configure set aws_secret_access_key \$AWS_SECRET_ACCESS_KEY
+                            aws configure set default.region ${env.AWS_REGION}
 
-                        // AWS ECR 로그인
-                        withAWS(credentials: env.AWS_CREDENTIALS, region: env.AWS_REGION) {
+                            # ECR 로그인
+                            aws ecr get-login-password --region ${env.AWS_REGION} | \
+                            docker login --username AWS --password-stdin ${env.DOCKER_REGISTRY}
+                        """
+                    }
+
+                    // 각 변경된 모듈에 대해 순차 실행 (리소스 절약)
+                    changedModules.each { moduleName ->
+                        def moduleInfo = modules[moduleName]
+                        def servicePath = moduleInfo.path
+                        def ecrRepo = moduleInfo.ecrRepo
+                        def containerName = moduleInfo.containerName
+
+                        stage("Build ${moduleName}") {
+                            echo "Building module: ${moduleName}"
+
+                            // Gradle 빌드
                             sh """
-                                aws ecr get-login-password --region ${env.AWS_REGION} | \
-                                docker login --username AWS --password-stdin ${env.DOCKER_REGISTRY}
+                                echo "Building ${servicePath}..."
+                                chmod +x ./gradlew
+                                ./gradlew :${servicePath}:build --no-daemon --stacktrace
                             """
+
+                            // Docker 빌드 및 푸시
+                            def imageTag = "${env.DOCKER_REGISTRY}/${ecrRepo}:${env.GIT_COMMIT_SHORT}"
+                            def latestTag = "${env.DOCKER_REGISTRY}/${ecrRepo}:latest"
+
+                            sh """
+                                echo "Building Docker image: ${imageTag}"
+
+                                # Docker 빌드 및 푸시
+                                docker build --platform linux/amd64 \
+                                    -t ${imageTag} \
+                                    -t ${latestTag} \
+                                    -f ./${servicePath}/Dockerfile .
+
+                                docker push ${imageTag}
+                                docker push ${latestTag}
+
+                                echo "Successfully pushed: ${imageTag}"
+                            """
+
+                            // 배포 단계 (EKS - 필요시 주석 해제)
+                            /*
+                            sh """
+                                echo "Deploying to Kubernetes..."
+                                aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${env.AWS_REGION}
+                                kubectl set image deployment/${containerName} \
+                                    ${containerName}=${imageTag} -n default
+                                kubectl rollout status deployment/${containerName} -n default
+                            """
+                            */
+
+                            echo "Module ${moduleName} build completed successfully!"
                         }
-
-                        // 각 변경된 모듈에 대해 병렬 실행
-                        def parallelBuilds = [:]
-
-                        changedModules.each { moduleName ->
-                            def moduleInfo = modules[moduleName]
-                            def servicePath = moduleInfo.path
-                            def ecrRepo = moduleInfo.ecrRepo
-                            def containerName = moduleInfo.containerName
-
-                            parallelBuilds["Build ${moduleName}"] = {
-                                stage("Build ${moduleName}") {
-                                    echo "Building module: ${moduleName}"
-
-                                    // Gradle 빌드
-                                    sh """
-                                        chmod +x ./gradlew
-                                        ./gradlew :${servicePath}:build --no-daemon
-                                    """
-
-                                    // Docker 빌드 및 푸시
-                                    def imageTag = "${env.DOCKER_REGISTRY}/${ecrRepo}:${env.GIT_COMMIT_SHORT}"
-
-                                    sh """
-                                        docker buildx build --platform linux/amd64 \
-                                            -t ${imageTag} \
-                                            -f ./${servicePath}/Dockerfile . \
-                                            --push
-                                    """
-
-                                    echo "Successfully built and pushed: ${imageTag}"
-                                }
-                            }
-                        }
-
-                        // 병렬 실행
-                        parallel parallelBuilds
-                    } // withEnv 종료
+                    }
                 }
             }
         }
+    }
 
     post {
         always {
             // Docker 이미지 정리
-            sh 'docker system prune -f || true'
+            sh '''
+                echo "Cleaning up Docker images..."
+                docker system prune -f || true
+                docker image prune -f || true
+            '''
         }
         success {
-            echo "Pipeline completed successfully!"
+            echo "🎉 Pipeline completed successfully!"
             script {
                 if (env.CHANGED_MODULES) {
                     def modules = env.CHANGED_MODULES.split(',')
-                    echo "Successfully built and deployed modules: ${modules.join(', ')}"
+                    echo "✅ Successfully built and deployed modules: ${modules.join(', ')}"
+
+                    // 빌드된 이미지 정보 출력
+                    modules.each { module ->
+                        echo "📦 ${module}: ${env.DOCKER_REGISTRY}/${module}-service:${env.GIT_COMMIT_SHORT}"
+                    }
+                } else {
+                    echo "ℹ️ No changes detected, pipeline completed without build."
                 }
             }
         }
         failure {
-            echo "Pipeline failed!"
+            echo "❌ Pipeline failed!"
+            echo "Please check the logs for detailed error information."
         }
     }
 
     triggers {
-        // GitHub webhook 트리거 설정 (Jenkins GitHub plugin 필요)
+        // GitHub webhook 트리거
         githubPush()
 
-        // 또는 SCM 폴링 (5분마다 체크)
-        pollSCM('H/1 * * * *')
+        // 또는 SCM 폴링 (5분마다 체크) - 선택사항
+        // pollSCM('H/5 * * * *')
     }
 }
