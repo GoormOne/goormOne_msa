@@ -1,5 +1,6 @@
 package com.example.storeservice.chat;
 
+import com.example.storeservice.service.ReviewService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -24,10 +26,12 @@ public class ChatResponseListener implements SmartLifecycle, InitializingBean {
 
     private final StringRedisTemplate redis;
     private final ObjectMapper om;
+    private final ReviewService reviewService;
 
     @Value("${app.chat.responseStream}") private String responseStream;
     @Value("${app.chat.responseKeyPrefix}") private String respKeyPrefix;
     @Value("${app.chat.responseTtlSeconds}") private int respTtlSec;
+    @Value("${app.chat.req2qidPrefix:chat:req2qid:}") private String req2qidPrefix;
 
     private StreamMessageListenerContainer<String, MapRecord<String, String, String>> container;
     private ExecutorService executor;
@@ -56,30 +60,33 @@ public class ChatResponseListener implements SmartLifecycle, InitializingBean {
             log.info("Consumer group may already exist: {}", e.getMessage());
         }
 
-        // 수신 핸들러 등록
+        // 메시지 수신 핸들러 등록
         this.container.receive(
                 Consumer.from("resp-group", "store-service"),
                 StreamOffset.create(responseStream, ReadOffset.lastConsumed()),
                 (MapRecord<String, String, String> message) -> {
                     try {
-                        String payload = message.getValue().get("payload");
-                        if (payload == null) {
-                            // 필드 없으면 바로 ACK
-                            redis.opsForStream().acknowledge(responseStream, "resp-group", message.getId());
-                            return;
+                        // FastAPI에서 보낸 JSON 필드 읽기
+                        String requestId = message.getValue().get("request_id");
+                        String answer = message.getValue().get("answer");
+                        log.info("응답 수신: requestId={}, answer={}",  requestId, answer);
+
+                        if (requestId != null && answer != null) {
+                            // 1) 캐시에 저장 (동기 폴링 대비)
+                            redis.opsForValue().set(respKeyPrefix + requestId, answer, Duration.ofSeconds(respTtlSec));
+
+                            // 2) requestId → questionId 매핑 찾아서 DB 업데이트
+                            String qidStr = redis.opsForValue().get(req2qidPrefix + requestId);
+                            if (qidStr != null) {
+                                reviewService.updateAnswer(UUID.fromString(qidStr), answer);
+                                // 매핑키는 정리해도 됨
+                                redis.delete(req2qidPrefix + requestId);
+                            }
                         }
 
-                        ChatResponseMsg resp = om.readValue(payload, ChatResponseMsg.class);
-                        String key = respKeyPrefix + resp.getRequestId();
+                        // ACK
+                        redis.opsForStream().acknowledge(responseStream, "resp-group", message.getId());
 
-                        // 응답 캐싱 (TTL)
-                        redis.opsForValue().set(key, resp.getAnswer(), Duration.ofSeconds(respTtlSec));
-
-                        // ✅ ACK 반환 타입은 Long (처리된 개수)
-                        Long ackCount = redis.opsForStream().acknowledge(responseStream, "resp-group", message.getId());
-                        if (ackCount == null || ackCount == 0) {
-                            log.warn("ACK failed for message {}", message.getId());
-                        }
                     } catch (Exception ex) {
                         log.error("Failed to handle response stream message {}", message.getId(), ex);
                         // 필요시 DLQ 기록 로직 추가

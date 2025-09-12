@@ -91,7 +91,7 @@ app:
   chat:
     requestStream: chat:requests
     responseStream: chat:response
-    responseKeyPrefix: chat:resp   # chat:resp:{request_id}
+    responseKeyPrefix: "chat:resp:"   # chat:resp:{request_id}
     responseTtlSeconds: 300
 
 server:
