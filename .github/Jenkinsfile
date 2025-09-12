@@ -31,50 +31,71 @@ pipeline {
             steps {
                 script {
                     echo "Checking available tools..."
-                    
-                    // 사용 가능한 도구들 확인
+
                     sh '''
                         echo "=== System Information ==="
                         whoami
                         pwd
                         echo "========================"
-                        
-                        echo "=== Available Tools ==="
+
                         echo "Java:"
                         java -version || echo "Java not found"
-                        
+
                         echo "Docker:"
                         docker --version || echo "Docker not found"
-                        
+
                         echo "AWS CLI:"
                         aws --version || echo "AWS CLI not found"
-                        
+
                         echo "Git:"
                         git --version || echo "Git not found"
-                        
+
                         echo "Curl:"
                         curl --version || echo "Curl not found"
                         echo "========================"
                     '''
-                    
-                    // Docker 사용 가능 여부 확인
-                    def dockerAvailable = sh(script: 'command -v docker', returnStatus: true) == 0
-                    env.DOCKER_AVAILABLE = dockerAvailable.toString()
-                    
-                    // AWS CLI 사용 가능 여부 확인
-                    def awsAvailable = sh(script: 'command -v aws', returnStatus: true) == 0
-                    env.AWS_AVAILABLE = awsAvailable.toString()
-                    
-                    echo "Docker available: ${dockerAvailable}"
-                    echo "AWS CLI available: ${awsAvailable}"
-                    
-                    // 필수 도구가 없는 경우 경고
-                    if (!dockerAvailable) {
-                        echo "⚠️ Docker is not available. Please install Docker or use Docker-in-Docker setup."
-                    }
-                    if (!awsAvailable) {
-                        echo "⚠️ AWS CLI is not available. Please install AWS CLI or add it to the Jenkins image."
-                    }
+
+                    env.DOCKER_AVAILABLE = (sh(script: 'command -v docker', returnStatus: true) == 0).toString()
+                    env.AWS_AVAILABLE = (sh(script: 'command -v aws', returnStatus: true) == 0).toString()
+
+                    echo "Docker available: ${env.DOCKER_AVAILABLE}"
+                    echo "AWS CLI available: ${env.AWS_AVAILABLE}"
+                }
+            }
+        }
+
+        stage('Install Docker & AWS CLI') {
+            steps {
+                script {
+                    echo "🔧 Installing missing tools if necessary..."
+
+                    // Docker 설치
+                    sh '''
+                        if ! command -v docker > /dev/null 2>&1; then
+                            echo "Installing Docker..."
+                            apt-get update -y
+                            apt-get install -y docker.io
+                            systemctl enable docker || true
+                            systemctl start docker || true
+                        else
+                            echo "Docker already installed"
+                        fi
+                    '''
+
+                    // AWS CLI 설치
+                    sh '''
+                        if ! command -v aws > /dev/null 2>&1; then
+                            echo "Installing AWS CLI..."
+                            cd /tmp
+                            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                            unzip -o awscliv2.zip
+                            ./aws/install
+                            rm -rf awscliv2.zip aws/
+                            export PATH=$PATH:/usr/local/bin
+                        else
+                            echo "AWS CLI already installed"
+                        fi
+                    '''
                 }
             }
         }
@@ -83,7 +104,6 @@ pipeline {
             steps {
                 checkout scm
                 script {
-                    // 변경된 파일들 확인
                     def changedFiles = sh(
                         script: "git diff --name-only HEAD~1 HEAD || git ls-files",
                         returnStdout: true
@@ -98,38 +118,13 @@ pipeline {
         stage('Determine Changed Modules') {
             steps {
                 script {
-                    // 모듈 정보 정의 (GitHub Actions workflow 기반)
                     def modules = [
-                        'auth': [
-                            'path': 'msa-auth-service',
-                            'ecrRepo': 'auth-service',
-                            'containerName': 'auth-service'
-                        ],
-                        'common': [
-                            'path': 'msa-common-service',
-                            'ecrRepo': 'common-service',
-                            'containerName': 'msa-common-service'
-                        ],
-                        'order': [
-                            'path': 'msa-order-service',
-                            'ecrRepo': 'order-service',
-                            'containerName': 'msa-order-service'
-                        ],
-                        'payment': [
-                            'path': 'msa-payment-service',
-                            'ecrRepo': 'payment-service',
-                            'containerName': 'msa-payment-service'
-                        ],
-                        'store': [
-                            'path': 'msa-store-service',
-                            'ecrRepo': 'store-service',
-                            'containerName': 'msa-store-service'
-                        ],
-                        'user': [
-                            'path': 'msa-user-service',
-                            'ecrRepo': 'user-service',
-                            'containerName': 'msa-user-service'
-                        ]
+                        'auth': ['path': 'msa-auth-service','ecrRepo': 'auth-service','containerName': 'auth-service'],
+                        'common': ['path': 'msa-common-service','ecrRepo': 'common-service','containerName': 'msa-common-service'],
+                        'order': ['path': 'msa-order-service','ecrRepo': 'order-service','containerName': 'msa-order-service'],
+                        'payment': ['path': 'msa-payment-service','ecrRepo': 'payment-service','containerName': 'msa-payment-service'],
+                        'store': ['path': 'msa-store-service','ecrRepo': 'store-service','containerName': 'msa-store-service'],
+                        'user': ['path': 'msa-user-service','ecrRepo': 'user-service','containerName': 'msa-user-service']
                     ]
 
                     def changedModules = []
@@ -162,87 +157,7 @@ pipeline {
                 }
             }
         }
-        
-        stage('Build Only (Without Docker)') {
-            when {
-                allOf {
-                    not { environment name: 'CHANGED_MODULES', value: '' }
-                    anyOf {
-                        environment name: 'DOCKER_AVAILABLE', value: 'false'
-                        environment name: 'AWS_AVAILABLE', value: 'false'
-                    }
-                }
-            }
-            steps {
-                script {
-                    def modules = readJSON text: env.MODULES_JSON
-                    def changedModules = env.CHANGED_MODULES.split(',')
-                    
-                    echo "⚠️ Docker or AWS CLI not available. Building without Docker deployment."
-                    
-                    changedModules.each { moduleName ->
-                        def moduleInfo = modules[moduleName]
-                        def servicePath = moduleInfo.path
-                        
-                        stage("Build ${moduleName} (Gradle Only)") {
-                            echo "Building module: ${moduleName} (Gradle only)"
-                            
-                            // Gradle 빌드만 수행
-                            sh """
-                                echo "Building ${servicePath}..."
-                                chmod +x ./gradlew || echo "gradlew not found, using system gradle"
-                                ./gradlew :${servicePath}:build --no-daemon --stacktrace || gradle :${servicePath}:build --no-daemon --stacktrace
-                            """
-                            
-                            echo "Module ${moduleName} Gradle build completed!"
-                        }
-                    }
-                }
-            }
-        }
-        
-        stage('Install Docker & AWS CLI') {
-            when {
-                allOf {
-                    not { environment name: 'CHANGED_MODULES', value: '' }
-                    anyOf {
-                        environment name: 'DOCKER_AVAILABLE', value: 'false'
-                        environment name: 'AWS_AVAILABLE', value: 'false'
-                    }
-                }
-            }
-            steps {
-                script {
-                    echo "🔧 Installing missing tools..."
 
-                    // Docker 설치
-                    if (env.DOCKER_AVAILABLE == 'false') {
-                        sh '''
-                            echo "Installing Docker..."
-                            sudo apt-get update -y || echo "Failed to update apt"
-                            sudo apt-get install -y docker.io || echo "Failed to install Docker"
-                            sudo systemctl enable docker || echo "Failed to enable Docker service"
-                            sudo systemctl start docker || echo "Failed to start Docker service"
-                            docker --version || echo "Docker installation failed"
-                        '''
-                    }
-
-                    // AWS CLI 설치
-                    if (env.AWS_AVAILABLE == 'false') {
-                        sh '''
-                            echo "Installing AWS CLI..."
-                            cd /tmp
-                            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-                            unzip -o awscliv2.zip
-                            sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli
-                            aws --version || echo "AWS CLI installation failed"
-                            rm -rf awscliv2.zip aws/
-                        '''
-                    }
-                }
-            }
-        }
-        
         stage('Build and Deploy Changed Modules') {
             when {
                 not { environment name: 'CHANGED_MODULES', value: '' }
@@ -262,21 +177,18 @@ pipeline {
                         ]
                     ]) {
                         sh """
-                            # AWS CLI 경로 설정
-                            export AWS_CLI_PATH=\$(which aws || echo "/tmp/aws-cli/dist/aws")
+                            export AWS_CLI_PATH=\$(which aws || echo "/usr/local/bin/aws")
                             echo "Using AWS CLI at: \$AWS_CLI_PATH"
-                            
+
                             \$AWS_CLI_PATH configure set aws_access_key_id \$AWS_ACCESS_KEY_ID
                             \$AWS_CLI_PATH configure set aws_secret_access_key \$AWS_SECRET_ACCESS_KEY
                             \$AWS_CLI_PATH configure set default.region ${env.AWS_REGION}
-                            
-                            # ECR 로그인
+
                             \$AWS_CLI_PATH ecr get-login-password --region ${env.AWS_REGION} | \
                             docker login --username AWS --password-stdin ${env.DOCKER_REGISTRY}
                         """
                     }
 
-                    // 각 변경된 모듈에 대해 순차 실행 (리소스 절약)
                     changedModules.each { moduleName ->
                         def moduleInfo = modules[moduleName]
                         def servicePath = moduleInfo.path
@@ -286,44 +198,22 @@ pipeline {
                         stage("Build ${moduleName}") {
                             echo "Building module: ${moduleName}"
 
-                            // Gradle 빌드
                             sh """
-                                echo "Building ${servicePath}..."
                                 chmod +x ./gradlew
                                 ./gradlew :${servicePath}:build --no-daemon --stacktrace
                             """
 
-                            // Docker 빌드 및 푸시
                             def imageTag = "${env.DOCKER_REGISTRY}/${ecrRepo}:${env.GIT_COMMIT_SHORT}"
                             def latestTag = "${env.DOCKER_REGISTRY}/${ecrRepo}:latest"
 
                             sh """
-                                echo "Building Docker image: ${imageTag}"
-
-                                # Docker 빌드 및 푸시
                                 docker build --platform linux/amd64 \
                                     -t ${imageTag} \
                                     -t ${latestTag} \
                                     -f ./${servicePath}/Dockerfile .
-
                                 docker push ${imageTag}
                                 docker push ${latestTag}
-
-                                echo "Successfully pushed: ${imageTag}"
                             """
-
-                            // 배포 단계 (EKS - 필요시 주석 해제)
-                            /*
-                            sh """
-                                echo "Deploying to Kubernetes..."
-                                aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${env.AWS_REGION}
-                                kubectl set image deployment/${containerName} \
-                                    ${containerName}=${imageTag} -n default
-                                kubectl rollout status deployment/${containerName} -n default
-                            """
-                            */
-
-                            echo "Module ${moduleName} build completed successfully!"
                         }
                     }
                 }
@@ -333,40 +223,25 @@ pipeline {
 
     post {
         always {
-            // Docker 이미지 정리
             sh '''
                 echo "Cleaning up Docker images..."
-                docker system prune -f || true
-                docker image prune -f || true
+                if command -v docker > /dev/null 2>&1; then
+                    docker system prune -f
+                    docker image prune -f
+                else
+                    echo "Docker not found, skipping cleanup"
+                fi
             '''
         }
         success {
             echo "🎉 Pipeline completed successfully!"
-            script {
-                if (env.CHANGED_MODULES) {
-                    def modules = env.CHANGED_MODULES.split(',')
-                    echo "✅ Successfully built and deployed modules: ${modules.join(', ')}"
-
-                    // 빌드된 이미지 정보 출력
-                    modules.each { module ->
-                        echo "📦 ${module}: ${env.DOCKER_REGISTRY}/${module}-service:${env.GIT_COMMIT_SHORT}"
-                    }
-                } else {
-                    echo "ℹ️ No changes detected, pipeline completed without build."
-                }
-            }
         }
         failure {
-            echo "❌ Pipeline failed!"
-            echo "Please check the logs for detailed error information."
+            echo "❌ Pipeline failed! Check logs."
         }
     }
 
     triggers {
-        // GitHub webhook 트리거
         githubPush()
-
-        // 또는 SCM 폴링 (5분마다 체크) - 선택사항
-        // pollSCM('H/5 * * * *')
     }
 }
