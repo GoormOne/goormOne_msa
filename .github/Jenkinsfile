@@ -207,6 +207,6 @@ pipeline {
         githubPush()
 
         // 또는 SCM 폴링 (5분마다 체크)
-        // pollSCM('H/5 * * * *')
+        pollSCM('H/1 * * * *')
     }
 }
