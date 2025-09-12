@@ -15,7 +15,7 @@ management:
         include: health,info,metrics
   endpoint:
     health:
-      show-details: when_authorized #dddddddd
+      show-details: when_authorized #ddddddddd
 ---
 spring:
   config:
