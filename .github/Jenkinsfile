@@ -34,7 +34,7 @@ pipeline {
     stages {
         stage('Setup Tools') {
             when {
-                params('INSTALL_TOOLS')
+                expression { params.INSTALL_TOOLS }
             }
             steps {
                 script {
