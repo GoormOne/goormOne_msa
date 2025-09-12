@@ -36,7 +36,7 @@ public class ReviewQuery {
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted = false;
 
-    @Column(name = "answer_text")
+    @Column(name = "answer_text", columnDefinition = "text")
     private String answerText;
 
 //    public  ReviewQuery(ReviewQueryDto reviewQueryDto,  UUID customerId) {

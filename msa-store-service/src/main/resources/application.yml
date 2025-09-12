@@ -92,6 +92,7 @@ app:
     requestStream: chat:requests
     responseStream: chat:response
     responseKeyPrefix: "chat:resp:"   # chat:resp:{request_id}
+    req2qidPrefix: "chat:req2qid:"    # requestId -> questionId 매핑
     responseTtlSeconds: 300
 
 server:

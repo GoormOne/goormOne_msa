@@ -20,9 +20,14 @@ public class ChatStreamGateway {
 
     @Value("${app.chat.requestStream}") private String requestStream;
     @Value("${app.chat.responseKeyPrefix}") private String respKeyPrefix;
+    @Value("${app.chat.req2qidPrefix}") private String req2qidPrefix;
     @Value("${app.chat.responseTtlSeconds}") private int respTtlSec;
 
-    /** 요청 생성 및 XADD */
+    /** 요청 생성 및 XADD
+     * Redis Streams에 이벤트 발행만 하는 함수
+     * 이 질문을 DB의 어떤 레코드와 연결해야 한다는 정보가 없음.
+     * 응답이 돌아올 때, Listener 입장에서 request_id만 있고, 그걸 어떤 question_id와 매핑해야 하는지 알 수 없음.
+     * */
     public UUID sendRequest(UUID storeId, UUID menuId, String query) {
         UUID requestId = UUID.randomUUID();
         ChatRequestMsg msg = ChatRequestMsg.builder()
@@ -40,6 +45,19 @@ public class ChatStreamGateway {
         );
         redis.opsForStream().add(requestStream, fields);
         return requestId;
+    }
+    /** 발행 + RDB questionId와의 매핑 저장
+     * sendRequest 호출 + 매핑 저장
+     * request_id (RS에서 오가는 ID) / question_id (RDB p_review_queries PK) -> 이 두 개를 Redis에 임시 저장
+     * Listener가 FastAPI 응답 (request_id, answer) 받았을 때,
+     * 1. request_id -> Redis 조회
+     * 2. 대응하는 question_id 찾아옴
+     * 3. 그걸로 DB 업데이트
+     * */
+    public UUID sendRequestAndCorrelate(UUID storeId, UUID menuId, String question, UUID questionId) {
+        UUID reqId = sendRequest(storeId, menuId, question);
+        redis.opsForValue().set(req2qidPrefix + reqId, questionId.toString(), Duration.ofSeconds(respTtlSec));
+        return reqId;
     }
 
     /** 동기 대기 (UUID 버전) */
