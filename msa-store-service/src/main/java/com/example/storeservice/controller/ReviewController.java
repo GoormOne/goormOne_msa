@@ -1,9 +1,11 @@
 package com.example.storeservice.controller;
 
 import com.example.common.dto.ApiResponse;
+import com.example.storeservice.chat.ChatStreamGateway;
 import com.example.storeservice.dto.CreateReviewDto;
 import com.example.storeservice.dto.ReviewDto;
 import com.example.storeservice.dto.ReviewQueryDto;
+import com.example.storeservice.entity.Menu;
 import com.example.storeservice.entity.Review;
 import com.example.storeservice.entity.ReviewQuery;
 import com.example.storeservice.service.ReviewService;
@@ -15,10 +17,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -28,6 +33,7 @@ import java.util.UUID;
 public class ReviewController {
 
     private final ReviewService reviewService;
+    private final ChatStreamGateway chatStreamGateway;
 
     @GetMapping("/{reviewId}")
     public ResponseEntity<ApiResponse<?>> getReview(@PathVariable UUID reviewId) {
@@ -82,16 +88,52 @@ public class ReviewController {
         return ResponseEntity.ok(ApiResponse.success(ReviewDto.from(review)));
     }
 
-    @PostMapping("/query")
+    @PostMapping("/query/menu/{menuId}")
     public ResponseEntity<ApiResponse<?>> postReviewQuery(
-            @RequestBody ReviewQueryDto reviewQueryDto
+            @PathVariable UUID storeId,
+            @PathVariable UUID menuId,
+            @RequestParam(name="wait", defaultValue="false") boolean wait,
+            @RequestParam(name="timeoutMs", defaultValue="5000") long timeoutMs,
+            @Validated @RequestBody ReviewQueryDto reviewQueryDto
     ){
-        String ownerId = "cf7a8f73-c0fd-4300-82b9-184e718c7b04";
-        UUID ownerUuid = UUID.fromString(ownerId);
+        // TODO: 보안 컨텍스트에서 ownerId 파싱
+        UUID ownerUuid = UUID.fromString("cf7a8f73-c0fd-4300-82b9-184e718c7b04");
 
-        ReviewQuery reviewQuery = reviewService.saveReviewQuery(new ReviewQuery(reviewQueryDto, ownerUuid));
+        // 1) RDB 저장
+        ReviewQuery reviewQuery = ReviewQuery.builder()
+                .menu(new Menu(menuId))
+                .customerId(ownerUuid)
+                .questionText(reviewQueryDto.getQuery())
+                .build();
+        ReviewQuery saved = reviewService.saveReviewQuery(reviewQuery);
 
-        return ResponseEntity.ok(ApiResponse.success(reviewQuery.getQuestionId()));
+        // 2) FastAPI에 Streams로 요청 전송
+        UUID requestId = chatStreamGateway.sendRequest(storeId, menuId, reviewQueryDto.getQuery());
+
+        if (!wait) {
+            return ResponseEntity.status(HttpStatus.ACCEPTED)
+                    .body(ApiResponse.success(Map.of(
+                            "requestId", requestId,
+                            "questionId", saved.getQuestionId(),
+                            "status", "pending"
+                    )));
+        }
+
+        String answer = chatStreamGateway.awaitAnswer(requestId, timeoutMs);
+        if (answer == null) {
+            return ResponseEntity.status(HttpStatus.ACCEPTED)
+                    .body(ApiResponse.success(Map.of(
+                            "requestId", requestId,
+                            "questionId", saved.getQuestionId(),
+                            "status", "pending"
+                    )));
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(Map.of(
+                "requestId", requestId,
+                "questionId", saved.getQuestionId(),
+                "answer", answer
+        )));
     }
 
 
