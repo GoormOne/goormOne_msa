@@ -7,13 +7,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
-public class kafkaTopicConfig {
+public class KafkaTopicConfig {
 
 	@Bean
 	public NewTopic orderEvents() {
 		return TopicBuilder.name("order-events")
 			.partitions(3)
-			.replicas(3)
+			.replicas(1)
 			.config(TopicConfig.RETENTION_MS_CONFIG, String.valueOf(7 * 24 * 60 * 60 * 1000L)) // 7d
 			.build();
 	}
@@ -23,7 +23,7 @@ public class kafkaTopicConfig {
 	public NewTopic sagaDlt(){
 		return TopicBuilder.name("saga-dlt")
 			.partitions(3)
-			.replicas(3)
+			.replicas(1)
 			.config(TopicConfig.RETENTION_MS_CONFIG, String.valueOf(7 * 24 * 60 * 60 * 1000L))
 			.build();
 

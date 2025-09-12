@@ -18,9 +18,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.example.common.entity.PaymentStatus;
 import com.example.msaorderservice.cart.dto.MenuLookUp;
@@ -40,6 +41,7 @@ import com.example.msaorderservice.order.entity.OrderAuditEntity;
 import com.example.msaorderservice.order.entity.OrderEntity;
 import com.example.msaorderservice.order.entity.OrderItemEntity;
 import com.example.msaorderservice.order.entity.OrderStatus;
+import com.example.msaorderservice.order.kafka.service.OrchestratorService;
 import com.example.msaorderservice.order.repository.OrderAuditRepository;
 import com.example.msaorderservice.order.repository.OrderItemRepository;
 import com.example.msaorderservice.order.repository.OrderRepository;
@@ -63,6 +65,7 @@ public class OrderServiceImpl implements OrderService {
 	private final StoreClient storeClient;
 	private final MenuInventoryClient menuInventoryClient;
 	private final PaymentClient paymentClient;
+	private final OrchestratorService orchestratorService;
 
 	@Override
 	@Transactional
@@ -146,6 +149,21 @@ public class OrderServiceImpl implements OrderService {
 			.build();
 
 		orderAuditRepository.save(audit);
+
+		final UUID oid = order.getOrderId();
+		final int totalAmount = total;
+
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override
+			public void afterCommit(){
+				try {
+					orchestratorService.startSaga(oid, totalAmount);
+					log.info("[Saga] AFTER_COMMIT -> PaymentPrepareReq published. orderId={}, amount={}", oid, totalAmount);
+				} catch (Exception e) {
+					log.error("[Saga] publish after-commit failed. orderId={}", oid, e);
+				}
+			}
+		});
 
 		log.info(CommonCode.ORDER_CREATE.getMessage());
 

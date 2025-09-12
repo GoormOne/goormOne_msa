@@ -1,4 +1,4 @@
-package com.example.msaorderservice;
+package com.example.msaorderservice.config;
 
 import java.time.Duration;
 

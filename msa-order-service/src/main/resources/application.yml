@@ -94,6 +94,15 @@ spring:
       ack-mode: MANUAL
       concurrency: 3
 
+topics:
+  payment:
+    commands: payment-commands
+    events: payment-events
+  order:
+    events: order-events
+  saga:
+    dlt: saga-dlt
+
 server:
   port: 8085
 
