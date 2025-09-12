@@ -48,7 +48,7 @@ public class StoreOwnerInterceptor implements HandlerInterceptor {
 
         //TODO- jwt 검증 로직 추가 - admin 기능 추가
         // 현재 사용자 식별 (임시: 헤더 모킹 또는 운영: JWT)
-        UUID userId = UUID.fromString("2ae528d0-1414-4cf3-ac1d-e8ff642c9056"); // jwt 구현 시 적용
+        UUID userId = UUID.fromString("e4e80d9c-b0a1-7062-71ac-d95f6e6e1e06"); // jwt 구현 시 적용
 
         // 관리자 우회 옵션 적용
 //        if (anno.allowAdmin() && current.hasRole("ADMIN")) {

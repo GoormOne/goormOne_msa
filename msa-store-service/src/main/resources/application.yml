@@ -67,8 +67,8 @@ spring:
   cloud:
     aws:
       credentials:
-        accessKey: AKIAXETF2IMIEZGTIAVC
-        secretKey: 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
+        accessKey: AKIAXETF2IMIKHLD6BEJ
+        secretKey: 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
       s3:
         bucket: groom-team-1-image-bucket
       region:
@@ -83,6 +83,16 @@ spring:
       auto-offset-reset: earliest                                                   # Consumer가 저장된 offset을 찾지 못했을 때
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer    # 문자열 형태로 메시지 key값 역직렬화
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer  # 문자열 형태로 메시지 value값 역직렬화
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+
+app:
+  chat:
+    requestStream: chat:requests
+    responseStream: chat:response
+    responseKeyPrefix: chat:resp   # chat:resp:{request_id}
+    responseTtlSeconds: 300
 
 server:
   port: 8081
