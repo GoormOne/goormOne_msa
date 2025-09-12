@@ -32,13 +32,13 @@ public class ChatStreamGateway {
                 .query(query)
                 .build();
 
-        try {
-            String json = om.writeValueAsString(msg);
-            // Streams: 필드-값 맵 형태로 넣자 (json 통째 저장)
-            redis.opsForStream().add(requestStream, Map.of("payload", json));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize request", e);
-        }
+        Map<String, String> fields = Map.of(
+                "request_id", msg.getRequestId().toString(),
+                "store_id", msg.getStoreId().toString(),
+                "menu_id", msg.getMenuId().toString(),
+                "query", msg.getQuery()
+        );
+        redis.opsForStream().add(requestStream, fields);
         return requestId;
     }
 
