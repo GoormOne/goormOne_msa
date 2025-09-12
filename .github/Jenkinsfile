@@ -122,66 +122,57 @@ pipeline {
                     def modules = readJSON text: env.MODULES_JSON
                     def changedModules = env.CHANGED_MODULES.split(',')
 
-                    // AWS ECR 로그인
-                    withAWS(credentials: env.AWS_CREDENTIALS, region: env.AWS_REGION) {
-                        sh """
-                            aws ecr get-login-password --region ${env.AWS_REGION} | \
-                            docker login --username AWS --password-stdin ${env.DOCKER_REGISTRY}
-                        """
-                    }
+                    // PATH 환경변수에 aws-cli와 docker 추가
+                    withEnv(["PATH=/tmp/aws-cli/bin:/tmp/docker:${env.PATH}"]) {
 
-                    // 각 변경된 모듈에 대해 병렬 실행
-                    def parallelBuilds = [:]
+                        // AWS ECR 로그인
+                        withAWS(credentials: env.AWS_CREDENTIALS, region: env.AWS_REGION) {
+                            sh """
+                                aws ecr get-login-password --region ${env.AWS_REGION} | \
+                                docker login --username AWS --password-stdin ${env.DOCKER_REGISTRY}
+                            """
+                        }
 
-                    changedModules.each { moduleName ->
-                        def moduleInfo = modules[moduleName]
-                        def servicePath = moduleInfo.path
-                        def ecrRepo = moduleInfo.ecrRepo
-                        def containerName = moduleInfo.containerName
+                        // 각 변경된 모듈에 대해 병렬 실행
+                        def parallelBuilds = [:]
 
-                        parallelBuilds["Build ${moduleName}"] = {
-                            stage("Build ${moduleName}") {
-                                echo "Building module: ${moduleName}"
+                        changedModules.each { moduleName ->
+                            def moduleInfo = modules[moduleName]
+                            def servicePath = moduleInfo.path
+                            def ecrRepo = moduleInfo.ecrRepo
+                            def containerName = moduleInfo.containerName
 
-                                // Gradle 빌드
-                                sh """
-                                    chmod +x ./gradlew
-                                    ./gradlew :${servicePath}:build --no-daemon
-                                """
+                            parallelBuilds["Build ${moduleName}"] = {
+                                stage("Build ${moduleName}") {
+                                    echo "Building module: ${moduleName}"
 
-                                // Docker 빌드 및 푸시
-                                def imageTag = "${env.DOCKER_REGISTRY}/${ecrRepo}:${env.GIT_COMMIT_SHORT}"
-
-                                sh """
-                                    docker buildx build --platform linux/amd64 \
-                                        -t ${imageTag} \
-                                        -f ./${servicePath}/Dockerfile . \
-                                        --push
-                                """
-
-                                echo "Successfully built and pushed: ${imageTag}"
-
-                                // 배포 단계 (EKS 주석 해제 시 활성화)
-                                /*
-                                withAWS(credentials: 'aws-eks-credentials', region: env.AWS_REGION) {
+                                    // Gradle 빌드
                                     sh """
-                                        aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${env.AWS_REGION}
-                                        kubectl set image deployment/${containerName} \
-                                            ${containerName}=${imageTag} -n default
-                                        kubectl rollout status deployment/${containerName} -n default
+                                        chmod +x ./gradlew
+                                        ./gradlew :${servicePath}:build --no-daemon
                                     """
+
+                                    // Docker 빌드 및 푸시
+                                    def imageTag = "${env.DOCKER_REGISTRY}/${ecrRepo}:${env.GIT_COMMIT_SHORT}"
+
+                                    sh """
+                                        docker buildx build --platform linux/amd64 \
+                                            -t ${imageTag} \
+                                            -f ./${servicePath}/Dockerfile . \
+                                            --push
+                                    """
+
+                                    echo "Successfully built and pushed: ${imageTag}"
                                 }
-                                */
                             }
                         }
-                    }
 
-                    // 병렬 실행
-                    parallel parallelBuilds
+                        // 병렬 실행
+                        parallel parallelBuilds
+                    } // withEnv 종료
                 }
             }
         }
-    }
 
     post {
         always {
