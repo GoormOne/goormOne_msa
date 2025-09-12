@@ -214,42 +214,29 @@ pipeline {
             steps {
                 script {
                     echo "🔧 Installing missing tools..."
-                    
-                    // Docker 설치 (root 권한이 있는 경우)
+
+                    // Docker 설치
                     if (env.DOCKER_AVAILABLE == 'false') {
                         sh '''
-                            # Docker 설치 시도
-                            apt-get update || echo "Cannot update packages"
-                            apt-get install -y docker.io || echo "Cannot install docker.io"
-                            
-                            # Docker 서비스 시작 시도
-                            service docker start || systemctl start docker || echo "Cannot start docker service"
-                            
-                            # Docker 버전 확인
-                            docker --version || echo "Docker still not available"
+                            echo "Installing Docker..."
+                            sudo apt-get update -y || echo "Failed to update apt"
+                            sudo apt-get install -y docker.io || echo "Failed to install Docker"
+                            sudo systemctl enable docker || echo "Failed to enable Docker service"
+                            sudo systemctl start docker || echo "Failed to start Docker service"
+                            docker --version || echo "Docker installation failed"
                         '''
                     }
-                    
-                    // AWS CLI 설치 (바이너리 다운로드 방식)
+
+                    // AWS CLI 설치
                     if (env.AWS_AVAILABLE == 'false') {
                         sh '''
-                            # AWS CLI 바이너리 직접 다운로드 및 설치
+                            echo "Installing AWS CLI..."
                             cd /tmp
-                            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" || echo "Failed to download AWS CLI"
-                            unzip -o awscliv2.zip || echo "Failed to unzip AWS CLI"
-                            
-                            # 임시 디렉토리에 설치
-                            mkdir -p /tmp/aws-cli
-                            cp -r aws/* /tmp/aws-cli/ || echo "Failed to copy AWS CLI"
-                            
-                            # PATH에 추가할 수 있도록 심볼릭 링크 생성 시도
-                            ln -sf /tmp/aws-cli/dist/aws /usr/local/bin/aws || echo "Cannot create symlink, will use full path"
-                            
-                            # AWS CLI 버전 확인
-                            /tmp/aws-cli/dist/aws --version || aws --version || echo "AWS CLI still not available"
-                            
-                            # 정리
-                            rm -rf awscliv2.zip aws/ || echo "Cleanup failed"
+                            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                            unzip -o awscliv2.zip
+                            sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli
+                            aws --version || echo "AWS CLI installation failed"
+                            rm -rf awscliv2.zip aws/
                         '''
                     }
                 }
