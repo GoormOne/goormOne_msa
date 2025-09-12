@@ -81,6 +81,8 @@ public class ChatResponseListener implements SmartLifecycle, InitializingBean {
                                 reviewService.updateAnswer(UUID.fromString(qidStr), answer);
                                 // 매핑키는 정리해도 됨
                                 redis.delete(req2qidPrefix + requestId);
+                            } else {
+                                log.warn("No mapping found for requestId={}, skip DB update", requestId);
                             }
                         }
 

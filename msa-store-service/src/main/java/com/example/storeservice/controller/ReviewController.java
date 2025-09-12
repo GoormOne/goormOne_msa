@@ -108,7 +108,12 @@ public class ReviewController {
         ReviewQuery saved = reviewService.saveReviewQuery(reviewQuery);
 
         // 2) FastAPI에 Streams로 요청 전송
-        UUID requestId = chatStreamGateway.sendRequest(storeId, menuId, reviewQueryDto.getQuery());
+        UUID requestId = chatStreamGateway.sendRequestAndCorrelate(
+                storeId,
+                menuId,
+                reviewQueryDto.getQuery(),
+                saved.getQuestionId()
+        );
 
         if (!wait) {
             return ResponseEntity.status(HttpStatus.ACCEPTED)

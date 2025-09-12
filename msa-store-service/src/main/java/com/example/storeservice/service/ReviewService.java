@@ -49,9 +49,10 @@ public class ReviewService {
 
     @Transactional
     public void updateAnswer(UUID questionId, String answer) {
-        ReviewQuery rq = reviewQueryRepository.findById(questionId)
-                .orElseThrow(()-> new EntityNotFoundException("No ReviewQuery with id " + questionId));
-        rq.setAnswerText(answer);
+        int updated = reviewQueryRepository.updateAnswer(questionId, answer);
+        if (updated == 0) {
+            throw new EntityNotFoundException("No ReviewQuery with id " + questionId);
+        }
     }
 
 }
