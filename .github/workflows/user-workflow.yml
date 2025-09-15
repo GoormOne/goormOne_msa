@@ -62,9 +62,12 @@ jobs:
           role-to-assume: arn:aws:iam::490913547024:role/gitactionToEKS
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Setup kubeconfig
+      - name: Update kubeconfig
         run: |
-          aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
+            aws eks update-kubeconfig \
+              --name Groom-EKS-Cluster \
+              --region ${{ env.AWS_REGION }} \
+              --role-arn arn:aws:iam::4909dd13547024:role/gitactionToEKS
 
       - name: Verify Kubernetes access
         run: |
