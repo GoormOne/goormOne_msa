@@ -70,11 +70,8 @@ jobs:
           echo "=== AWS Identity Check ==="
           aws sts get-caller-identity
           
-          echo "=== Update kubeconfig (method 1) ==="
+          echo "=== Update kubeconfig ==="
           aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
-          
-          echo "=== Alternative: Update kubeconfig with explicit role ==="
-          aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }} --role-arn arn:aws:iam::490913547024:role/gitactionToECR
           
           echo "=== Get fresh token ==="
           aws eks get-token --cluster-name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
