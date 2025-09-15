@@ -86,15 +86,8 @@ jobs:
           echo "=== EKS Cluster Info ==="
           aws eks describe-cluster --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }} --query 'cluster.{Name:name,Status:status,Endpoint:endpoint,Version:version}'
           
-          echo "=== Installing eksctl ==="
-          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-          sudo mv /tmp/eksctl /usr/local/bin
-          
-          echo "=== Updating kubeconfig using AWS CLI ==="
+          echo "=== Updating kubeconfig ==="
           aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }} --verbose
-          
-          echo "=== Alternative: Updating kubeconfig using eksctl ==="
-          eksctl utils write-kubeconfig --cluster Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
           
           echo "=== Kubeconfig Debug ==="
           cat ~/.kube/config
@@ -102,72 +95,6 @@ jobs:
           echo "=== kubectl version ==="
           kubectl version --client
       
-      - name: Verify and Apply AWS Auth ConfigMap
-        run: |
-          echo "=== Checking current aws-auth configmap ==="
-          if kubectl get configmap aws-auth -n kube-system; then
-            echo "aws-auth configmap exists, checking content:"
-            kubectl get configmap aws-auth -n kube-system -o yaml
-          else
-            echo "aws-auth configmap does not exist, creating it:"
-            cat <<EOF | kubectl apply -f -
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: aws-auth
-  namespace: kube-system
-data:
-  mapRoles: |
-    # GitHub Actions 역할
-    - rolearn: arn:aws:iam::490913547024:role/gitactionToECR
-      username: github-actions
-      groups:
-        - system:masters
-    - rolearn: arn:aws:iam::490913547024:role/gitactionToEKS
-      username: github-actions-eks
-      groups:
-        - system:masters
-    # EKS 노드그룹 역할
-    - rolearn: arn:aws:iam::490913547024:role/eksctl-Groom-EKS-Cluster-nodegroup-NodeInstanceRole
-      username: system:node:{{EC2PrivateDNSName}}
-      groups:
-        - system:bootstrappers
-        - system:nodes
-    - rolearn: arn:aws:iam::490913547024:role/Groom-EKS-Cluster-NodeInstanceRole
-      username: system:node:{{EC2PrivateDNSName}}
-      groups:
-        - system:bootstrappers
-        - system:nodes
-    - rolearn: arn:aws:iam::490913547024:role/EKSNodeGroupRole
-      username: system:node:{{EC2PrivateDNSName}}
-      groups:
-        - system:bootstrappers
-        - system:nodes
-EOF
-          fi
-          
-          echo "=== Applying GitHub Actions RBAC ==="
-          cat <<EOF | kubectl apply -f -
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: github-actions-cluster-admin
-subjects:
-- kind: User
-  name: github-actions
-  apiGroup: rbac.authorization.k8s.io
-- kind: User
-  name: github-actions-eks
-  apiGroup: rbac.authorization.k8s.io
-roleRef:
-  kind: ClusterRole
-  name: cluster-admin
-  apiGroup: rbac.authorization.k8s.io
-EOF
-          
-          echo "=== Waiting for auth changes to propagate ==="
-          sleep 15
-          
       - name: Test Kubernetes access
         run: |
           echo "=== Testing Kubernetes access ==="
