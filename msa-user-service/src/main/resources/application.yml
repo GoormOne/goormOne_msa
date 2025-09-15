@@ -16,7 +16,7 @@ spring:
       minimum-idle: 2
       idle-timeout: 300000        # test
       max-lifetime: 1500000       # 25m
-      keepalive-time: 1200000     # 20mdddd
+      keepalive-time: 1200000     # 20mdd
       connection-timeout: 30000
       validation-timeout: 3000
       auto-commit: false
