@@ -79,8 +79,22 @@ jobs:
           echo "=== Test basic kubectl access ==="
           kubectl version --client
           
-          echo "=== Verify existing aws-auth configmap ==="
-          kubectl get configmap aws-auth -n kube-system
+          echo "=== Debug EKS cluster access ==="
+          echo "Checking EKS cluster status:"
+          aws eks describe-cluster --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }} --query 'cluster.status'
+          
+          echo "Checking node groups:"
+          aws eks list-nodegroups --cluster-name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
+          
+          echo "=== Try kubectl with explicit server and token ==="
+          KUBE_SERVER=$(aws eks describe-cluster --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }} --query 'cluster.endpoint' --output text)
+          KUBE_TOKEN=$(aws eks get-token --cluster-name Groom-EKS-Cluster --region ${{ env.AWS_REGION }} --query 'status.token' --output text)
+          
+          echo "Testing direct API call:"
+          curl -k -H "Authorization: Bearer $KUBE_TOKEN" $KUBE_SERVER/version
+          
+          echo "=== Try kubectl get namespaces with explicit token ==="
+          kubectl --server=$KUBE_SERVER --token=$KUBE_TOKEN --insecure-skip-tls-verify get namespaces
 
       - name: Test Kubernetes access
         run: |
