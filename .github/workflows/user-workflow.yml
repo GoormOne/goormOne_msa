@@ -67,31 +67,14 @@ jobs:
 
       - name: Setup EKS access
         run: |
-          # Update kubeconfig
+          echo "=== AWS Identity Check ==="
+          aws sts get-caller-identity
+          
+          echo "=== Update kubeconfig ==="
           aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
           
-          # Apply AWS auth ConfigMap if needed
-          if ! kubectl get configmap aws-auth -n kube-system &> /dev/null; then
-            echo "Creating aws-auth configmap..."
-            cat <<EOF | kubectl apply -f -
-          apiVersion: v1
-          kind: ConfigMap
-          metadata:
-            name: aws-auth
-            namespace: kube-system
-          data:
-            mapRoles: |
-              - rolearn: arn:aws:iam::490913547024:role/gitactionToECR
-                username: github-actions
-                groups:
-                  - system:masters
-              - rolearn: arn:aws:iam::490913547024:role/eksctl-Groom-EKS-Cluster-nodegroup-NodeInstanceRole
-                username: system:node:{{EC2PrivateDNSName}}
-                groups:
-                  - system:bootstrappers
-                  - system:nodes
-          EOF
-          fi
+          echo "=== Verify existing aws-auth configmap ==="
+          kubectl get configmap aws-auth -n kube-system
 
       - name: Test Kubernetes access
         run: |
