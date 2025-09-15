@@ -1,3 +1,136 @@
+#name: CI/CD for User Service
+#
+#on:
+#  push:
+#    branches: [ "release/1.0.0" ]
+#    paths:
+#      - 'msa-user-service/**'
+#
+#env:
+#  AWS_REGION: ap-northeast-2
+#  SERVICE_DIR: msa-user-service
+#  ECR_REPOSITORY: user-service
+#  CONTAINER_NAME: msa-user-service
+#
+#permissions:
+#  id-token: write
+#  contents: read
+#
+#jobs:
+#  build-and-deploy:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Configure AWS credentials
+#        uses: aws-actions/configure-aws-credentials@v4
+#        with:
+#          role-to-assume: arn:aws:iam::490913547024:role/gitactionToECR
+#          aws-region: ${{ env.AWS_REGION }}
+#
+#      - name: Login to Amazon ECR
+#        id: login-ecr
+#        uses: aws-actions/amazon-ecr-login@v2
+#
+#      - name: Set short git commit SHA
+#        id: vars
+#        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+#
+#      - name: Build, tag, and push Docker image
+#        id: build-image
+#        env:
+#          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#          IMAGE_TAG: ${{ steps.vars.outputs.sha_short }}
+#        run: |
+#          chmod +x ./gradlew && ./gradlew :${{ env.SERVICE_DIR }}:build --no-daemon
+#          docker buildx build --platform linux/amd64 \
+#            -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG \
+#            -f ./${{ env.SERVICE_DIR }}/Dockerfile . \
+#            --push
+#          echo "image_sha=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
+#
+#      - name: Install kubectl and Argo Rollouts plugin
+#        run: |
+#          # Install kubectl if not present
+#          if ! command -v kubectl &> /dev/null; then
+#            echo "Installing kubectl..."
+#            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+#            chmod +x kubectl
+#            sudo mv kubectl /usr/local/bin/
+#          fi
+#
+#          # Install Argo Rollouts plugin
+#          curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64
+#          chmod +x ./kubectl-argo-rollouts-linux-amd64
+#          sudo mv ./kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
+#
+#      - name: Configure AWS credentials for EKS
+#        uses: aws-actions/configure-aws-credentials@v4
+#        with:
+#          role-to-assume: arn:aws:iam::490913547024:role/gitactionToEKS
+#          aws-region: ${{ env.AWS_REGION }}
+#
+#      - name: Verify EKS credentials
+#        run: |
+#          echo "=== EKS Credentials Check ==="
+#          aws sts get-caller-identity
+#      - name: Setup EKS access
+#        run: |
+#          echo "=== AWS Identity Check ==="
+#          aws sts get-caller-identity
+#
+#          echo "=== Update kubeconfig ==="
+#          aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
+#
+#          echo "=== Get fresh token ==="
+#          aws eks get-token --cluster-name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
+#
+#          echo "=== Test basic kubectl access ==="
+#          kubectl version --client
+#
+#          echo "=== Debug EKS cluster access ==="
+#          echo "Checking EKS cluster status:"
+#          aws eks describe-cluster --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }} --query 'cluster.status'
+#
+#          echo "Checking node groups:"
+#          aws eks list-nodegroups --cluster-name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
+#
+#          echo "=== Try kubectl with explicit server and token ==="
+#          KUBE_SERVER=$(aws eks describe-cluster --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }} --query 'cluster.endpoint' --output text)
+#          KUBE_TOKEN=$(aws eks get-token --cluster-name Groom-EKS-Cluster --region ${{ env.AWS_REGION }} --query 'status.token' --output text)
+#
+#          echo "Testing direct API call:"
+#          curl -k -H "Authorization: Bearer $KUBE_TOKEN" $KUBE_SERVER/version
+#
+#          echo "=== Try kubectl get namespaces with explicit token ==="
+#          kubectl --server=$KUBE_SERVER --token=$KUBE_TOKEN --insecure-skip-tls-verify get namespaces
+#
+#      - name: Test Kubernetes access
+#        run: |
+#          echo "Testing Kubernetes connection..."
+#          kubectl cluster-info
+#          kubectl get nodes
+#          kubectl get rollouts -n default
+#
+#      - name: Update Rollout image and start canary deployment
+#        env:
+#          IMAGE_SHA: ${{ steps.build-image.outputs.image_sha }}
+#        run: |
+#          echo "Updating rollout image to: $IMAGE_SHA"
+#          kubectl argo rollouts set image user-service user-service=$IMAGE_SHA -n default
+#
+#          echo "Waiting for rollout to start..."
+#          kubectl argo rollouts get rollout user-service -n default
+#
+#          echo "Rollout status:"
+#          kubectl argo rollouts get rollout user-service -n default --watch=false
+#
+#      - name: Wait for manual approval
+#        run: |
+#          echo "=== 카나리 배포 첫 번째 단계 완료 ==="
+#          echo "배포를 계속 진행하려면: kubectl argo rollouts promote user-service -n default"
+#          echo "롤백하려면: kubectl argo rollouts abort user-service -n default"
 name: CI/CD for User Service
 
 on:
@@ -23,111 +156,37 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials for ECR
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::490913547024:role/gitactionToECR
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Set short git commit SHA
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
       - name: Build, tag, and push Docker image
-        id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ steps.vars.outputs.sha_short }}
         run: |
-          chmod +x ./gradlew && ./gradlew :${{ env.SERVICE_DIR }}:build --no-daemon
-          docker buildx build --platform linux/amd64 \
-            -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG \
-            -f ./${{ env.SERVICE_DIR }}/Dockerfile . \
-            --push
+          IMAGE_TAG=$(git rev-parse --short HEAD)
+          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG ./msa-user-service
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
           echo "image_sha=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-      - name: Install kubectl and Argo Rollouts plugin
-        run: |
-          # Install kubectl if not present
-          if ! command -v kubectl &> /dev/null; then
-            echo "Installing kubectl..."
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            chmod +x kubectl
-            sudo mv kubectl /usr/local/bin/
-          fi
-          
-          # Install Argo Rollouts plugin
-          curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64
-          chmod +x ./kubectl-argo-rollouts-linux-amd64
-          sudo mv ./kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
 
       - name: Configure AWS credentials for EKS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::490913547024:role/gitactionToEKS
           aws-region: ${{ env.AWS_REGION }}
-      
-      - name: Verify EKS credentials
+
+      - name: Setup kubeconfig
         run: |
-          echo "=== EKS Credentials Check ==="
-          aws sts get-caller-identity
-      - name: Setup EKS access
-        run: |
-          echo "=== AWS Identity Check ==="
-          aws sts get-caller-identity
-          
-          echo "=== Update kubeconfig ==="
           aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
-          
-          echo "=== Get fresh token ==="
-          aws eks get-token --cluster-name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
-          
-          echo "=== Test basic kubectl access ==="
-          kubectl version --client
-          
-          echo "=== Debug EKS cluster access ==="
-          echo "Checking EKS cluster status:"
-          aws eks describe-cluster --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }} --query 'cluster.status'
-          
-          echo "Checking node groups:"
-          aws eks list-nodegroups --cluster-name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
-          
-          echo "=== Try kubectl with explicit server and token ==="
-          KUBE_SERVER=$(aws eks describe-cluster --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }} --query 'cluster.endpoint' --output text)
-          KUBE_TOKEN=$(aws eks get-token --cluster-name Groom-EKS-Cluster --region ${{ env.AWS_REGION }} --query 'status.token' --output text)
-          
-          echo "Testing direct API call:"
-          curl -k -H "Authorization: Bearer $KUBE_TOKEN" $KUBE_SERVER/version
-          
-          echo "=== Try kubectl get namespaces with explicit token ==="
-          kubectl --server=$KUBE_SERVER --token=$KUBE_TOKEN --insecure-skip-tls-verify get namespaces
 
-      - name: Test Kubernetes access
-        run: |
-          echo "Testing Kubernetes connection..."
-          kubectl cluster-info
-          kubectl get nodes
-          kubectl get rollouts -n default
-
-      - name: Update Rollout image and start canary deployment
+      - name: Deploy to EKS
         env:
           IMAGE_SHA: ${{ steps.build-image.outputs.image_sha }}
         run: |
-          echo "Updating rollout image to: $IMAGE_SHA"
           kubectl argo rollouts set image user-service user-service=$IMAGE_SHA -n default
-          
-          echo "Waiting for rollout to start..."
           kubectl argo rollouts get rollout user-service -n default
-          
-          echo "Rollout status:"
-          kubectl argo rollouts get rollout user-service -n default --watch=false
-
-      - name: Wait for manual approval
-        run: |
-          echo "=== 카나리 배포 첫 번째 단계 완료 ==="
-          echo "배포를 계속 진행하려면: kubectl argo rollouts promote user-service -n default"
-          echo "롤백하려면: kubectl argo rollouts abort user-service -n default"
