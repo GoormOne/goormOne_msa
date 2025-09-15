@@ -1,21 +1,17 @@
-
 name: CI/CD for User Service
 
-##test
 on:
   push:
     branches: [ "release/1.0.0" ]
     paths:
       - 'msa-user-service/**'
 
-
 env:
   AWS_REGION: ap-northeast-2
   SERVICE_DIR: msa-user-service
-  ECR_REPOSITORY: user-service         # ECR 리포지토리 및 ECS 서비스 이름
-  CONTAINER_NAME: msa-user-service     # Task Definition 안의 컨테이너 이름
+  ECR_REPOSITORY: user-service
+  CONTAINER_NAME: msa-user-service
 
-# GitHub Actions Runner에 부여할 권한
 permissions:
   id-token: write
   contents: read
@@ -27,7 +23,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # --- AWS 인증 ---
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -38,12 +33,10 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # --- 커밋 SHA 태그 ---
       - name: Set short git commit SHA
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-        # --- Docker 빌드 & ECR 푸시 ---
       - name: Build, tag, and push Docker image
         id: build-image
         env:
@@ -57,113 +50,71 @@ jobs:
             --push
           echo "image_sha=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      # --- EKS 카나리 배포 (동일한 AWS 역할 사용) ---
-      # 이미 인증된 상태이므로 추가 인증 불필요
-
-      - name: Install kubectl and Argo Rollouts kubectl plugin
+      - name: Install kubectl and Argo Rollouts plugin
         run: |
-          # Check if kubectl is already installed
+          # Install kubectl if not present
           if ! command -v kubectl &> /dev/null; then
             echo "Installing kubectl..."
             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
             chmod +x kubectl
             sudo mv kubectl /usr/local/bin/
-          else
-            echo "kubectl already installed: $(kubectl version --client --short)"
           fi
           
           # Install Argo Rollouts plugin
-          echo "Installing Argo Rollouts plugin..."
           curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64
           chmod +x ./kubectl-argo-rollouts-linux-amd64
           sudo mv ./kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
 
-      - name: Update kubeconfig and debug
+      - name: Setup EKS access
         run: |
-          echo "=== AWS Identity Check ==="
-          aws sts get-caller-identity
+          # Update kubeconfig
+          aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
           
-          echo "=== EKS Cluster Info ==="
-          aws eks describe-cluster --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }} --query 'cluster.{Name:name,Status:status,Endpoint:endpoint,Version:version}'
-          
-          echo "=== Updating kubeconfig ==="
-          aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }} --verbose
-          
-          echo "=== Kubeconfig Debug ==="
-          cat ~/.kube/config
-          
-          echo "=== kubectl version ==="
-          kubectl version --client
-      
+          # Apply AWS auth ConfigMap if needed
+          if ! kubectl get configmap aws-auth -n kube-system &> /dev/null; then
+            echo "Creating aws-auth configmap..."
+            cat <<EOF | kubectl apply -f -
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: aws-auth
+            namespace: kube-system
+          data:
+            mapRoles: |
+              - rolearn: arn:aws:iam::490913547024:role/gitactionToECR
+                username: github-actions
+                groups:
+                  - system:masters
+              - rolearn: arn:aws:iam::490913547024:role/eksctl-Groom-EKS-Cluster-nodegroup-NodeInstanceRole
+                username: system:node:{{EC2PrivateDNSName}}
+                groups:
+                  - system:bootstrappers
+                  - system:nodes
+          EOF
+          fi
+
       - name: Test Kubernetes access
         run: |
-          echo "=== Testing Kubernetes access ==="
-          
-          echo "Current kubectl context:"
-          kubectl config current-context
-          
-          echo "kubectl config view:"
-          kubectl config view --minify
-          
-          echo "Testing cluster connection:"
+          echo "Testing Kubernetes connection..."
           kubectl cluster-info
-          
-          echo "Getting nodes:"
           kubectl get nodes
-          
-          echo "Getting namespaces:"
-          kubectl get namespaces
-          
-          echo "Getting pods:"
-          kubectl get pods -n default
-          
-          echo "Getting rollouts:"
           kubectl get rollouts -n default
-          
-          echo "=== Testing auth identity ==="
-          kubectl auth whoami
-          
-          echo "=== Testing rollout permissions ==="
-          kubectl auth can-i get rollouts
-          kubectl auth can-i patch rollouts
-
 
       - name: Update Rollout image and start canary deployment
         env:
           IMAGE_SHA: ${{ steps.build-image.outputs.image_sha }}
         run: |
-          # 디버깅: 현재 컨텍스트 확인
-          echo "Current kubectl context:"
-          kubectl config current-context
-          
-          echo "Current user identity:"
-          kubectl auth whoami
-          
-          echo "Available rollouts:"
-          kubectl get rollouts -A
-          
-          echo "Testing basic kubectl access:"
-          kubectl get pods -n default
-          
-          # Rollout 이미지 업데이트
           echo "Updating rollout image to: $IMAGE_SHA"
           kubectl argo rollouts set image user-service user-service=$IMAGE_SHA -n default
           
-          # 카나리 배포 시작 대기
           echo "Waiting for rollout to start..."
           kubectl argo rollouts get rollout user-service -n default
           
-          # 첫 번째 단계까지 자동 진행 (20% 트래픽)
+          echo "Rollout status:"
           kubectl argo rollouts get rollout user-service -n default --watch=false
 
       - name: Wait for manual approval
         run: |
-          echo "=== 카나리 배포 첫 번째 단계 (20% 트래픽) 완료 ==="
-          echo "배포 상태를 확인하고 문제가 없으면 다음 명령어를 실행하여 배포를 계속 진행하세요:"
-          echo "kubectl argo rollouts promote user-service -n default"
-          echo ""
-          echo "문제가 있으면 다음 명령어로 롤백하세요:"
-          echo "kubectl argo rollouts abort user-service -n default"
-          echo ""
-          echo "현재 롤아웃 상태:"
-          kubectl argo rollouts get rollout user-service -n default
+          echo "=== 카나리 배포 첫 번째 단계 완료 ==="
+          echo "배포를 계속 진행하려면: kubectl argo rollouts promote user-service -n default"
+          echo "롤백하려면: kubectl argo rollouts abort user-service -n default"
