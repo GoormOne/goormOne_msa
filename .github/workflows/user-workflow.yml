@@ -80,7 +80,7 @@ jobs:
           aws eks get-token --cluster-name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
           
           echo "=== Test basic kubectl access ==="
-          kubectl version --short
+          kubectl version --client
           
           echo "=== Verify existing aws-auth configmap ==="
           kubectl get configmap aws-auth -n kube-system
