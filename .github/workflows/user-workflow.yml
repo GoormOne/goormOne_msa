@@ -60,6 +60,24 @@ jobs:
       # --- EKS 카나리 배포 (동일한 AWS 역할 사용) ---
       # 이미 인증된 상태이므로 추가 인증 불필요
 
+      - name: Install kubectl and Argo Rollouts kubectl plugin
+        run: |
+          # Check if kubectl is already installed
+          if ! command -v kubectl &> /dev/null; then
+            echo "Installing kubectl..."
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            chmod +x kubectl
+            sudo mv kubectl /usr/local/bin/
+          else
+            echo "kubectl already installed: $(kubectl version --client --short)"
+          fi
+          
+          # Install Argo Rollouts plugin
+          echo "Installing Argo Rollouts plugin..."
+          curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64
+          chmod +x ./kubectl-argo-rollouts-linux-amd64
+          sudo mv ./kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
+
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
       
@@ -79,18 +97,9 @@ jobs:
           kubectl auth can-i get rollouts
           kubectl auth can-i patch rollouts
 
-      - name: Install kubectl and Argo Rollouts kubectl plugin
-        run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-          curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64
-          chmod +x ./kubectl-argo-rollouts-linux-amd64
-          sudo mv ./kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
 
-
-      - name : Debug AWS identity
-        run : aws sts get-caller-identity
+      - name: Debug AWS identity
+        run: aws sts get-caller-identity
 
       - name: Update Rollout image and start canary deployment
         env:
