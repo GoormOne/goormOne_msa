@@ -52,50 +52,50 @@ jobs:
             --push
           echo "image_sha=${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
-  setup-eks:
-    runs-on: ubuntu-latest
-    needs: build-and-push
-    steps:
-      - name: Configure AWS credentials for EKS
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::490913547024:role/gitactionToEKS
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Update kubeconfig
-        run: |
-            aws eks update-kubeconfig \
-              --name Groom-EKS-Cluster \
-              --region ${{ env.AWS_REGION }} \
-              --role-arn arn:aws:iam::4909dd13547024:role/gitactionToEKS
-
-      - name: Verify Kubernetes access
-        run: |
-          kubectl cluster-info
-          kubectl get nodes
-
-  deploy-rollout:
-    runs-on: ubuntu-latest
-    needs: setup-eks
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Argo Rollouts plugin
-        run: |
-          curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64
-          chmod +x ./kubectl-argo-rollouts-linux-amd64
-          sudo mv ./kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
-
-      - name: Deploy to EKS using Argo Rollouts
-        env:
-          IMAGE_SHA: ${{ needs.build-and-push.outputs.image_sha }}
-        run: |
-          echo "Updating rollout image to: $IMAGE_SHA"
-          kubectl argo rollouts set image user-service user-service=$IMAGE_SHA -n default
-
-          echo "Waiting for rollout to start..."
-          kubectl argo rollouts get rollout user-service -n default
-
-          echo "Rollout status:"
-          kubectl argo rollouts get rollout user-service -n default --watch=false
+#  setup-eks:
+#    runs-on: ubuntu-latest
+#    needs: build-and-push
+#    steps:
+#      - name: Configure AWS credentials for EKS
+#        uses: aws-actions/configure-aws-credentials@v4
+#        with:
+#          role-to-assume: arn:aws:iam::490913547024:role/gitactionToEKS
+#          aws-region: ${{ env.AWS_REGION }}
+#
+#      - name: Update kubeconfig
+#        run: |
+#            aws eks update-kubeconfig \
+#              --name Groom-EKS-Cluster \
+#              --region ${{ env.AWS_REGION }} \
+#              --role-arn arn:aws:iam::4909dd13547024:role/gitactionToEKS
+#
+#      - name: Verify Kubernetes access
+#        run: |
+#          kubectl cluster-info
+#          kubectl get nodes
+#
+#  deploy-rollout:
+#    runs-on: ubuntu-latest
+#    needs: setup-eks
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Install Argo Rollouts plugin
+#        run: |
+#          curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64
+#          chmod +x ./kubectl-argo-rollouts-linux-amd64
+#          sudo mv ./kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
+#
+#      - name: Deploy to EKS using Argo Rollouts
+#        env:
+#          IMAGE_SHA: ${{ needs.build-and-push.outputs.image_sha }}
+#        run: |
+#          echo "Updating rollout image to: $IMAGE_SHA"
+#          kubectl argo rollouts set image user-service user-service=$IMAGE_SHA -n default
+#
+#          echo "Waiting for rollout to start..."
+#          kubectl argo rollouts get rollout user-service -n default
+#
+#          echo "Rollout status:"
+#          kubectl argo rollouts get rollout user-service -n default --watch=false
