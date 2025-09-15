@@ -70,6 +70,11 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::490913547024:role/gitactionToEKS
           aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Verify EKS credentials
+        run: |
+          echo "=== EKS Credentials Check ==="
+          aws sts get-caller-identity
       - name: Setup EKS access
         run: |
           echo "=== AWS Identity Check ==="
