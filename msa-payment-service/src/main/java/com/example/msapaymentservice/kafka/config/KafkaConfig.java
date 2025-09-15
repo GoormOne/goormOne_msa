@@ -1,4 +1,4 @@
-package com.example.msaorderservice.order.kafka.config;
+package com.example.msapaymentservice.kafka.config;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +33,7 @@ public class KafkaConfig {
 	public ConsumerFactory<String, String> consumerFactory() {
 		Map<String, Object> props = new HashMap<>();
 		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-		props.put(ConsumerConfig.GROUP_ID_CONFIG, "order-svc-grp");	//오케스트레이터 그룹
+		props.put(ConsumerConfig.GROUP_ID_CONFIG, "payment-svc-grp");	//오케스트레이터 그룹
 		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 		props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
@@ -49,7 +49,6 @@ public class KafkaConfig {
 		ConcurrentKafkaListenerContainerFactory<String, String> factory =
 			new ConcurrentKafkaListenerContainerFactory<>();
 		factory.setConsumerFactory(consumerFactory);
-		factory.setConcurrency(3); // partitions=3과 맞춤
 
 		DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate,
 			(record, ex) -> new TopicPartition(sagaDltTopic, record.partition()));

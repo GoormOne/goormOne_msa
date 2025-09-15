@@ -15,6 +15,8 @@ import com.example.common.exception.BusinessException;
 import com.example.common.exception.CommonCode;
 import com.example.msaorderservice.order.dto.*;
 import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.MDC;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +43,7 @@ import com.example.msaorderservice.order.entity.OrderAuditEntity;
 import com.example.msaorderservice.order.entity.OrderEntity;
 import com.example.msaorderservice.order.entity.OrderItemEntity;
 import com.example.msaorderservice.order.entity.OrderStatus;
+import com.example.msaorderservice.order.kafka.producer.OrderCommandPublisher;
 import com.example.msaorderservice.order.kafka.service.OrchestratorService;
 import com.example.msaorderservice.order.repository.OrderAuditRepository;
 import com.example.msaorderservice.order.repository.OrderItemRepository;
@@ -65,7 +68,7 @@ public class OrderServiceImpl implements OrderService {
 	private final StoreClient storeClient;
 	private final MenuInventoryClient menuInventoryClient;
 	private final PaymentClient paymentClient;
-	private final OrchestratorService orchestratorService;
+	private final OrderCommandPublisher publisher;
 
 	@Override
 	@Transactional
@@ -81,6 +84,7 @@ public class OrderServiceImpl implements OrderService {
 			throw new BusinessException(CommonCode.CART_ITEM_NOT_FOUND);
 
 		UUID storeId = cart.getStoreId();
+
 
 		OrderEntity order = new OrderEntity();
 		order.setCustomerId(customerId);
@@ -155,12 +159,26 @@ public class OrderServiceImpl implements OrderService {
 
 		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
 			@Override
-			public void afterCommit(){
+			public void afterCommit() {
 				try {
-					orchestratorService.startSaga(oid, totalAmount);
-					log.info("[Saga] AFTER_COMMIT -> PaymentPrepareReq published. orderId={}, amount={}", oid, totalAmount);
+					String correlationId = Optional.ofNullable(MDC.get("correlationId"))
+						.filter(s -> !s.isBlank())
+						.orElse(UUID.randomUUID().toString());
+
+					Map<String, Object> envelope = new HashMap<>();
+					envelope.put("orderId", oid.toString());
+					envelope.put("customerId", customerId.toString());
+					envelope.put("totalAmount", totalAmount);
+					envelope.put("createdAt", OffsetDateTime.now().toString());
+
+					publisher.orderCreated(
+						oid.toString(),
+						envelope,
+						correlationId,
+						null // 첫 이벤트라 causation 없음
+					);
 				} catch (Exception e) {
-					log.error("[Saga] publish after-commit failed. orderId={}", oid, e);
+					log.error("[Saga] order.created publish failed. orderId={}", oid, e);
 				}
 			}
 		});

@@ -28,6 +28,7 @@ import com.example.msapaymentservice.dto.StoreClientRes;
 import com.example.msapaymentservice.dto.TossPaymentRes;
 import com.example.msapaymentservice.entity.PaymentAuditEntity;
 import com.example.msapaymentservice.entity.PaymentEntity;
+import com.example.msapaymentservice.kafka.producer.PaymentEventsPublisher;
 import com.example.msapaymentservice.repository.PaymentAuditRepository;
 import com.example.msapaymentservice.repository.PaymentRepository;
 
@@ -44,6 +45,7 @@ public class PaymentServiceImpl implements PaymentService {
 	private final PaymentRepository paymentRepository;
 	private final TossPaymentClient tossPaymentClient;
 	private final PaymentAuditRepository paymentAuditRepository;
+	private final PaymentEventsPublisher paymentEventsPublisher;
 
 	@Value("${payments.redirect-base-url}")
 	private String redirectBaseUrl;
@@ -218,6 +220,13 @@ public class PaymentServiceImpl implements PaymentService {
 		orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.PAID);
 
 		log.info(CommonCode.PAYMENT_COMPLETE.getMessage());
+
+		paymentEventsPublisher.paymentSuccess(
+			orderId.toString(),
+			new com.example.msapaymentservice.dto.PaymentSuccessRes(orderId, paymentKey, amount),
+			orderId.toString(),   // correlationId
+			null                  // causationId
+		);
 	}
 
 	@Override

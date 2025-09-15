@@ -19,13 +19,13 @@ public class OrchestratorService {
 
 	private final OrderCommandPublisher orderCommandPublisher;
 
-	public void startSaga(UUID orderId, int amount) throws Exception {
+	public void orderCreated(UUID orderId, int amount) throws Exception {
 		var req = PaymentPrepareReq.builder()
 			.orderId(orderId)
 			.amount(amount)
 			.build();
 
-		orderCommandPublisher.sendPaymentAuthorize(
+		orderCommandPublisher.paymentPrepare(
 			orderId.toString(),
 			req,
 			orderId.toString(),
