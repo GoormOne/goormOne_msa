@@ -62,6 +62,22 @@ jobs:
 
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name Groom-EKS-Cluster --region ${{ env.AWS_REGION }}
+      
+      - name: Test Kubernetes access
+        run: |
+          echo "=== Testing Kubernetes access ==="
+          kubectl cluster-info
+          kubectl get nodes
+          kubectl get namespaces
+          kubectl get pods -n default
+          kubectl get rollouts -n default
+          
+          echo "=== Testing auth identity ==="
+          kubectl auth whoami
+          
+          echo "=== Testing rollout permissions ==="
+          kubectl auth can-i get rollouts
+          kubectl auth can-i patch rollouts
 
       - name: Install kubectl and Argo Rollouts kubectl plugin
         run: |
@@ -72,11 +88,29 @@ jobs:
           chmod +x ./kubectl-argo-rollouts-linux-amd64
           sudo mv ./kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
 
+
+      - name : Debug AWS identity
+        run : aws sts get-caller-identity
+
       - name: Update Rollout image and start canary deployment
         env:
           IMAGE_SHA: ${{ steps.build-image.outputs.image_sha }}
         run: |
+          # 디버깅: 현재 컨텍스트 확인
+          echo "Current kubectl context:"
+          kubectl config current-context
+          
+          echo "Current user identity:"
+          kubectl auth whoami
+          
+          echo "Available rollouts:"
+          kubectl get rollouts -A
+          
+          echo "Testing basic kubectl access:"
+          kubectl get pods -n default
+          
           # Rollout 이미지 업데이트
+          echo "Updating rollout image to: $IMAGE_SHA"
           kubectl argo rollouts set image user-service user-service=$IMAGE_SHA -n default
           
           # 카나리 배포 시작 대기
