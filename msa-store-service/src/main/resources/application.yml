@@ -77,15 +77,40 @@ spring:
         auto: false
 
   kafka:
-    bootstrap-servers: localhost:29092                                              # Kafka 접속 정보 저장
+    bootstrap-servers: localhost:9092                                               # Kafka 접속 정보 저장
     consumer:
-      group-id: test-group                                                          # Consumer Group
+      group-id: stock-service-group                                                 # Consumer Group
       auto-offset-reset: earliest                                                   # Consumer가 저장된 offset을 찾지 못했을 때
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer    # 문자열 형태로 메시지 key값 역직렬화
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer  # 문자열 형태로 메시지 value값 역직렬화
+    listener:
+      ack-mode: record
+      concurrency: 3
+      missing-topics-fatal: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 1
+
   jackson:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+topics:
+  order:
+    events: order-events
+  payment:
+    events: payment-events
+  stock:
+    events: stock-events
 
 app:
   chat:
@@ -114,6 +139,7 @@ logging:
     org.springframework.kafka: INFO
     org.apache.kafka: INFO
     com.example.msaorderservice: DEBUG
+    com.example.storeservice.stock: DEBUG
 
 ---
 spring:
