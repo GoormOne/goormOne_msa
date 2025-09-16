@@ -14,7 +14,7 @@ spring:
     hikari:
       maximum-pool-size: 4
       minimum-idle: 2
-      idle-timeout: 300000        # tes
+      idle-timeout: 300000        # testtttt
       max-lifetime: 1500000       # 25md
       keepalive-time: 1200000     # 20mddddd
       connection-timeout: 30000
