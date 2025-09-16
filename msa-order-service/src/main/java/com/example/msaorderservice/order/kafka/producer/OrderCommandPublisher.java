@@ -22,80 +22,83 @@ public class OrderCommandPublisher {
 	private String order;
 
 	@Value("${topics.payment.events}")
-	private String Payment;
+	private String payment;
 
 	@Value("${topics.stock.events}")
 	private String stock;
 
-	public void orderCreated(String orderId, Object envelope, String correlationId, String causationId) throws Exception {
+	public void orderCreated(String orderId, Object envelope) throws Exception {
 		String payload = om.writeValueAsString(envelope);
 		var msg = MessageBuilder.withPayload(payload)
 			.setHeader(KafkaHeaders.TOPIC, order)
 			.setHeader(KafkaHeaders.KEY, orderId)
 			.setHeader("x-event-type", "order.created")
 			.setHeader("x-event-version", "1")
-			.setHeader("x-correlation-id", correlationId)
-			.setHeader("x-causation-id", causationId)
 			.setHeader("x-producer", "order-service")
 			.build();
 		kafkaTemplate.send(msg);
 	}
 
-	public void paymentPrepare(String orderId, Object envelope, String correlationId, String causationId) throws Exception {
+	public void paymentPrepare(String orderId, Object envelope) throws Exception {
 		String payload = om.writeValueAsString(envelope);
 		var msg = MessageBuilder.withPayload(payload)
-			.setHeader(KafkaHeaders.TOPIC, Payment)
+			.setHeader(KafkaHeaders.TOPIC, payment)
 			.setHeader(KafkaHeaders.KEY, orderId)
 			.setHeader("x-event-type", "payment.prepare")
 			.setHeader("x-event-version", "1")
-			.setHeader("x-correlation-id", correlationId)
-			.setHeader("x-causation-id", causationId)
 			.setHeader("x-producer", "order-service")
 			.build();
 		kafkaTemplate.send(msg);
 	}
 
-	public void paymentStatusChanged(String orderId, Object envelope, String correlationId, String causationId) throws Exception {
+	public void paymentStatusChanged(String orderId, Object envelope) throws Exception {
 		String payload = om.writeValueAsString(envelope);
 		var msg = MessageBuilder.withPayload(payload)
 			.setHeader(KafkaHeaders.TOPIC, order)
 			.setHeader(KafkaHeaders.KEY, orderId)
 			.setHeader("x-event-type", "payment.status.changed")
 			.setHeader("x-event-version", "1")
-			.setHeader("x-correlation-id", correlationId)
-			.setHeader("x-causation-id", causationId)
 			.setHeader("x-producer", "order-service")
 			.build();
 		kafkaTemplate.send(msg);
 	}
 
-	public void sendInventoryReserve(String orderId, Object envelope, String correlationId, String causationId) throws Exception {
+	public void sendInventoryReserve(String orderId, Object envelope) throws Exception {
 		String payload = om.writeValueAsString(envelope);
 		var msg = MessageBuilder.withPayload(payload)
 			.setHeader(KafkaHeaders.TOPIC, stock)
 			.setHeader(KafkaHeaders.KEY, orderId)
 			.setHeader("x-event-type", "InventoryReserveCommand")
 			.setHeader("x-event-version", "1")
-			.setHeader("x-correlation-id", correlationId)
-			.setHeader("x-causation-id", causationId)
 			.setHeader("x-producer", "order-service")
 			.build();
 		kafkaTemplate.send(msg);
 	}
 
-	public void orderStatusChanged(String orderId, Object envelope, String correlationId, String causationId) throws Exception {
+	public void orderStatusChanged(String orderId, Object envelope) throws Exception {
 		String payload = om.writeValueAsString(envelope);
 		var msg = MessageBuilder.withPayload(payload)
 			.setHeader(KafkaHeaders.TOPIC, order)
 			.setHeader(KafkaHeaders.KEY, orderId)
 			.setHeader("x-event-type", "order.status.changed")
 			.setHeader("x-event-version", "1")
-			.setHeader("x-correlation-id", correlationId)
-			.setHeader("x-causation-id", causationId)
 			.setHeader("x-producer", "order-service")
 			.build();
 		kafkaTemplate.send(msg);
 	}
+
+	public void paymentCancelRequested(String orderId, Object envelope) throws Exception {
+		String payload = om.writeValueAsString(envelope);
+		var msg = MessageBuilder.withPayload(payload)
+			.setHeader(KafkaHeaders.TOPIC, payment)
+			.setHeader(KafkaHeaders.KEY, orderId)
+			.setHeader("x-event-type", "payment.cancel.requested")
+			.setHeader("x-event-version", "1")
+			.setHeader("x-producer", "order-service")
+			.build();
+		kafkaTemplate.send(msg);
+	}
+
 
 	public void publishOrderCompleted(String orderId, Object envelope) throws Exception {
 		String payload = om.writeValueAsString(envelope);
