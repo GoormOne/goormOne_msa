@@ -11,9 +11,7 @@ import java.util.UUID;
 @NoArgsConstructor @AllArgsConstructor
 @SuperBuilder
 public abstract class BaseEvent {
-    private String  type;       // payload type
     private UUID    eventId;    // idempotency key
     private UUID    orderId;
-    private UUID    storeId;
     private Instant occurredAt;
 }

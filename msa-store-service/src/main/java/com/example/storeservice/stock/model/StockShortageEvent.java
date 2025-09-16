@@ -16,7 +16,6 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 public class StockShortageEvent extends BaseEvent {
     private UUID            customerId;
-    private UUID            ownerId;
     private List<OrderItem> items;
     private String          message;
 }

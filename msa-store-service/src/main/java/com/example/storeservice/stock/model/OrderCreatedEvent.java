@@ -17,6 +17,5 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 public class OrderCreatedEvent extends BaseEvent {
     private UUID            customerId;
-    private UUID            ownerId;
     private List<OrderItem> items;
 }

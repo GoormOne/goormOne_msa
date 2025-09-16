@@ -6,8 +6,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * 도메인 단위 토픽 이름을 프로퍼티에서 주입받아 보관.
- * - @KafkaListener 에서는 SpEL로 #{@topicRegistry.inboundTopics} 사용
+ * 도메인 단위 토픽 이름 보관.
+ * - inbound: order-events
+ * - outbound: stock-events
  */
 @Slf4j
 @Getter

@@ -1,5 +1,6 @@
 package com.example.storeservice.stock;
 
+import com.ctc.wstx.shaded.msv_core.reader.xmlschema.IncludeState;
 import com.example.storeservice.stock.model.*;
 import com.example.storeservice.stock.model.Enums;
 import com.example.storeservice.stock.service.StockSagaService;
@@ -39,14 +40,15 @@ public class StockSagaListener {
     public void onMessage(
             @Payload String body,
             @Header(name = X_EVENT_TYPE, required = false) String headerType,
-            @Header(name = X_CORRELATION_ID, required = false) String corr,
-            @Header(name = X_CAUSATION_ID, required = false) String cause,
+            @Header(name = X_EVENT_VERSION, required = false) String version,
+            @Header(name = X_PRODUCER, required = false) String producer,
             @Header(KafkaHeaders.RECEIVED_KEY) String key,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
             Acknowledgment ack
     ) {
-        log.debug("[KAFKA][RECV] topic={} key={} type(h)={} corr={} cause={} body={}",
-                topic, key, headerType, corr, cause, body);
+        log.debug("[KAFKA][RECV] topic={} key={} type={} ver={} producer={} len={}",
+                topic, key, headerType, version, producer, body == null ? 0 : body.length());
+        log.trace("[KAFKA][RECV][BODY] {}", body);
 
         try {
             JsonNode root = mapper.readTree(body);
@@ -54,22 +56,27 @@ public class StockSagaListener {
             if (type == null || type.isBlank()) type = headerType;
 
             if (type == null || type.isBlank()) {
-                log.warn("[KAFKA][WARN] missing type. topic={}, key={}, body={}", topic, key, body);
+                log.warn("[KAFKA][WARN] missing event type. topic={} key={}", topic, key);
                 ack.acknowledge(); // 스킵
                 return;
             }
 
             switch (type) {
-                case ORDER_CREATED -> saga.onOrderCreated(asOrderCreated(root), corr, cause);
-                case PAYMENT_STATUS_CHANGED -> saga.onPaymentChanged(asPaymentChanged(root), corr, cause);
-                case ORDER_STATUS_CHANGED -> saga.onOrderStatusChanged(asOrderStatusChanged(root), corr, cause);
+                case ORDER_CREATED          -> saga.onOrderCreated(asOrderCreated(root));
+                case PAYMENT_STATUS_CHANGED -> saga.onPaymentChanged(asPaymentChanged(root));
+                case ORDER_STATUS_CHANGED   -> saga.onOrderStatusChanged(asOrderStatusChanged(root));
                 default -> log.info("[KAFKA][IGNORE] type={} topic={} key={}", type, topic, key);
             }
 
             ack.acknowledge(); // 성공 처리
+            log.debug("[KAFKA][ACK] topic={} key={}", topic, key);
 
+        } catch (ReservationNotReadyException e) {
+            // 재시도 유도: ack 하지 않고 예외 전파
+            log.warn("[KAFKA][RETRY] {} body={}", e.getMessage(), body);
+            throw e;
         } catch (Exception e) {
-            // 에러 핸들러(DeadLetterPublishingRecoverer)로 전달되도록 ack 하지 않음
+            // 기타 오류도 NACK → 에러 핸들러/재시도/ DLT
             log.error("[KAFKA][ERROR] topic={} key={} body={}", topic, key, body, e);
             throw new RuntimeException(e);
         }
@@ -80,72 +87,59 @@ public class StockSagaListener {
         return (n != null && n.hasNonNull(f)) ? n.get(f).asText() : null;
     }
     private static UUID optUUID(JsonNode n, String f) {
-        String v = optText(n, f); return v == null ? null : java.util.UUID.fromString(v);
+        String v = optText(n, f); return (v == null || v.isBlank()) ? null : UUID.fromString(v);
     }
     private static int optInt(JsonNode n, String f) {
         return (n != null && n.hasNonNull(f)) ? n.get(f).asInt() : 0;
     }
+    private static Instant parseInstant(String s) {
+        if (s == null || s.isBlank()) return Instant.now();
+        try { return OffsetDateTime.parse(s).toInstant(); }
+        catch (DateTimeParseException ex) { try { return Instant.parse(s); } catch (Exception ignore) { return Instant.now(); } }
+    }
 
-    private static java.util.List<OrderItem> asItems(JsonNode root) {
+    private static List<OrderItem> asItems(JsonNode root) {
         if (!root.has("items") || !root.get("items").isArray()) return List.of();
         List<OrderItem> items = new ArrayList<>();
         for (JsonNode it : root.get("items")) {
             items.add(OrderItem.builder()
                     .menuId(optUUID(it, "menuId"))
                     .qty(optInt(it, "qty"))
-                    .build());
+                    .build()
+            );
         }
         return items;
     }
 
     private OrderCreatedEvent asOrderCreated(JsonNode root) {
         return OrderCreatedEvent.builder()
-                .type(ORDER_CREATED)
-                .eventId(optUUID(root, "eventId"))
-                .orderId(optUUID(root, "orderId"))
-                .storeId(optUUID(root, "storeId"))
+                .eventId(optUUID(root,"eventId"))
+                .orderId(optUUID(root,"orderId"))
                 .occurredAt(parseInstant(optText(root,"occurredAt")))
-                .customerId(optUUID(root, "customerId"))
-                .ownerId(optUUID(root, "ownerId"))
+                .customerId(optUUID(root,"customerId"))
                 .items(asItems(root))
                 .build();
     }
-
     private PaymentStatusChangedEvent asPaymentChanged(JsonNode root) {
         var status = Enums.PaymentStatus.valueOf(optText(root, "status"));
         return PaymentStatusChangedEvent.builder()
-                .type(PAYMENT_STATUS_CHANGED)
-                .eventId(optUUID(root, "eventId")) // 있을 수도, 없을 수도
-                .orderId(optUUID(root, "orderId"))
-                .storeId(optUUID(root, "storeId"))
-                .occurredAt(parseInstant(optText(root, "occurredAt")))
+                .eventId(optUUID(root,"eventId"))
+                .orderId(optUUID(root,"orderId"))
+                .occurredAt(parseInstant(optText(root,"occurredAt")))
                 .status(status)
-                .changedAt(parseInstant(optText(root, "changedAt")))
+                .changedAt(parseInstant(optText(root,"changedAt")))
                 .build();
     }
-
     private OrderStatusChangedEvent asOrderStatusChanged(JsonNode root) {
-        var st = Enums.OrderStatus.valueOf(optText(root, "status"));
-        var pay = optText(root, "paymentStatus");
+        var st  = Enums.OrderStatus.valueOf(optText(root,"status"));
+        var pay = optText(root,"paymentStatus");
         return OrderStatusChangedEvent.builder()
-                .type(ORDER_STATUS_CHANGED)
-                .eventId(optUUID(root, "eventId"))
-                .orderId(optUUID(root, "orderId"))
-                .storeId(optUUID(root, "storeId"))
+                .eventId(optUUID(root,"eventId"))
+                .orderId(optUUID(root,"orderId"))
                 .occurredAt(parseInstant(optText(root,"occurredAt")))
                 .status(st)
                 .paymentStatus(pay == null ? null : Enums.PaymentStatus.valueOf(pay))
                 .changedAt(parseInstant(optText(root,"changedAt")))
                 .build();
-    }
-
-    private static java.time.Instant parseInstant(String s) {
-        if (s == null || s.isBlank()) return java.time.Instant.now();
-        try {
-            // OffsetDateTime iso-8601 호환 문자열도 허용
-            return OffsetDateTime.parse(s).toInstant();
-        } catch (DateTimeParseException ex) {
-            try { return Instant.parse(s); } catch (Exception ignore) { return Instant.now(); }
-        }
     }
 }

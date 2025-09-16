@@ -28,9 +28,12 @@ public class KafkaJsonProducer {
     private final TopicRegistry topics;
     private final ObjectMapper om = new ObjectMapper();
 
-    public void sendToStock(Object payload, String key, String eventType,
-                            String correlationId, String causationId,
-                            Map<String, String> extraHeaders) {
+    public void sendToStock(
+            Object payload,
+            String key,
+            String eventType,
+            Map<String, String> extraHeaders
+    ) {
         try {
             String json = om.writeValueAsString(payload);
             Message<String> msg = MessageBuilder.withPayload(json)
@@ -38,32 +41,19 @@ public class KafkaJsonProducer {
                     .setHeader(KafkaHeaders.KEY, key)
                     .setHeader(X_EVENT_TYPE, eventType)
                     .setHeader(X_EVENT_VERSION, "1")
-                    .setHeader(X_CORRELATION_ID, nvl(correlationId, UUID.randomUUID().toString()))
-                    .setHeader(X_CAUSATION_ID, nvl(causationId, safeEventId(payload)))
                     .setHeader(X_PRODUCER, "stock-service")
                     .copyHeaders(extraHeaders == null ? Map.of() : extraHeaders)
                     .build();
 
-            log.debug("[KAFKA][PRODUCE] topic={} key={} type={} corr={} cause={} json={}",
-                    topics.getStockEvents(), key, eventType, correlationId, causationId, json);
+            log.debug("[KAFKA][PRODUCE] topic={} key={} type={} len={} bytes",
+                    topics.getStockEvents(), key, eventType, json.length());
+            log.trace("[KAFKA][PRODUCE][BODY] {}", json);
 
             kafkaTemplate.send(msg);
         } catch (Exception e) {
-            log.error("[KAFKA][ERROR] send type={} key={} payload={}", eventType, key, payload, e);
+            log.error("[KAFKA][ERROR] type={} key={} payloadClass={}", eventType, key,
+                    payload == null ? "null" : payload.getClass().getSimpleName(), e);
             throw new RuntimeException("Kafka send failed", e);
-        }
-    }
-
-    private static String nvl(String v, String alt) { return (v == null || v.isBlank()) ? alt : v; }
-
-    /** payload에 eventId 필드가 있으면 causation 기본값으로 사용 */
-    private static String safeEventId(Object payload) {
-        try {
-            var f = payload.getClass().getMethod("getEventId");
-            Object v = f.invoke(payload);
-            return v != null ? v.toString() : UUID.randomUUID().toString();
-        } catch (Exception ignore) {
-            return UUID.randomUUID().toString();
         }
     }
 }

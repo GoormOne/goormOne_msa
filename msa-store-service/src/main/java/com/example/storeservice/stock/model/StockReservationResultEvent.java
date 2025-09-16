@@ -17,7 +17,6 @@ import java.util.UUID;
 public class StockReservationResultEvent extends BaseEvent {
     private boolean         success;
     private UUID            customerId;
-    private UUID            ownerId;
     private List<OrderItem> items;
     private String          reason;  // 실패 시 사유
 }

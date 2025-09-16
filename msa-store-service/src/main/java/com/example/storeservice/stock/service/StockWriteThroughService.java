@@ -33,7 +33,10 @@ public class StockWriteThroughService {
             tx.executeWithoutResult(status -> {
                 MenuInventory inv = inventoryRepository.findById(menuId)
                         .orElseThrow(() -> new IllegalStateException("Inventory not found: " + menuId));
-                if (inv.isInfiniteStock()) return; // 무한재고면 DB 차감 생략
+                if (inv.isInfiniteStock()) {
+                    log.debug("[DB][FINALIZE-DEC] menuId={} infinite -> skip", menuId);
+                    return; // 무한재고면 DB 차감 생략
+                }
                 int avail = inv.getAvailableQty();
                 if (avail < qty) throw new IllegalStateException("DB shortage: " + menuId);
                 inv.setAvailableQty(avail - qty);
@@ -46,16 +49,19 @@ public class StockWriteThroughService {
 
     /** 주문 거절 등으로 복원 */
     public void restoreIncrease(UUID menuId, int qty) {
-        log.debug("[DB][RESTORE] menuId={} +{}", menuId, qty);
+        log.debug("[DB][RESTORE-INC] menuId={} +{}", menuId, qty);
         runWithRetry(() -> {
             tx.executeWithoutResult(status -> {
                 MenuInventory inv = inventoryRepository.findById(menuId)
                         .orElseThrow(() -> new IllegalStateException("Inventory not found: " + menuId));
-                if (inv.isInfiniteStock()) return;
+                if (inv.isInfiniteStock()) {
+                    log.debug("[DB][RESTORE-INC] menuId={} infinite -> skip", menuId);
+                    return;
+                }
                 int prev = inv.getAvailableQty();
                 inv.setAvailableQty(prev + qty);
                 inventoryRepository.save(inv);
-                log.debug("[DB][RESTORE][OK] menuId={} prev={} now={}", menuId, prev, inv.getAvailableQty());
+                log.debug("[DB][RESTORE-INC][OK] menuId={} prev={} now={}", menuId, prev, inv.getAvailableQty());
             });
             return true;
         });

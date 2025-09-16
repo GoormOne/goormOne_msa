@@ -115,45 +115,59 @@ public class StockRedisService {
     // === Public API ===
     /** 실재고 확인 없이 예약만 적립 (항상 true 기대) */
     public boolean reserve(UUID orderId, UUID menuId, int qty) {
-        log.debug("[REDIS][RESERVE] orderId={} menuId={} qty={}", orderId, menuId, qty); // ☆ BP 후보
+        log.debug("[REDIS][RESERVE][IN ] orderId={} menuId={} qty={}", orderId, menuId, qty); // ☆ BP 후보
         List<String> keys = Arrays.asList(kReserved(menuId), kOrder(orderId));
-        Long r = redis.execute(scriptOf(LUA_RESERVE), keys,
-                menuId.toString(), Integer.toString(qty));
+        Long r = redis.execute(
+                scriptOf(LUA_RESERVE),
+                keys,
+                menuId.toString(),
+                Integer.toString(qty)
+        );
 //        boolean ok = (r != null && r == 1L);
-        boolean ok = Long.valueOf(1L).equals(r);
-        log.debug("[REDIS][RESERVE] result={} orderKey={} reservedKey={}", ok, kOrder(orderId), kReserved(menuId));
-        return ok;
+        log.debug("[REDIS][RESERVE][OUT] result={} reservedKey={} orderKey={}", r, kReserved(menuId), kOrder(orderId));
+        return Long.valueOf(1L).equals(r);
     }
 
     /** 예약 해제 (부족/보상 등) */
     public boolean release(UUID orderId, UUID menuId, int qty) {
-        log.debug("[REDIS][RELEASE] orderId={} menuId={} qty={}", orderId, menuId, qty);
+        log.debug("[REDIS][RELEASE][IN ] orderId={} menuId={} qty={}", orderId, menuId, qty);
         List<String> keys = Arrays.asList(kReserved(menuId), kOrder(orderId));
-        Long r = redis.execute(scriptOf(LUA_RELEASE), keys,
-                menuId.toString(), Integer.toString(qty));
-        boolean ok = Long.valueOf(1L).equals(r);
-        log.debug("[REDIS][RELEASE] result={}", ok);
-        return ok;
+        Long r = redis.execute(
+                scriptOf(LUA_RELEASE),
+                keys,
+                menuId.toString(),
+                Integer.toString(qty)
+        );
+        log.debug("[REDIS][RELEASE][OUT] result={}", r);
+        return Long.valueOf(1L).equals(r);
     }
 
     /** 결제 완료 시 최종 차감 (검증 포함) */
     public boolean finalizeItem(UUID orderId, UUID menuId, int qty) {
-        log.debug("[REDIS][FINALIZE] orderId={} menuId={} qty={}", orderId, menuId, qty); // ☆ BP 후보
+        log.debug("[REDIS][FINALIZE][IN ] orderId={} menuId={} qty={}", orderId, menuId, qty); // ☆ BP 후보
         List<String> keys = Arrays.asList(kActual(menuId), kReserved(menuId), kOrder(orderId));
-        Long r = redis.execute(scriptOf(LUA_FINALIZE), keys,
-                menuId.toString(), Integer.toString(qty));
-        boolean ok = Long.valueOf(1L).equals(r);
-        log.debug("[REDIS][FINALIZE] result={} actualKey={} reservedKey={} orderKey={}",
-                ok, kActual(menuId), kReserved(menuId), kOrder(orderId));
-        return ok;
+        Long r = redis.execute(
+                scriptOf(LUA_FINALIZE),
+                keys,
+                menuId.toString(),
+                Integer.toString(qty)
+        );
+        log.debug("[REDIS][FINALIZE][OUT] result={} actualKey={} reservedKey={} orderKey={}",
+                r, kActual(menuId), kReserved(menuId), kOrder(orderId));
+        return Long.valueOf(1L).equals(r);
     }
 
     /** finalize 성공분 되돌리기(복구) */
     public void compensateFinalize(UUID orderId, UUID menuId, int qty) {
-        log.debug("[REDIS][COMPENSATE] orderId={} menuId={} qty={}", orderId, menuId, qty);
+        log.debug("[REDIS][COMPENSATE][IN ] orderId={} menuId={} qty={}", orderId, menuId, qty);
         List<String> keys = Arrays.asList(kActual(menuId), kReserved(menuId), kOrder(orderId));
-        redis.execute(scriptOf(LUA_COMPENSATE_FINALIZE), keys,
-                menuId.toString(), Integer.toString(qty));
+        redis.execute(scriptOf(
+                LUA_COMPENSATE_FINALIZE),
+                keys,
+                menuId.toString(),
+                Integer.toString(qty)
+        );
+        log.debug("[REDIS][COMPENSATE][OUT] done");
     }
 
     /** 주문 장부를 items 리스트로 복원 */
