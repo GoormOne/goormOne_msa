@@ -15,20 +15,62 @@ import lombok.RequiredArgsConstructor;
 public class PaymentEventsPublisher {
 
 	private final KafkaTemplate<String, String> kafkaTemplate;
-	private final ObjectMapper om = new ObjectMapper();
+	private final ObjectMapper om;
 
-	@Value("${topics.payment.events}")
+	@Value("${topics.payment.outbound}")
 	private String paymentEventsTopic;
+
+	public void paymentPrepareAccepted(String orderId, Object envelope, String correlationId, String causationId) throws Exception {
+		String payload = om.writeValueAsString(envelope);
+		var msg = MessageBuilder.withPayload(payload)
+			.setHeader(KafkaHeaders.TOPIC, paymentEventsTopic)
+			.setHeader(KafkaHeaders.KEY, orderId)
+			.setHeader("x-event-type", "payment.prepare.accepted")
+			.setHeader("x-event-version", "1")
+			.setHeader("x-correlation-id", correlationId)
+			.setHeader("x-causation-id", causationId)
+			.setHeader("x-producer", "payment-service")
+			.build();
+		kafkaTemplate.send(msg);
+	}
+
+	public void paymentPrepared(String orderId, Object envelope, String correlationId, String causationId) throws Exception {
+		String payload = om.writeValueAsString(envelope);
+		var msg = MessageBuilder.withPayload(payload)
+			.setHeader(KafkaHeaders.TOPIC, paymentEventsTopic)
+			.setHeader(KafkaHeaders.KEY, orderId)
+			.setHeader("x-event-type", "payment.prepare")
+			.setHeader("x-event-version", "1")
+			.setHeader("x-correlation-id", correlationId)
+			.setHeader("x-causation-id", causationId)
+			.setHeader("x-producer", "payment-service")
+			.build();
+		kafkaTemplate.send(msg);
+	}
+
+	public void paymentResult(String orderId, Object envelope, String correlationId, String causationId) throws Exception {
+		String payload = om.writeValueAsString(envelope);
+		var msg = MessageBuilder.withPayload(payload)
+			.setHeader(KafkaHeaders.TOPIC, paymentEventsTopic)
+			.setHeader(KafkaHeaders.KEY, orderId)
+			.setHeader("x-event-type", "payment.result")
+			.setHeader("x-event-version", "1")
+			.setHeader("x-correlation-id", correlationId)
+			.setHeader("x-causation-id", causationId)
+			.setHeader("x-producer", "payment-service")
+			.build();
+		kafkaTemplate.send(msg);
+	}
 
 	public void paymentSuccess(String orderId, Object envelope, String correlationId, String causationId) throws Exception {
 		String payload = om.writeValueAsString(envelope);
 		var msg = MessageBuilder.withPayload(payload)
 			.setHeader(KafkaHeaders.TOPIC, paymentEventsTopic)
 			.setHeader(KafkaHeaders.KEY, orderId)
-			.setHeader("x-event-type", "PaymentSuccess")
+			.setHeader("x-event-type", "payment.success")
 			.setHeader("x-event-version", "1")
-			.setHeader("x-correlation-Id", correlationId)
-			.setHeader("x-causation-Id", causationId)
+			.setHeader("x-correlation-id", correlationId)
+			.setHeader("x-causation-id", causationId)
 			.setHeader("x-producer", "payment-service")
 			.build();
 		kafkaTemplate.send(msg);
@@ -39,10 +81,10 @@ public class PaymentEventsPublisher {
 		var msg = MessageBuilder.withPayload(payload)
 			.setHeader(KafkaHeaders.TOPIC, paymentEventsTopic)
 			.setHeader(KafkaHeaders.KEY, orderId)
-			.setHeader("x-event-type", "PaymentFailed")
+			.setHeader("x-event-type", "payment.failed")
 			.setHeader("x-event-version", "1")
-			.setHeader("x-correlation-Id", correlationId)
-			.setHeader("x-causation-Id", causationId)
+			.setHeader("x-correlation-id", correlationId)
+			.setHeader("x-causation-id", causationId)
 			.setHeader("x-producer", "payment-service")
 			.build();
 		kafkaTemplate.send(msg);

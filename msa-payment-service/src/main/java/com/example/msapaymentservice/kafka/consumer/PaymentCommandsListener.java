@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 
 import com.example.msapaymentservice.client.TossPaymentClient;
 import com.example.msapaymentservice.dto.PaymentFailRes;
+import com.example.msapaymentservice.dto.PaymentPrepareCommand;
 import com.example.msapaymentservice.dto.PaymentPrepareReq;
 import com.example.msapaymentservice.dto.PaymentSuccessRes;
 import com.example.msapaymentservice.kafka.producer.PaymentEventsPublisher;
-import com.example.msapaymentservice.kafka.service.PaymentOrchestratorService;
 import com.example.msapaymentservice.service.PaymentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -28,38 +28,43 @@ public class PaymentCommandsListener {
 	private final PaymentEventsPublisher publisher;
 	private final ObjectMapper om;
 
-	@KafkaListener(topics = "${topics.payment.commands}", groupId = "payment-svc-grp")
+	@KafkaListener(topics = "${topics.payment.inbound}", groupId = "payment-svc-grp")
 	public void onPaymentCommand(@Header("x-event-type") String type,
-								@Header(KafkaHeaders.RECEIVED_KEY) String key,
-								String body,
-								Acknowledgment ack) throws Exception {
+		@Header(KafkaHeaders.RECEIVED_KEY) String key,
+		@Header(name="x-event-id", required=false) String eventId,           // 👈 커맨드의 event-id
+		@Header(name="x-correlation-id", required=false) String correlationId,
+		@Header(name="x-causation-id", required=false) String causationId,   // (있으면 전달됨)
+		String body,
+		Acknowledgment ack) throws Exception {
 		try {
-			switch (type) {
-				case "PaymentPrepareReq" -> {
-					PaymentPrepareReq dto = om.readValue(body, PaymentPrepareReq.class);
-					try {
-						paymentService.handleSuccess(null, dto.getOrderId(), dto.getPaymentKey(), dto.getAmount());
-
-						var ok = new PaymentSuccessRes(dto.getOrderId(), dto.getPaymentKey(), dto.getAmount());
-						publisher.paymentSuccess(dto.getOrderId().toString(), ok, dto.getOrderId().toString(), null);
-						log.info("[payment] paymentSuccess published. orderId={}", dto.getOrderId());
-					} catch (Exception ex) {
-						var fail = new PaymentFailRes(dto.getOrderId(), dto.getPaymentKey(), dto.getAmount(), "결제 실패: " + ex.getMessage());
-						try {
-							publisher.paymentFailed(dto.getOrderId().toString(), fail, dto.getOrderId().toString(), null);
-							log.warn("[payment] paymentFail published. orderId={}, reason={}", dto.getOrderId(), ex.getMessage());
-						} catch (Exception pubEx) {
-							log.error("[payment] Failed to publish PaymentFailed. orderId={}", dto.getOrderId(), pubEx);
-						}
-						throw ex;
-					}
-				}
-				default -> log.warn("[payment] Unknown command type={}, key={}", type, key);
+			if (!"payment.prepare.command".equals(type)) {
+				log.warn("[payment] Unknown command type={}, key={}", type, key);
+				ack.acknowledge();
+				return;
 			}
+
+			PaymentPrepareCommand dto = om.readValue(body, PaymentPrepareCommand.class);
+
+			java.util.Map<String, Object> accepted = new java.util.HashMap<>();
+			accepted.put("orderId", dto.getOrderId().toString());
+			accepted.put("customerId", dto.getCustomerId() != null ? dto.getCustomerId().toString() : null);
+			accepted.put("amount", dto.getAmount());
+			accepted.put("acceptedAt", java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC).toString());
+
+			String corr = (correlationId == null || correlationId.isBlank())
+				? java.util.UUID.randomUUID().toString() : correlationId;
+			String cause = (eventId != null && !eventId.isBlank()) ? eventId : causationId; // 커맨드 event-id를 원인으로
+
+			publisher.paymentPrepareAccepted(dto.getOrderId().toString(), accepted, corr, cause);
+
+			log.info("[payment] payment.prepare.accepted published. orderId={}, corr={}, cause={}",
+				dto.getOrderId(), corr, cause);
 			ack.acknowledge();
-		}catch (Exception e) {
-			log.error("[payment] Error processing command. type={}, key={}, body-{}", type, key, body, e);
+
+		} catch (Exception e) {
+			log.error("[payment] Error processing command. type={}, key={}, body={}", type, key, body, e);
 			throw e;
 		}
 	}
+
 }

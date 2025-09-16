@@ -1,5 +1,7 @@
 package com.example.msaorderservice.order.kafka.consumer;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -10,9 +12,9 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
-import com.example.msaorderservice.order.dto.PaymentSuccessRes;
-import com.example.msaorderservice.order.dto.PaymentFailRes;
+import com.example.common.entity.PaymentStatus;
 import com.example.msaorderservice.order.kafka.producer.OrderCommandPublisher;
+import com.example.msaorderservice.order.service.OrderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -25,11 +27,12 @@ public class OrchestratorListeners {
 
 	private final ObjectMapper om = new ObjectMapper();
 	private final OrderCommandPublisher publisher;
+	private final OrderService orderService;
 
-	@KafkaListener(topics = "${topics.stock.events}")
+	@KafkaListener(topics = "${topics.stock.inbound}")
 	public void stockReservationResult(@Header("x-event-type") String type,
 		@Header(KafkaHeaders.RECEIVED_KEY) String key,
-		@Header(name="x-correlation-id", required=false) String corr,
+		@Header(name = "x-correlation-id", required=false) String corr,
 		@Header(name = "x-causation-id", required = false)  String causationId,
 		String body,
 		Acknowledgment ack) throws Exception {
@@ -57,30 +60,46 @@ public class OrchestratorListeners {
 			throw e;
 		}
 	}
+	@KafkaListener(topics = "${topics.payment.inbound}", groupId = "order-svc-grp")
+	public void paymentResult(@Header("x-event-type") String type,
+		@Header(KafkaHeaders.RECEIVED_KEY) String key,
+		@Header(name = "x-correlation-id", required=false) String corr,
+		@Header(name = "x-causation-id", required = false)  String causationId,
+		String body,
+		Acknowledgment ack) throws Exception {
+		try {
+			if (!"payment.result".equals(type)) {
+				log.warn("[order] Unknown payment event type={}, key={}", type, key);
+				ack.acknowledge();
+				return;
+			}
+			var json = om.readTree(body);
+			UUID orderId = UUID.fromString(json.get("orderId").asText());
+			String result = json.get("status").asText();
 
-	// @KafkaListener(topics = "${topics.payment.events}")
-	// public void onPaymentEvent(@Header("x-event-type") String type,
-	// 	@Header(KafkaHeaders.RECEIVED_KEY) String key,
-	// 	String body,
-	// 	Acknowledgment ack) throws Exception {
-	//
-	// 	try {
-	// 		switch (type) {
-	// 			case "PaymentAuthorizedRes" -> {
-	// 				PaymentSuccessRes dto = om.readValue(body, PaymentSuccessRes.class);
-	// 				publisher.onPaymentSuccess(dto);
-	// 			}
-	// 			case "PaymentFailedRes" -> {
-	// 				PaymentFailRes dto = om.readValue(body, PaymentFailRes.class);
-	// 				publisher.onPaymentFailed(dto);
-	// 			}
-	//
-	// 			default -> log.warn("[Saga] Unknown paymetn event type={}, key={}", type, key);
-	// 		}
-	// 		ack.acknowledge();
-	// 	} catch (Exception e) {
-	// 		log.error("[Saga] Error while processing payment-event, type={}, key={}, body={}", type, key, body, e);
-	// 		throw e;
-	// 	}
-	// }
+			PaymentStatus status = "SUCCESS".equals(result) ? PaymentStatus.PAID : PaymentStatus.FAILED;
+
+			String cor = (corr == null || corr.isBlank())
+				? UUID.randomUUID().toString() : corr;
+
+			String cause = (causationId == null || causationId.isBlank())
+				? corr : causationId;
+
+			publisher.paymentStatusChanged(orderId.toString(),
+				Map.of(
+					"orderId", orderId.toString(),
+					"status", status.name(),
+					"changedAt", OffsetDateTime.now(ZoneOffset.UTC).toString()
+				),
+				corr,
+				cause
+			);
+			log.info("[order] payment.result consumed => payment.status.changed published. orderId={}, status={}, corr={}, cause={}",
+				orderId, status, corr, cause);
+
+		} catch (Exception e) {
+			log.error("[order] Error while processing payment.result, type={}, key={}, body={}", type, key, body, e);
+			throw e;
+		}
+	}
 }

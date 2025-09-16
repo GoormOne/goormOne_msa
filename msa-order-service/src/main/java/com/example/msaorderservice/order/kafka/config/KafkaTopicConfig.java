@@ -13,7 +13,7 @@ import org.springframework.kafka.config.TopicBuilder;
 public class KafkaTopicConfig {
 
 	@Bean
-	public NewTopic orderEvents(@Value("${topics.order.events}") String name) {
+	public NewTopic orderEvents(@Value("${topics.order.inbound}") String name) {
 		return TopicBuilder.name(name)
 			.partitions(3)
 			.replicas(1)
@@ -22,7 +22,7 @@ public class KafkaTopicConfig {
 	}
 
 	@Bean
-	public NewTopic paymentCommandTopic(@Value("${topics.payment.commands}") String name) {
+	public NewTopic paymentCommandTopic(@Value("${topics.payment.outbound}") String name) {
 		return TopicBuilder.name(name)
 			.partitions(3)
 			.replicas(1)
@@ -31,7 +31,7 @@ public class KafkaTopicConfig {
 	}
 
 	@Bean
-	public NewTopic paymentEventTopic(@Value("${topics.payment.events}") String name) {
+	public NewTopic paymentEventTopic(@Value("${topics.payment.inbound}") String name) {
 		return TopicBuilder.name(name)
 			.partitions(3)
 			.replicas(1)

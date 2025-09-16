@@ -84,7 +84,7 @@ spring:
         max.request.size: 8388608
       key-serializer: org.apache.kafka.common.serialization.StringSerializer    # 문자열 형태로 메시지 key값 직렬화
       value-serializer: org.apache.kafka.common.serialization.StringSerializer  # 문자열 형태로 메시지 value값 직렬화
-      transaction-id-prefix: ${spring.application.name}-tx-
+#      transaction-id-prefix: ${spring.application.name}-tx-
     consumer:
       enable-auto-commit: false
       auto-offset-reset: earliest
@@ -96,13 +96,13 @@ spring:
 
 topics:
   payment:
-    commands: payment-commands
-    events: payment-events
+    outbound: payment-outbound
+    inbound: payment-inbound
   order:
-    events: order-events
+    inbound: order-inbound
   stock:
-    commands: stock-commands
-    events: stock-events
+    outbound: stock-outbound
+    inbound: stock-inbound
   saga:
     dlt: saga-dlt
 
