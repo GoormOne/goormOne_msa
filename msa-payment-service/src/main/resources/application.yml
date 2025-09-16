@@ -73,11 +73,13 @@ spring:
 
 topics:
   payment:
-    outbound: payment-outbound
-    inbound: payment-inbound
+    events: payment-events
+  order:
+    events: order-events
+  stock:
+    events: stock-events
   saga:
     dlt: saga-dlt
-
 
 management:
   endpoints:
