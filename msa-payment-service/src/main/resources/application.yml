@@ -44,6 +44,43 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
 
+  kafka:
+    bootstrap-servers: localhost:29092
+    properties:
+      compression.type: zstd
+      linger.ms: 30
+      batch.size: 131072
+      delivery.timeout.ms: 120000
+
+    producer:
+      acks: all
+      retries: 10
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+        max.request.size: 8388608
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      transaction-id-prefix: ${spring.application.name}-tx-
+    consumer:
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      ack-mode: MANUAL
+      concurrency: 3
+
+topics:
+  payment:
+    events: payment-events
+  order:
+    events: order-events
+  stock:
+    events: stock-events
+  saga:
+    dlt: saga-dlt
+
 management:
   endpoints:
     web:

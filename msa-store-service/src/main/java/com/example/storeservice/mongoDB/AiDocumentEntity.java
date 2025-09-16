@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Document(collection = "reviews_denorm")  // MongoDB collection 이름
+@Document(collection = "reviews")  // MongoDB collection 이름
 @ToString
 public class AiDocumentEntity {
 

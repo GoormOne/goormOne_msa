@@ -16,10 +16,10 @@ spring:
       redisson:
         file: classpath:redisson-config.yaml
 
-    mongodb:
-      uri: mongodb+srv://ksm3255:!4786buch@team1mongodb.oh0o0np.mongodb.net/?retryWrites=true&w=majority&appName=Team1Mongodb
-      #      port: 27017
-      database: ai_service_db
+#    mongodb:
+#      uri: "mongodb+srv://ksm3255:!4786buch@team1mongodb.oh0o0np.mongodb.net/?retryWrites=true&w=majority&appName=Team1Mongodb"
+#      #      port: 27017
+#      database: ai_service_db
 
   datasource:
     url: jdbc:postgresql://db-goorm1.chqyoqs8q3x4.ap-northeast-2.rds.amazonaws.com/postgres #우리 디비로 바꾸기
@@ -79,13 +79,39 @@ spring:
   kafka:
     bootstrap-servers: localhost:29092                                              # Kafka 접속 정보 저장
     consumer:
-      group-id: test-group                                                          # Consumer Group
+      group-id: stock-service-group                                                 # Consumer Group
       auto-offset-reset: earliest                                                   # Consumer가 저장된 offset을 찾지 못했을 때
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer    # 문자열 형태로 메시지 key값 역직렬화
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer  # 문자열 형태로 메시지 value값 역직렬화
+    listener:
+      ack-mode: manual                                                              # 수동 ack (NACK 재시도)
+      concurrency: 3
+      missing-topics-fatal: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 10
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 1
+
   jackson:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+    mongodb:
+      uri: mongodb://localhost:27017/ai_service_dev
+
+topics:
+  order:
+    events: order-events
+  stock:
+    events: stock-events
 
 app:
   chat:
@@ -114,6 +140,7 @@ logging:
     org.springframework.kafka: INFO
     org.apache.kafka: INFO
     com.example.msaorderservice: DEBUG
+    com.example.storeservice.stock: DEBUG
 
 ---
 spring:

@@ -69,9 +69,40 @@ spring:
 
   kafka:
     bootstrap-servers: localhost:29092                                          # Kafka 접속 정보 저장
+    properties:
+      compression.type: zstd
+      linger.ms: 30
+      batch.size: 131072
+      delivery.timeout.ms: 120000
+
     producer:
+      acks: all
+      retries: 10
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+        max.request.size: 8388608
       key-serializer: org.apache.kafka.common.serialization.StringSerializer    # 문자열 형태로 메시지 key값 직렬화
       value-serializer: org.apache.kafka.common.serialization.StringSerializer  # 문자열 형태로 메시지 value값 직렬화
+#      transaction-id-prefix: ${spring.application.name}-tx-
+    consumer:
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      ack-mode: MANUAL
+      concurrency: 3
+
+topics:
+  payment:
+    events: payment-events
+  order:
+    events: order-events
+  stock:
+    events: stock-events
+  saga:
+    dlt: saga-dlt
 
 server:
   port: 8085

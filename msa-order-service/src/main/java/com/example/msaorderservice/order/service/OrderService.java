@@ -1,5 +1,6 @@
 package com.example.msaorderservice.order.service;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,4 +31,6 @@ public interface OrderService {
 	OwnerOrderDetailRes cancelStoreOrder(UUID ownerId, UUID storeId, UUID orderId);
 
 	Optional<OrderEntity> findLatestPendingOrder(UUID customerId);
+
+	void cancelDueToOutOfStock(UUID orderId);
 }
