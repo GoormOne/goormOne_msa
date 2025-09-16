@@ -56,6 +56,18 @@ public class PaymentEventsPublisher {
 		kafkaTemplate.send(msg);
 	}
 
+	public void paymentCancelResult(String orderId, Object envelope) throws Exception {
+		String payload = om.writeValueAsString(envelope);
+		var msg = MessageBuilder.withPayload(payload)
+			.setHeader(KafkaHeaders.TOPIC, payment)
+			.setHeader(KafkaHeaders.KEY, orderId)
+			.setHeader("x-event-type", "payment.cancel.result")
+			.setHeader("x-event-version", "1")
+			.setHeader("x-producer", "payment-service")
+			.build();
+		kafkaTemplate.send(msg);
+	}
+
 	public void paymentSuccess(String orderId, Object envelope) throws Exception {
 		String payload = om.writeValueAsString(envelope);
 		var msg = MessageBuilder.withPayload(payload)

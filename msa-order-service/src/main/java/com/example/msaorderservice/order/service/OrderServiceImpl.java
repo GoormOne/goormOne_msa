@@ -1,5 +1,8 @@
 package com.example.msaorderservice.order.service;
 
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -20,6 +23,7 @@ import org.slf4j.MDC;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -156,19 +160,20 @@ public class OrderServiceImpl implements OrderService {
 		final UUID oid = order.getOrderId();
 		final int totalAmount = total;
 
+		final UUID eventId = UUID.nameUUIDFromBytes((oid.toString() + "|order.created")
+			.getBytes(StandardCharsets.UTF_8));
+
 		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
 			@Override
 			public void afterCommit() {
 				try {
-					String correlationId = Optional.ofNullable(MDC.get("correlationId"))
-						.filter(s -> !s.isBlank())
-						.orElse(UUID.randomUUID().toString());
 
 					Map<String, Object> envelope = new HashMap<>();
+					envelope.put("eventId", eventId);
 					envelope.put("orderId", oid);
 					envelope.put("customerId", customerId);
 					envelope.put("totalAmount", totalAmount);
-					envelope.put("createdAt", OffsetDateTime.now());
+					envelope.put("occurredAt", Instant.now());
 
 					List<Map<String, Object>> itemList = toSave.stream()
 							.map(oi -> Map.<String, Object>of(
@@ -494,25 +499,38 @@ public class OrderServiceImpl implements OrderService {
 			throw new BusinessException(CommonCode.ORDER_CANCEL_FAIL);
 		}
 
-		if (order.getPaymentStatus() == PaymentStatus.PAID) {
-			paymentClient.cancelPayment(order.getOrderId(), customerId,"USER_CANCELED");
-			order.setPaymentStatus(PaymentStatus.REFUNDED);
-		}
-
-		var items = orderItemRepository.findByOrderId_OrderId(orderId);
-
-		for (OrderItemEntity item : items) {
-			menuInventoryClient.release(item.getMenuId(), item.getQuantity());
-		}
-
 		order.setOrderStatus(OrderStatus.CANCELED);
-		order.setPaymentStatus(PaymentStatus.REFUNDED);
 		orderRepository.save(order);
 
+		OffsetDateTime updatedAt = Instant.now().atOffset(ZoneOffset.UTC);
+
 		orderAuditRepository.findById(orderId).ifPresent(a -> {
-			a.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+			a.setUpdatedAt(updatedAt);
 			a.setUpdatedBy(order.getCustomerId());
 			orderAuditRepository.save(a);
+		});
+
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override public void afterCommit() {
+				try {
+
+					UUID eventId = UUID.randomUUID();
+
+					Map<String, Object> envelope = new HashMap<>();
+					envelope.put("eventId", eventId);
+					envelope.put("orderId", order.getOrderId());
+					envelope.put("status", OrderStatus.CANCELED);
+					envelope.put("paymentStatus", order.getPaymentStatus());
+					envelope.put("occurredAt", Instant.now());
+					envelope.put("changedAt", updatedAt.toInstant());
+
+					publisher.orderStatusChanged(orderId.toString(), envelope);
+
+					log.info("[Order] order.status.changed published (owner canceled). orderId={}, eventId={}", orderId, eventId);
+				} catch (Exception e) {
+					log.error("[Order] order.status.changed publish failed. orderId={}", orderId, e);
+				}
+			}
 		});
 
 		log.info(CommonCode.ORDER_CANCEL.getMessage());
@@ -520,44 +538,58 @@ public class OrderServiceImpl implements OrderService {
 		return getMyOrderDetail(customerId, orderId);
 	}
 
+	@Transactional
 	public OwnerOrderDetailRes cancelStoreOrder(UUID ownerId, UUID storeId, UUID orderId) {
 		OrderEntity order = orderRepository.findById(orderId)
 			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_NOT_FOUND));
 
 		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
-
 		UUID ownerFromStore = store.getOwnerId();
-		if (Objects.equals(ownerFromStore, ownerId)) {
+		if (ownerFromStore == null || !ownerFromStore.equals(ownerId)) {
 			throw new BusinessException(CommonCode.STORE_AUTH_FAIL);
 		}
 
 		if (order.getOrderStatus() == OrderStatus.CANCELED) {
-			return getOwnerOrderDetail(ownerId, storeId, orderId);
+			return getOwnerOrderDetail(orderId, storeId, ownerId);
 		}
-
 		if (order.getOrderStatus() == OrderStatus.CONFIRMED) {
 			throw new BusinessException(CommonCode.ORDER_CANCEL_FAIL);
 		}
 
-		if (order.getPaymentStatus() == PaymentStatus.PAID) {
-			paymentClient.cancelPayment(order.getOrderId(), ownerId,"USER_CANCELED");
-			order.setPaymentStatus(PaymentStatus.REFUNDED);
-		}
-
 		order.setOrderStatus(OrderStatus.CANCELED);
-		order.setPaymentStatus(PaymentStatus.REFUNDED);
-
 		orderRepository.save(order);
 
+		OffsetDateTime updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
+
 		orderAuditRepository.findById(orderId).ifPresent(a -> {
-			a.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+			a.setUpdatedAt(updatedAt);
 			a.setUpdatedBy(ownerId);
 			orderAuditRepository.save(a);
 		});
 
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override public void afterCommit() {
+				try {
+
+					Map<String, Object> envelope = new HashMap<>();
+					envelope.put("orderId", order.getOrderId());
+					envelope.put("status", OrderStatus.CANCELED);
+					envelope.put("pamentStatus", order.getPaymentStatus());
+					envelope.put("occurredAt", Instant.now());
+					envelope.put("changedAt", updatedAt.toInstant());
+
+					publisher.orderStatusChanged(orderId.toString(), envelope);
+
+					log.info("[Order] order.status.changed published (owner canceled). orderId={}", orderId);
+				} catch (Exception e) {
+					log.error("[Order] order.status.changed publish failed. orderId={}", orderId, e);
+				}
+			}
+		});
+
 		log.info(CommonCode.ORDER_CANCEL.getMessage());
 
-		return getOwnerOrderDetail(ownerId, storeId, orderId);
+		return getOwnerOrderDetail(orderId, storeId, ownerId);
 	}
 
 	@Override
@@ -583,31 +615,41 @@ public class OrderServiceImpl implements OrderService {
 			return;
 		}
 
-		if (order.getOrderStatus() == OrderStatus.CONFIRMED ||
-			order.getOrderStatus() == OrderStatus.COOKING ||
-			order.getOrderStatus() == OrderStatus.DELIVERING ||
-			order.getOrderStatus() == OrderStatus.COMPLETED) {
-			log.warn("[Order] 이미 진행된 주문이 shortage 이벤트로 들어옴. orderId={}", orderId);
-			throw new BusinessException(CommonCode.ORDER_CANCEL_FAIL);
-		}
-
-		if (order.getPaymentStatus() == PaymentStatus.PAID) {
-
-		} else {
-			order.setPaymentStatus(PaymentStatus.FAILED);
-		}
-
-		// 주문 상태 변경
 		order.setOrderStatus(OrderStatus.CANCELED);
 		orderRepository.save(order);
 
-		// Audit 기록
+		OffsetDateTime updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
 		orderAuditRepository.findById(orderId).ifPresent(a -> {
-			a.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
-			a.setUpdatedBy(order.getCustomerId()); // 시스템 취소이지만 고객 ID로 기록
+			a.setUpdatedAt(updatedAt);
+			a.setUpdatedBy(order.getCustomerId());
 			orderAuditRepository.save(a);
 		});
 
-		log.info("[Order] stock.shortage → 주문 취소 처리 완료. orderId={}", orderId);
+		if (order.getPaymentStatus() == PaymentStatus.PAID) {
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCommit() {
+					try {
+						Map<String, Object> refundReq = new HashMap<>();
+						refundReq.put("eventId", UUID.randomUUID().toString());
+						refundReq.put("orderId", orderId.toString());
+						refundReq.put("customerId", order.getCustomerId().toString());
+						refundReq.put("reason", "OUT_OF_STOCK");
+						refundReq.put("occurredAt", Instant.now());
+
+						publisher.paymentCancelRequested(orderId.toString(), refundReq);
+						log.info("[Order] payment.cancel.requested 발행 완료. orderId={}", orderId);
+					} catch (Exception e) {
+						log.error("[Order] payment.cancel.requested 발행 실패. orderId={}", orderId, e);
+					}
+				}
+			});
+		} else {
+			log.info("[Order] 결제가 안 된 주문 shortage. orderId={}", orderId);
+		}
+
+		log.info("[Order] stock.shortage 수신 완료 — orderId={}", orderId);
 	}
 }
+
+

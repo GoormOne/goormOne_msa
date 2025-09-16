@@ -22,7 +22,7 @@ public class OrderCommandPublisher {
 	private String order;
 
 	@Value("${topics.payment.events}")
-	private String Payment;
+	private String payment;
 
 	@Value("${topics.stock.events}")
 	private String stock;
@@ -42,7 +42,7 @@ public class OrderCommandPublisher {
 	public void paymentPrepare(String orderId, Object envelope) throws Exception {
 		String payload = om.writeValueAsString(envelope);
 		var msg = MessageBuilder.withPayload(payload)
-			.setHeader(KafkaHeaders.TOPIC, Payment)
+			.setHeader(KafkaHeaders.TOPIC, payment)
 			.setHeader(KafkaHeaders.KEY, orderId)
 			.setHeader("x-event-type", "payment.prepare")
 			.setHeader("x-event-version", "1")
@@ -78,14 +78,27 @@ public class OrderCommandPublisher {
 	public void orderStatusChanged(String orderId, Object envelope) throws Exception {
 		String payload = om.writeValueAsString(envelope);
 		var msg = MessageBuilder.withPayload(payload)
-			.setHeader(KafkaHeaders.TOPIC, order)               // ${topics.order.events}
-			.setHeader(KafkaHeaders.KEY, orderId)                     // 파티셔닝 키는 항상 orderId
+			.setHeader(KafkaHeaders.TOPIC, order)
+			.setHeader(KafkaHeaders.KEY, orderId)
 			.setHeader("x-event-type", "order.status.changed")
 			.setHeader("x-event-version", "1")
 			.setHeader("x-producer", "order-service")
 			.build();
 		kafkaTemplate.send(msg);
 	}
+
+	public void paymentCancelRequested(String orderId, Object envelope) throws Exception {
+		String payload = om.writeValueAsString(envelope);
+		var msg = MessageBuilder.withPayload(payload)
+			.setHeader(KafkaHeaders.TOPIC, payment)
+			.setHeader(KafkaHeaders.KEY, orderId)
+			.setHeader("x-event-type", "payment.cancel.requested")
+			.setHeader("x-event-version", "1")
+			.setHeader("x-producer", "order-service")
+			.build();
+		kafkaTemplate.send(msg);
+	}
+
 
 	public void publishOrderCompleted(String orderId, Object envelope) throws Exception {
 		String payload = om.writeValueAsString(envelope);
