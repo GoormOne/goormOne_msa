@@ -2,7 +2,10 @@ package com.example.msapaymentservice.service;
 
 import java.net.URI;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +31,7 @@ import com.example.msapaymentservice.dto.StoreClientRes;
 import com.example.msapaymentservice.dto.TossPaymentRes;
 import com.example.msapaymentservice.entity.PaymentAuditEntity;
 import com.example.msapaymentservice.entity.PaymentEntity;
+import com.example.msapaymentservice.kafka.producer.PaymentEventsPublisher;
 import com.example.msapaymentservice.repository.PaymentAuditRepository;
 import com.example.msapaymentservice.repository.PaymentRepository;
 
@@ -44,6 +48,7 @@ public class PaymentServiceImpl implements PaymentService {
 	private final PaymentRepository paymentRepository;
 	private final TossPaymentClient tossPaymentClient;
 	private final PaymentAuditRepository paymentAuditRepository;
+	private final PaymentEventsPublisher paymentEventsPublisher;
 
 	@Value("${payments.redirect-base-url}")
 	private String redirectBaseUrl;
@@ -217,6 +222,25 @@ public class PaymentServiceImpl implements PaymentService {
 
 		orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.PAID);
 
+		try {
+			Map<String, Object> evt = new HashMap<>();
+			evt.put("orderId", orderId.toString());
+			evt.put("status", "SUCCESS");
+			evt.put("amount", amount);
+			evt.put("paymentKey", paymentKey);
+			evt.put("method", confirm.getMethod());
+			evt.put("approvedAt", confirm.getApprovedAt());
+			evt.put("receiptUrl", confirm.getReceipt() != null ? confirm.getReceipt().getUrl() : null);
+			evt.put("occurredAt", OffsetDateTime.now(ZoneOffset.UTC).toString());
+
+			String corr = java.util.UUID.randomUUID().toString(); // 있으면 전달값 사용
+			paymentEventsPublisher.paymentResult(orderId.toString(), evt, corr, null);
+
+			log.info("[payment] payment.result(SUCCESS) published. orderId={}", orderId);
+		} catch (Exception ex) {
+			log.error("[payment] payment.result publish failed (SUCCESS). orderId={}", orderId, ex);
+		}
+
 		log.info(CommonCode.PAYMENT_COMPLETE.getMessage());
 	}
 
@@ -242,6 +266,23 @@ public class PaymentServiceImpl implements PaymentService {
 		paymentAuditRepository.save(audit);
 
 		orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.FAILED);
+
+		try {
+			Map<String, Object> evt = new HashMap<>();
+			evt.put("orderId", orderId.toString());
+			evt.put("status", "FAILED");
+			evt.put("amount", 0);
+			evt.put("errorCode", errorCode);
+			evt.put("errorMsg", errorMsg);
+			evt.put("occurredAt", OffsetDateTime.now(ZoneOffset.UTC).toString());
+
+			String corr = java.util.UUID.randomUUID().toString();
+			paymentEventsPublisher.paymentResult(orderId.toString(), evt, corr, null);
+
+			log.info("[payment] payment.result(FAILED) published. orderId={}", orderId);
+		} catch (Exception ex) {
+			log.error("[payment] payment.result publish failed (FAILED). orderId={}", orderId, ex);
+		}
 
 		log.info(CommonCode.PAYMENT_FAILED.getMessage());
 	}
