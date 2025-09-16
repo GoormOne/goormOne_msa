@@ -44,7 +44,6 @@ import com.example.msaorderservice.order.entity.OrderEntity;
 import com.example.msaorderservice.order.entity.OrderItemEntity;
 import com.example.msaorderservice.order.entity.OrderStatus;
 import com.example.msaorderservice.order.kafka.producer.OrderCommandPublisher;
-import com.example.msaorderservice.order.kafka.service.OrchestratorService;
 import com.example.msaorderservice.order.repository.OrderAuditRepository;
 import com.example.msaorderservice.order.repository.OrderItemRepository;
 import com.example.msaorderservice.order.repository.OrderRepository;
