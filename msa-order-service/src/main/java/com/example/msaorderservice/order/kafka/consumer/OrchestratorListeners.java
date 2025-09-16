@@ -53,7 +53,7 @@ public class OrchestratorListeners {
 				? UUID.randomUUID().toString()
 				: corr;
 
-			publisher.paymentPrepare(orderId, payEnvelope, correlationId, causationId);
+			publisher.paymentPrepare(orderId, payEnvelope);
 
 			log.info("[Saga] stock.reservation -> payment.prepare.command 발행. corr={}, orderId={}", corr, orderId);
 			ack.acknowledge();
@@ -66,8 +66,6 @@ public class OrchestratorListeners {
 	@KafkaListener(topics = "${topics.payment.events}", groupId = "order-service-group")
 	public void paymentResult(@Header("x-event-type") String type,
 		@Header(KafkaHeaders.RECEIVED_KEY) String key,
-		@Header(name = "x-correlation-id", required = false) String corr,
-		@Header(name = "x-causation-id", required = false) String causationId,
 		String body,
 		Acknowledgment ack) throws Exception {
 		try {
@@ -82,24 +80,17 @@ public class OrchestratorListeners {
 
 			PaymentStatus status = "SUCCESS".equals(result) ? PaymentStatus.PAID : PaymentStatus.FAILED;
 
-			String cor = (corr == null || corr.isBlank())
-				? UUID.randomUUID().toString() : corr;
-
-			String cause = (causationId == null || causationId.isBlank())
-				? corr : causationId;
 
 			publisher.paymentStatusChanged(orderId.toString(),
 				Map.of(
 					"orderId", orderId.toString(),
 					"status", status.name(),
 					"changedAt", OffsetDateTime.now(ZoneOffset.UTC).toString()
-				),
-				corr,
-				cause
+				)
 			);
 			log.info(
-				"[order] payment.result consumed => payment.status.changed published. orderId={}, status={}, corr={}, cause={}",
-				orderId, status, corr, cause);
+				"[order] payment.result consumed => payment.status.changed published. orderId={}, status={}",
+				orderId, status);
 
 		} catch (Exception e) {
 			log.error("[order] Error while processing payment.result, type={}, key={}, body={}", type, key, body, e);
@@ -114,8 +105,6 @@ public class OrchestratorListeners {
 		@Header(name = "x-causation-id", required = false) String causationId,
 		String body,
 		Acknowledgment ack) throws Exception {
-
-		final String correlationId = (corr == null || corr.isBlank() ? UUID.randomUUID().toString() : corr);
 
 		try {
 			switch (type) {

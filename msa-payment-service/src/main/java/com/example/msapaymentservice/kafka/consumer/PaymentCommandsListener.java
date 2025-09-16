@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import com.example.msapaymentservice.dto.PaymentPrepareCommand;
 import com.example.msapaymentservice.kafka.producer.PaymentEventsPublisher;
-import com.example.msapaymentservice.service.PaymentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -50,7 +49,7 @@ public class PaymentCommandsListener {
 				? java.util.UUID.randomUUID().toString() : correlationId;
 			String cause = (eventId != null && !eventId.isBlank()) ? eventId : causationId;
 
-			publisher.paymentPrepareAccepted(dto.getOrderId().toString(), accepted, corr, cause);
+			publisher.paymentPrepareAccepted(dto.getOrderId().toString(), accepted);
 
 			log.info("[payment] payment.prepare.accepted published. orderId={}, corr={}, cause={}",
 				dto.getOrderId(), corr, cause);

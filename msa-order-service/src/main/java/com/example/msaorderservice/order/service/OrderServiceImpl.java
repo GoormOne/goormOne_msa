@@ -165,16 +165,22 @@ public class OrderServiceImpl implements OrderService {
 						.orElse(UUID.randomUUID().toString());
 
 					Map<String, Object> envelope = new HashMap<>();
-					envelope.put("orderId", oid.toString());
-					envelope.put("customerId", customerId.toString());
+					envelope.put("orderId", oid);
+					envelope.put("customerId", customerId);
 					envelope.put("totalAmount", totalAmount);
-					envelope.put("createdAt", OffsetDateTime.now().toString());
+					envelope.put("createdAt", OffsetDateTime.now());
+
+					List<Map<String, Object>> itemList = toSave.stream()
+							.map(oi -> Map.<String, Object>of(
+								"menuId", oi.getMenuId(),
+								"qty", oi.getQuantity()
+							))
+								.toList();
+					envelope.put("items", itemList);
 
 					publisher.orderCreated(
 						oid.toString(),
-						envelope,
-						correlationId,
-						null // 첫 이벤트라 causation 없음
+						envelope
 					);
 				} catch (Exception e) {
 					log.error("[Saga] order.created publish failed. orderId={}", oid, e);
@@ -586,6 +592,7 @@ public class OrderServiceImpl implements OrderService {
 		}
 
 		if (order.getPaymentStatus() == PaymentStatus.PAID) {
+
 		} else {
 			order.setPaymentStatus(PaymentStatus.FAILED);
 		}

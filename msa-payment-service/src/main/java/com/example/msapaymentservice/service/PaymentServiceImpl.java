@@ -234,7 +234,7 @@ public class PaymentServiceImpl implements PaymentService {
 			evt.put("occurredAt", OffsetDateTime.now(ZoneOffset.UTC).toString());
 
 			String corr = java.util.UUID.randomUUID().toString(); // 있으면 전달값 사용
-			paymentEventsPublisher.paymentResult(orderId.toString(), evt, corr, null);
+			paymentEventsPublisher.paymentResult(orderId.toString(), evt);
 
 			log.info("[payment] payment.result(SUCCESS) published. orderId={}", orderId);
 		} catch (Exception ex) {
@@ -277,7 +277,7 @@ public class PaymentServiceImpl implements PaymentService {
 			evt.put("occurredAt", OffsetDateTime.now(ZoneOffset.UTC).toString());
 
 			String corr = java.util.UUID.randomUUID().toString();
-			paymentEventsPublisher.paymentResult(orderId.toString(), evt, corr, null);
+			paymentEventsPublisher.paymentResult(orderId.toString(), evt);
 
 			log.info("[payment] payment.result(FAILED) published. orderId={}", orderId);
 		} catch (Exception ex) {
