@@ -1,13 +1,17 @@
 package com.example.msapaymentservice.service;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -223,22 +227,27 @@ public class PaymentServiceImpl implements PaymentService {
 		orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.PAID);
 
 		try {
+
+			final String status = "DONE";
+
+			String seed = paymentKey + "|payment.result|" + status;
+			UUID eventId = UUID.nameUUIDFromBytes(seed.getBytes(StandardCharsets.UTF_8));
+
 			Map<String, Object> evt = new HashMap<>();
-			evt.put("orderId", orderId.toString());
-			evt.put("status", "SUCCESS");
+			evt.put("eventId", eventId);
+			evt.put("orderId", orderId);
+			evt.put("status", "DONE");
 			evt.put("amount", amount);
 			evt.put("paymentKey", paymentKey);
 			evt.put("method", confirm.getMethod());
 			evt.put("approvedAt", confirm.getApprovedAt());
-			evt.put("receiptUrl", confirm.getReceipt() != null ? confirm.getReceipt().getUrl() : null);
-			evt.put("occurredAt", OffsetDateTime.now(ZoneOffset.UTC).toString());
+			evt.put("occurredAt", Instant.now());
 
-			String corr = java.util.UUID.randomUUID().toString(); // 있으면 전달값 사용
-			paymentEventsPublisher.paymentResult(orderId.toString(), evt, corr, null);
+			paymentEventsPublisher.paymentResult(orderId.toString(), evt);
 
-			log.info("[payment] payment.result(SUCCESS) published. orderId={}", orderId);
+			log.info("[payment] payment.result(DONE) published. orderId={}", orderId);
 		} catch (Exception ex) {
-			log.error("[payment] payment.result publish failed (SUCCESS). orderId={}", orderId, ex);
+			log.error("[payment] payment.result publish failed (DONE). orderId={}", orderId, ex);
 		}
 
 		log.info(CommonCode.PAYMENT_COMPLETE.getMessage());
@@ -268,16 +277,20 @@ public class PaymentServiceImpl implements PaymentService {
 		orderClient.updateOrderStatus(orderId, customerId, PaymentStatus.FAILED);
 
 		try {
+
+			final String seed = orderId.toString() + "|payment.result|FAILED";
+			final UUID eventId = UUID.nameUUIDFromBytes(seed.getBytes(StandardCharsets.UTF_8));
+
 			Map<String, Object> evt = new HashMap<>();
-			evt.put("orderId", orderId.toString());
+			evt.put("eventId", eventId);
+			evt.put("orderId", orderId);
 			evt.put("status", "FAILED");
 			evt.put("amount", 0);
 			evt.put("errorCode", errorCode);
 			evt.put("errorMsg", errorMsg);
-			evt.put("occurredAt", OffsetDateTime.now(ZoneOffset.UTC).toString());
+			evt.put("occurredAt", Instant.now());
 
-			String corr = java.util.UUID.randomUUID().toString();
-			paymentEventsPublisher.paymentResult(orderId.toString(), evt, corr, null);
+			paymentEventsPublisher.paymentResult(orderId.toString(), evt);
 
 			log.info("[payment] payment.result(FAILED) published. orderId={}", orderId);
 		} catch (Exception ex) {
