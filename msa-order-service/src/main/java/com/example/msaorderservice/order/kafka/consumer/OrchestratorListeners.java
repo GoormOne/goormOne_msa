@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import com.example.common.entity.PaymentStatus;
 import com.example.msaorderservice.order.kafka.producer.OrderCommandPublisher;
 import com.example.msaorderservice.order.service.OrderService;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -29,15 +30,16 @@ public class OrchestratorListeners {
 	private final OrderCommandPublisher publisher;
 	private final OrderService orderService;
 
-	@KafkaListener(topics = "${topics.stock.inbound}")
+	@KafkaListener(topics = "${topics.stock.events}")
 	public void stockReservationResult(@Header("x-event-type") String type,
 		@Header(KafkaHeaders.RECEIVED_KEY) String key,
-		@Header(name = "x-correlation-id", required=false) String corr,
-		@Header(name = "x-causation-id", required = false)  String causationId,
+		@Header(name = "x-correlation-id", required = false) String corr,
+		@Header(name = "x-causation-id", required = false) String causationId,
 		String body,
 		Acknowledgment ack) throws Exception {
 
-		if (!"stock.reservation".equals(type)) return;
+		if (!"stock.reservation".equals(type))
+			return;
 
 		try {
 			var json = om.readTree(body);
@@ -60,11 +62,12 @@ public class OrchestratorListeners {
 			throw e;
 		}
 	}
-	@KafkaListener(topics = "${topics.payment.inbound}", groupId = "order-svc-grp")
+
+	@KafkaListener(topics = "${topics.payment.events}", groupId = "order-service-group")
 	public void paymentResult(@Header("x-event-type") String type,
 		@Header(KafkaHeaders.RECEIVED_KEY) String key,
-		@Header(name = "x-correlation-id", required=false) String corr,
-		@Header(name = "x-causation-id", required = false)  String causationId,
+		@Header(name = "x-correlation-id", required = false) String corr,
+		@Header(name = "x-causation-id", required = false) String causationId,
 		String body,
 		Acknowledgment ack) throws Exception {
 		try {
@@ -94,11 +97,51 @@ public class OrchestratorListeners {
 				corr,
 				cause
 			);
-			log.info("[order] payment.result consumed => payment.status.changed published. orderId={}, status={}, corr={}, cause={}",
+			log.info(
+				"[order] payment.result consumed => payment.status.changed published. orderId={}, status={}, corr={}, cause={}",
 				orderId, status, corr, cause);
 
 		} catch (Exception e) {
 			log.error("[order] Error while processing payment.result, type={}, key={}, body={}", type, key, body, e);
+			throw e;
+		}
+	}
+
+	@KafkaListener(topics = "${topics.stock.events}", groupId = "order-service-group")
+	public void stockResult(@Header("x-event-type") String type,
+		@Header(KafkaHeaders.RECEIVED_KEY) String key,
+		@Header(name = "x-correlation-id", required = false) String corr,
+		@Header(name = "x-causation-id", required = false) String causationId,
+		String body,
+		Acknowledgment ack) throws Exception {
+
+		final String correlationId = (corr == null || corr.isBlank() ? UUID.randomUUID().toString() : corr);
+
+		try {
+			switch (type) {
+				case "stock.finalized" -> {
+					JsonNode json = om.readTree(body);
+					String orderId = json.get("orderId").asText();
+					log.info("[Order] stock.finalized 수신 - orderId={}", orderId);
+					ack.acknowledge();
+				}
+
+				case "stock.shortage" -> {
+					JsonNode json = om.readTree(body);
+					String orderId = json.get("orderId").asText();
+
+					orderService.cancelDueToOutOfStock(UUID.fromString(orderId));
+
+					log.info("[Order] stock.shortage 처리 — orderId={} -> CANCELLED(OUT_OF_STOCK) & order.status.changed 발행", orderId);
+					ack.acknowledge();
+				}
+				default -> {
+					log.warn("[Order] 알 수 없는 stock 이벤트 type={}, key={}", type, key);
+					ack.acknowledge();
+				}
+			}
+		} catch (Exception e) {
+			log.error("[Order] stock 이벤트 처리 실패, type={}, key={}, body={}", type, key, body, e);
 			throw e;
 		}
 	}

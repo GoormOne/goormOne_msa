@@ -96,13 +96,11 @@ spring:
 
 topics:
   payment:
-    outbound: payment-outbound
-    inbound: payment-inbound
+    events: payment-events
   order:
-    inbound: order-inbound
+    events: order-events
   stock:
-    outbound: stock-outbound
-    inbound: stock-inbound
+    events: stock-events
   saga:
     dlt: saga-dlt
 

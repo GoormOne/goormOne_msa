@@ -565,4 +565,42 @@ public class OrderServiceImpl implements OrderService {
 			PaymentStatus.PENDING
 		);
 	}
+
+	@Override
+	@Transactional
+	public void cancelDueToOutOfStock(UUID orderId) {
+		OrderEntity order = orderRepository.findById(orderId)
+			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_NOT_FOUND));
+
+		if (order.getOrderStatus() == OrderStatus.CANCELED) {
+			log.info("[Order] 이미 취소된 주문. orderId={}", orderId);
+			return;
+		}
+
+		if (order.getOrderStatus() == OrderStatus.CONFIRMED ||
+			order.getOrderStatus() == OrderStatus.COOKING ||
+			order.getOrderStatus() == OrderStatus.DELIVERING ||
+			order.getOrderStatus() == OrderStatus.COMPLETED) {
+			log.warn("[Order] 이미 진행된 주문이 shortage 이벤트로 들어옴. orderId={}", orderId);
+			throw new BusinessException(CommonCode.ORDER_CANCEL_FAIL);
+		}
+
+		if (order.getPaymentStatus() == PaymentStatus.PAID) {
+		} else {
+			order.setPaymentStatus(PaymentStatus.FAILED);
+		}
+
+		// 주문 상태 변경
+		order.setOrderStatus(OrderStatus.CANCELED);
+		orderRepository.save(order);
+
+		// Audit 기록
+		orderAuditRepository.findById(orderId).ifPresent(a -> {
+			a.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+			a.setUpdatedBy(order.getCustomerId()); // 시스템 취소이지만 고객 ID로 기록
+			orderAuditRepository.save(a);
+		});
+
+		log.info("[Order] stock.shortage → 주문 취소 처리 완료. orderId={}", orderId);
+	}
 }

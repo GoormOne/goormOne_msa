@@ -6,11 +6,7 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
-import com.example.msapaymentservice.client.TossPaymentClient;
-import com.example.msapaymentservice.dto.PaymentFailRes;
 import com.example.msapaymentservice.dto.PaymentPrepareCommand;
-import com.example.msapaymentservice.dto.PaymentPrepareReq;
-import com.example.msapaymentservice.dto.PaymentSuccessRes;
 import com.example.msapaymentservice.kafka.producer.PaymentEventsPublisher;
 import com.example.msapaymentservice.service.PaymentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,16 +20,15 @@ import lombok.extern.slf4j.Slf4j;
 public class PaymentCommandsListener {
 
 
-	private final PaymentService paymentService;
 	private final PaymentEventsPublisher publisher;
 	private final ObjectMapper om;
 
-	@KafkaListener(topics = "${topics.payment.inbound}", groupId = "payment-svc-grp")
+	@KafkaListener(topics = "${topics.payment.events}", groupId = "payment-service-group")
 	public void onPaymentCommand(@Header("x-event-type") String type,
 		@Header(KafkaHeaders.RECEIVED_KEY) String key,
-		@Header(name="x-event-id", required=false) String eventId,           // 👈 커맨드의 event-id
+		@Header(name="x-event-id", required=false) String eventId,
 		@Header(name="x-correlation-id", required=false) String correlationId,
-		@Header(name="x-causation-id", required=false) String causationId,   // (있으면 전달됨)
+		@Header(name="x-causation-id", required=false) String causationId,
 		String body,
 		Acknowledgment ack) throws Exception {
 		try {
@@ -53,7 +48,7 @@ public class PaymentCommandsListener {
 
 			String corr = (correlationId == null || correlationId.isBlank())
 				? java.util.UUID.randomUUID().toString() : correlationId;
-			String cause = (eventId != null && !eventId.isBlank()) ? eventId : causationId; // 커맨드 event-id를 원인으로
+			String cause = (eventId != null && !eventId.isBlank()) ? eventId : causationId;
 
 			publisher.paymentPrepareAccepted(dto.getOrderId().toString(), accepted, corr, cause);
 
