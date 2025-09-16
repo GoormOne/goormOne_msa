@@ -35,9 +35,9 @@ public class StockSagaService {
 
     // ---------- Inbound 핸들러 ----------
     /** 1) 주문 생성: 재고 확인 없이 "예약만" 적립 */
-    public void onOrderCreated(OrderCreatedEvent evt) {
+    public void onOrderCreated(OrderCreatedEvent evt, String corr, String cause) {
         if (!redis.markProcessed(evt.getEventId())) {
-            log.info("[IDEMPOTENT] order.created already processed eventId={}", evt.getEventId());
+            log.info("[SAGA][SKIP] order.created already processed eventId={}", evt.getEventId());
             return;
         }
         log.info("[SAGA][ORDER.CREATED] orderId={} items{}",
@@ -47,8 +47,7 @@ public class StockSagaService {
         boolean allOk = true; // 항상 true가 예상됨
         for (OrderItem it : evt.getItems()) {
             if (!redis.reserve(evt.getOrderId(), it.getMenuId(), it.getQty())) {
-                allOk = false;
-                break;
+                allOk = false; break;
             }
         }
 
@@ -65,29 +64,31 @@ public class StockSagaService {
                 .reason(allOk ? null : "reserve failed (unexpected)")
                 .build();
 
-        producer.sendToStock(out, evt.getOrderId().toString(), out.getType());
-        log.info("[SAGA][ORDER.CREATED][DONE] orderId={} success={}", evt.getOrderId(), allOk);
+        producer.sendToStock(out, evt.getOrderId().toString(), out.getType(), corr, cause, null);
+        log.info("[SAGA][ORDER.CREATED] orderId={} reserved={} items={}", evt.getOrderId(), allOk, evt.getItems().size());
     }
 
     /** 2) 결제 상태 변경 */
-    public void onPaymentChanged(PaymentStatusChangedEvent evt) {
+    public void onPaymentChanged(PaymentStatusChangedEvent evt, String corr, String cause) {
         if (!redis.markProcessed(evt.getEventId())) {
             log.info("[SAGA][SKIP] payment.changed already processed eventId={}", evt.getEventId());
             return;
         }
-        log.info("[SAGA][PAYMENT.CHANGED] orderId={} {}->{}", evt.getOrderId(), evt.getFromStatus(), evt.getToStatus());
+        log.info("[SAGA][PAYMENT.CHANGED] orderId={} status={}", evt.getOrderId(), evt.getStatus());
 
-        if (evt.getFromStatus() == PaymentStatus.PENDING && evt.getToStatus() == PaymentStatus.PAID) {
+        if (evt.getStatus() == PaymentStatus.PAID) {
             boolean allOk = true;
+            List<OrderItem> items = redis.getOrderItems(evt.getOrderId());
             List<OrderItem> succeeded = new ArrayList<>();
 
-            for (OrderItem it : evt.getItems()) {
+            for (OrderItem it : items) {
                 UUID menuId = it.getMenuId();
                 int qty = it.getQty();
 
                 // 1) Redis finalize(실재고/예약 검증 + 원자 차감)
-                boolean ok = redis.finalizeItem(evt.getOrderId(), menuId, qty);
-                if (!ok) { allOk = false; break; }
+                if (!redis.finalizeItem(evt.getOrderId(), menuId, qty)) {
+                    allOk = false; break;
+                }
 
                 // 2) DB write-through (무한 재고는 DB 차감 생략)
                 try {
@@ -103,94 +104,86 @@ public class StockSagaService {
             }
 
             if (allOk) {
-                StockFinalizedEvent out = StockFinalizedEvent.builder()
+                var out = StockFinalizedEvent.builder()
                         .type(STOCK_FINALIZED)
                         .eventId(UUID.randomUUID())
                         .orderId(evt.getOrderId())
                         .storeId(evt.getStoreId())
                         .occurredAt(Instant.now())
-                        .customerId(evt.getCustomerId())
-                        .ownerId(evt.getOwnerId())
-                        .items(evt.getItems())
+                        .items(items)
                         .build();
-                producer.sendToStock(out, evt.getOrderId().toString(), out.getType());
-                log.info("[SAGA][FINALIZE][OK] orderId={}", evt.getOrderId());
+                producer.sendToStock(out, evt.getOrderId().toString(), out.getType(), corr, cause, null);
+                log.info("[SAGA][FINALIZE][OK] orderId={} items={}", evt.getOrderId(), items.size());
             } else {
-                // 보상 + 전체 예약 해제 + shortage 발행
+                // 보상 + 전체 예약 해제 + shortage
                 for (OrderItem it : succeeded) {
                     try {
                         redis.compensateFinalize(evt.getOrderId(), it.getMenuId(), it.getQty());
-                        // DB는 finalizeDecrease가 성공했던 품목만 복원 시도(보수적으로 모두 시도)
                         MenuInventory inv = menuInventoryRepository.findById(it.getMenuId()).orElse(null);
                         if (inv != null && !inv.isInfiniteStock()) writeThrough.restoreIncrease(it.getMenuId(), it.getQty());
                     } catch (Exception e) {
-                        log.error("[SAGA][COMPENSATE][ERR] orderId={} menuId={} qty={} err={}",
-                                evt.getOrderId(), it.getMenuId(), it.getQty(), e.toString());
+                        log.error("[SAGA][COMPENSATE][ERR] orderId={} it={} err={}", evt.getOrderId(), it, e.toString());
                     }
                 }
-                for (OrderItem it : evt.getItems()) {
+                for (OrderItem it : items) {
                     redis.release(evt.getOrderId(), it.getMenuId(), it.getQty());
                 }
-
-                StockShortageEvent shortage = StockShortageEvent.builder()
+                var shortage = StockShortageEvent.builder()
                         .type(STOCK_SHORTAGE)
                         .eventId(UUID.randomUUID())
                         .orderId(evt.getOrderId())
                         .storeId(evt.getStoreId())
                         .occurredAt(Instant.now())
-                        .customerId(evt.getCustomerId())
-                        .ownerId(evt.getOwnerId())
-                        .items(evt.getItems())
+                        .items(items)
                         .message("shortage at finalize (paid)")
                         .build();
-                producer.sendToStock(shortage, evt.getOrderId().toString(), shortage.getType());
+                producer.sendToStock(shortage, evt.getOrderId().toString(), shortage.getType(), corr, cause, null);
                 log.info("[SAGA][FINALIZE][SHORTAGE] orderId={}", evt.getOrderId());
             }
-        }
-
-        if (evt.getFromStatus() == PaymentStatus.PENDING && evt.getToStatus() == PaymentStatus.FAILED) {
-            // 예약 유지(재시도 고려). 로그만 남김.
-            log.info("[SAGA][PAYMENT.FAILED] orderId={} keep reservations", evt.getOrderId());
+        } else if (evt.getStatus() == PaymentStatus.FAILED) {
+            log.info("[SAGA][PAYMENT.FAILED] orderId={} (keep reservations)", evt.getOrderId());
+        } else {
+            log.debug("[SAGA][PAYMENT.IGNORED] orderId={} status={}", evt.getOrderId(), evt.getStatus());
         }
     }
 
     /** 3) 주문 상태 변경 */
-    public void onOrderStatusChanged(OrderStatusChangedEvent evt) {
+    public void onOrderStatusChanged(OrderStatusChangedEvent evt, String corr, String cause) {
         if (!redis.markProcessed(evt.getEventId())) {
             log.info("[SAGA][SKIP] order.status.changed already processed eventId={}", evt.getEventId());
             return;
         }
-        log.info("[SAGA][ORDER.STATUS] orderId={} {}->{} (payment={})",
-                evt.getOrderId(), evt.getFromStatus(), evt.getToStatus(), evt.getPaymentStatus());
+        log.info("[SAGA][ORDER.STATUS] orderId={} status={} (payment={})",
+                evt.getOrderId(), evt.getStatus(), evt.getPaymentStatus());
 
-        if (evt.getFromStatus() == OrderStatus.PENDING && evt.getToStatus() == OrderStatus.CONFIRMED) {
+        if (evt.getStatus() == OrderStatus.CONFIRMED) {
             log.debug("[SAGA][ORDER.CONFIRMED] orderId={} (no-op)", evt.getOrderId());
+            return;
         }
 
-        if (evt.getFromStatus() == OrderStatus.PENDING && evt.getToStatus() == OrderStatus.CANCELED) {
-            if (evt.getPaymentStatus() == PaymentStatus.PAID) {
-                for (OrderItem it : evt.getItems()) {
-                    // Redis actual 복구 + DB 복구
-                    redis.incrementActual(it.getMenuId(), it.getQty());
-                    try { writeThrough.restoreIncrease(it.getMenuId(), it.getQty()); }
-                    catch (Exception e) {
-                        log.error("[SAGA][RESTORE][DB-FAIL] orderId={} menuId={} qty={} err={}",
-                                evt.getOrderId(), it.getMenuId(), it.getQty(), e.toString());
-                    }
+        if (evt.getStatus() == OrderStatus.CANCELED &&
+                evt.getPaymentStatus() == PaymentStatus.PAID) {
+
+            // Redis/DB 재회복: 장부 기반으로 복원 수량 산출
+            List<OrderItem> ledger = redis.getOrderItems(evt.getOrderId());
+            for (OrderItem it : ledger) {
+                redis.incrementActual(it.getMenuId(), it.getQty());
+                try { writeThrough.restoreIncrease(it.getMenuId(), it.getQty()); }
+                catch (Exception e) {
+                    log.error("[SAGA][RESTORE][DB-FAIL] orderId={} menuId={} qty={} err={}",
+                            evt.getOrderId(), it.getMenuId(), it.getQty(), e.toString());
                 }
-                StockFinalizedEvent restored = StockFinalizedEvent.builder()
-                        .type(STOCK_RESTORED)
-                        .eventId(UUID.randomUUID())
-                        .orderId(evt.getOrderId())
-                        .storeId(evt.getStoreId())
-                        .occurredAt(Instant.now())
-                        .customerId(evt.getCustomerId())
-                        .ownerId(evt.getOwnerId())
-                        .items(evt.getItems())
-                        .build();
-                producer.sendToStock(restored, evt.getOrderId().toString(), restored.getType());
-                log.info("[SAGA][RESTORED] orderId={}", evt.getOrderId());
             }
+            var restored = StockFinalizedEvent.builder()
+                    .type(STOCK_RESTORED)
+                    .eventId(UUID.randomUUID())
+                    .orderId(evt.getOrderId())
+                    .storeId(evt.getStoreId())
+                    .occurredAt(Instant.now())
+                    .items(ledger)
+                    .build();
+            producer.sendToStock(restored, evt.getOrderId().toString(), restored.getType(), corr, cause, null);
+            log.info("[SAGA][RESTORED] orderId={} items={}", evt.getOrderId(), ledger.size());
         }
     }
 }

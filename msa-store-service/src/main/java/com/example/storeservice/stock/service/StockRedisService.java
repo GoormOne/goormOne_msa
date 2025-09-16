@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.example.storeservice.stock.model.OrderItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
@@ -40,9 +41,10 @@ public class StockRedisService {
 
     // === Idempotency ===
     public boolean markProcessed(UUID eventId) {
+        if (eventId == null) return true; // 헤더만 있는 이벤트와 호환
         Long added = redis.opsForSet().add(kProcessed(), eventId.toString());
         boolean first = added != null && added > 0;
-        log.debug("[IDEMPOTENCY] eventId={} firstProcess={}", eventId, first);
+        log.debug("[IDEMPOTENCY] eventId={} first={}", eventId, first);
         return first;
     }
 
@@ -154,13 +156,15 @@ public class StockRedisService {
                 menuId.toString(), Integer.toString(qty));
     }
 
-    // 헬퍼
-    public Map<UUID,Integer> getOrderLedger(UUID orderId) {
+    /** 주문 장부를 items 리스트로 복원 */
+    public List<OrderItem> getOrderItems(UUID orderId) {
         Map<Object,Object> m = redis.opsForHash().entries(kOrder(orderId));
-        return m.entrySet().stream().collect(Collectors.toMap(
-                e -> UUID.fromString(e.getKey().toString()),
-                e -> Integer.parseInt(e.getValue().toString())
-        ));
+        return m.entrySet().stream()
+                .map(e -> OrderItem.builder()
+                        .menuId(UUID.fromString(e.getKey().toString()))
+                        .qty(Integer.parseInt(e.getValue().toString()))
+                        .build())
+                .collect(Collectors.toList());
     }
 
     public void incrementActual(UUID menuId, int qty) {
