@@ -32,6 +32,9 @@ public enum CommonCode {
     // ✅ 서버 오류
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 5000, "서버 오류"),
 
+    // 메뉴 관련 오류
+    MENU_NOT_FOUND(HttpStatus.NOT_FOUND, 4305, "해당 메뉴를 찾지 못했습니다."),
+
     // ✅ 재고 관련 오류
     INVENTORY_NOT_FOUND(HttpStatus.NOT_FOUND, 4300, "재고 정보를 찾을 수 없습니다."),
     OUT_OF_STOCK(HttpStatus.BAD_REQUEST, 4301, "재고가 부족합니다."),

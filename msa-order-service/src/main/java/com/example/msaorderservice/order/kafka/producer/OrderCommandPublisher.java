@@ -21,8 +21,11 @@ public class OrderCommandPublisher {
 	@Value("${topics.order.events}")
 	private String order;
 
-	@Value("${topics.payment.events}")
+	@Value("${topics.payment.commands}")
 	private String payment;
+
+	// @Value("${topics.payment.events}")
+	// private String payment;
 
 	@Value("${topics.stock.events}")
 	private String stock;
@@ -63,18 +66,6 @@ public class OrderCommandPublisher {
 		kafkaTemplate.send(msg);
 	}
 
-	public void sendInventoryReserve(String orderId, Object envelope) throws Exception {
-		String payload = om.writeValueAsString(envelope);
-		var msg = MessageBuilder.withPayload(payload)
-			.setHeader(KafkaHeaders.TOPIC, stock)
-			.setHeader(KafkaHeaders.KEY, orderId)
-			.setHeader("x-event-type", "InventoryReserveCommand")
-			.setHeader("x-event-version", "1")
-			.setHeader("x-producer", "order-service")
-			.build();
-		kafkaTemplate.send(msg);
-	}
-
 	public void orderStatusChanged(String orderId, Object envelope) throws Exception {
 		String payload = om.writeValueAsString(envelope);
 		var msg = MessageBuilder.withPayload(payload)
@@ -97,16 +88,5 @@ public class OrderCommandPublisher {
 			.setHeader("x-producer", "order-service")
 			.build();
 		kafkaTemplate.send(msg);
-	}
-
-
-	public void publishOrderCompleted(String orderId, Object envelope) throws Exception {
-		String payload = om.writeValueAsString(envelope);
-		kafkaTemplate.send(order, orderId, payload);
-	}
-
-	public void publishOrderFailed(String orderId, Object envelope) throws Exception {
-		String payload = om.writeValueAsString(envelope);
-		kafkaTemplate.send(order, orderId, payload);
 	}
 }

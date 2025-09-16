@@ -22,7 +22,7 @@ public class KafkaTopicConfig {
 	}
 
 	@Bean
-	public NewTopic paymentCommandTopic(@Value("${topics.payment.events}") String name) {
+	public NewTopic paymentCommandTopic(@Value("${topics.payment.commands}") String name) {
 		return TopicBuilder.name(name)
 			.partitions(3)
 			.replicas(1)

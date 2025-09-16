@@ -32,7 +32,7 @@ import static com.example.storeservice.stock.StockTypes.*;
 @RequiredArgsConstructor
 public class StockSagaListener {
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
     private final TopicRegistry topics;
     private final StockSagaService saga;
 
