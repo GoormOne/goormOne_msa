@@ -113,6 +113,9 @@ topics:
   stock:
     events: stock-events
 
+stock:
+  sync-on-start: true
+
 app:
   chat:
     requestStream: chat:requests
