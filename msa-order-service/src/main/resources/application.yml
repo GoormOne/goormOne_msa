@@ -96,6 +96,7 @@ spring:
 
 topics:
   payment:
+    commands: payment-commands
     events: payment-events
   order:
     events: order-events
