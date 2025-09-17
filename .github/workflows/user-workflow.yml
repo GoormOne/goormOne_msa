@@ -46,11 +46,33 @@ jobs:
           IMAGE_TAG: ${{ steps.vars.outputs.sha_short }}
         run: |
           chmod +x ./gradlew && ./gradlew :${{ env.SERVICE_DIR }}:build --no-daemon
-          docker buildx build --platform linux/amd64 \
-            -t "${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}" \
-            -f ./${{ env.SERVICE_DIR }}/Dockerfile . \
-            --push
-          echo "image_sha=${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+
+            # Build with SHA tag
+            docker buildx build --platform linux/amd64 \
+              -t "${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}" \
+              -f ./${{ env.SERVICE_DIR }}/Dockerfile . \
+              --push
+
+            # Tag also as 'dev'
+            docker tag "${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}" \
+                       "${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:dev"
+            docker push "${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:dev"
+
+            # GitHub Action output (sha image uri)
+            echo "image_sha=${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+
+#      - name: Build, tag, and push Docker image
+#        id: build-image
+#        env:
+#          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#          IMAGE_TAG: ${{ steps.vars.outputs.sha_short }}
+#        run: |
+#          chmod +x ./gradlew && ./gradlew :${{ env.SERVICE_DIR }}:build --no-daemon
+#          docker buildx build --platform linux/amd64 \
+#            -t "${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}" \
+#            -f ./${{ env.SERVICE_DIR }}/Dockerfile . \
+#            --push
+#          echo "image_sha=${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
 #  setup-eks:
 #    runs-on: ubuntu-latest
