@@ -26,7 +26,7 @@ public class KafkaJsonProducer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final TopicRegistry topics;
-    private final ObjectMapper om = new ObjectMapper();
+    private final ObjectMapper om;
 
     public void sendToStock(
             Object payload,

@@ -57,6 +57,12 @@ public class KafkaConfig {
 		DefaultErrorHandler errorHandler = new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 3));
 		factory.setCommonErrorHandler(errorHandler);
 
+		factory.setRecordFilterStrategy(rec -> {
+			var h = rec.headers().lastHeader("x-event-type");
+			String type = (h == null) ? "" : new String(h.value(), java.nio.charset.StandardCharsets.UTF_8);
+			return "payment.prepare.accepted".equals(type); // true면 DROP(+자동 ack)
+		});
+
 		factory.getContainerProperties().setAckMode(
 			ContainerProperties.AckMode.MANUAL
 		);

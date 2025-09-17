@@ -104,6 +104,10 @@ public class OrderServiceImpl implements OrderService {
 		for (CartItemEntity ci : cartItems) {
 			MenuLookUp menu = menuClient.getMenuDetail(storeId,ci.getMenuId());
 
+			if (menu == null) {
+				throw new BusinessException(CommonCode.MENU_NOT_FOUND);
+			}
+
 			int unitPrice = menu.getMenuPrice();
 			int qty = ci.getQuantity();
 
@@ -127,20 +131,20 @@ public class OrderServiceImpl implements OrderService {
 			));
 		}
 
-		List<OrderItemEntity> reserved = new ArrayList<>();
-		try{
-			for (OrderItemEntity item : toSave) {
-				menuInventoryClient.reserve(item.getMenuId(), item.getQuantity());
-				reserved.add(item);
-			}
-		} catch(Exception e){
-			for (OrderItemEntity item : reserved) {
-				try {
-					menuInventoryClient.release(item.getMenuId(), item.getQuantity());
-				} catch (Exception ignore) {}
-			}
-			throw new BusinessException(CommonCode.RESERVED_FAIL_RETRY);
-		}
+		// List<OrderItemEntity> reserved = new ArrayList<>();
+		// try{
+		// 	for (OrderItemEntity item : toSave) {
+		// 		menuInventoryClient.reserve(item.getMenuId(), item.getQuantity());
+		// 		reserved.add(item);
+		// 	}
+		// } catch(Exception e){
+		// 	for (OrderItemEntity item : reserved) {
+		// 		try {
+		// 			menuInventoryClient.release(item.getMenuId(), item.getQuantity());
+		// 		} catch (Exception ignore) {}
+		// 	}
+		// 	throw new BusinessException(CommonCode.RESERVED_FAIL_RETRY);
+		// }
 
 		order.setTotalPrice(total);
 
@@ -187,6 +191,8 @@ public class OrderServiceImpl implements OrderService {
 						oid.toString(),
 						envelope
 					);
+
+					log.info("[Saga] order.created publish success. orderId={}", oid);
 				} catch (Exception e) {
 					log.error("[Saga] order.created publish failed. orderId={}", oid, e);
 				}
@@ -574,7 +580,7 @@ public class OrderServiceImpl implements OrderService {
 					Map<String, Object> envelope = new HashMap<>();
 					envelope.put("orderId", order.getOrderId());
 					envelope.put("status", OrderStatus.CANCELED);
-					envelope.put("pamentStatus", order.getPaymentStatus());
+					envelope.put("paymentStatus", order.getPaymentStatus());
 					envelope.put("occurredAt", Instant.now());
 					envelope.put("changedAt", updatedAt.toInstant());
 
@@ -631,14 +637,14 @@ public class OrderServiceImpl implements OrderService {
 				public void afterCommit() {
 					try {
 						Map<String, Object> refundReq = new HashMap<>();
-						refundReq.put("eventId", UUID.randomUUID().toString());
-						refundReq.put("orderId", orderId.toString());
-						refundReq.put("customerId", order.getCustomerId().toString());
+						refundReq.put("eventId", UUID.randomUUID());
+						refundReq.put("orderId", orderId);
+						refundReq.put("customerId", order.getCustomerId());
 						refundReq.put("reason", "OUT_OF_STOCK");
 						refundReq.put("occurredAt", Instant.now());
 
 						publisher.paymentCancelRequested(orderId.toString(), refundReq);
-						log.info("[Order] payment.cancel.requested 발행 완료. orderId={}", orderId);
+						log.info("[Order] payment.cancel.requested 발행 완료. orderId={}, refundReq={}", orderId, refundReq);
 					} catch (Exception e) {
 						log.error("[Order] payment.cancel.requested 발행 실패. orderId={}", orderId, e);
 					}
