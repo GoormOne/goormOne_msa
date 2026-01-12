@@ -67,8 +67,8 @@ spring:
   cloud:
     aws:
       credentials:
-        accessKey: AKIAXETF2IMIKHLD6BEJ
-        secretKey: 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
+        accessKey:
+        secretKey: 
       s3:
         bucket: groom-team-1-image-bucket
       region:
