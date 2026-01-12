@@ -33,16 +33,19 @@ public class paymentController {
 	private final PaymentService paymentService;
 
 	@GetMapping("/checkout")
-	public ResponseEntity<OrderCheckoutView> checkout(
+	public ResponseEntity<?> checkout(
 		@RequestHeader(value = "X-User-Id", required = false) UUID customerIdHeader,
 		@RequestParam(value = "customerId", required = false) UUID customerIdParam,
-		@RequestParam UUID orderId
+		@RequestParam(value = "orderId", required = false) UUID orderId
 	) {
 		UUID customerId = (customerIdHeader != null) ? customerIdHeader : customerIdParam;
-		if (customerId == null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "customerId is required");
+		if (customerId == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "customerId is required");
+
+		if (orderId != null) {
+			return ResponseEntity.ok(paymentService.getCheckout(customerId, orderId));
 		}
-		return ResponseEntity.ok(paymentService.getCheckout(customerId, orderId));
+
+		return paymentService.redirectToCheckout(customerId);
 	}
 
 	@PostMapping("/{paymentKey}/cancel")

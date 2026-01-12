@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 
 @EnableCaching
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.example")
 public class MsaOrderServiceApplication {
 
 	public static void main(String[] args) {

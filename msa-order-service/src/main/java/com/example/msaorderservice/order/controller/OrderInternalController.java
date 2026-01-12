@@ -20,7 +20,10 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.common.dto.OrderCheckoutView;
 import com.example.common.dto.PaymentStatusUpdatedReq;
 import com.example.common.entity.PaymentStatus;
+import com.example.common.exception.BusinessException;
+import com.example.common.exception.CommonCode;
 import com.example.msaorderservice.cart.service.CartService;
+import com.example.msaorderservice.order.dto.LatestPendingOrderRes;
 import com.example.msaorderservice.order.entity.OrderEntity;
 import com.example.msaorderservice.order.entity.OrderItemEntity;
 
@@ -28,6 +31,7 @@ import com.example.msaorderservice.order.repository.OrderAuditRepository;
 import com.example.msaorderservice.order.repository.OrderItemRepository;
 import com.example.msaorderservice.order.repository.OrderRepository;
 import com.example.msaorderservice.order.client.StoreClient;
+import com.example.msaorderservice.order.service.OrderService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -41,6 +45,7 @@ public class OrderInternalController {
 	private final OrderAuditRepository orderAuditRepository;
 	private final StoreClient storeClient;
 	private final CartService cartService;
+	private final OrderService orderService;
 
 	@GetMapping("/{orderId}/checkout")
 	public OrderCheckoutView getOrderForCheckout(@PathVariable UUID orderId,
@@ -75,6 +80,14 @@ public class OrderInternalController {
 					.build()
 			).toList())
 			.build();
+	}
+
+	@GetMapping("/latest-pending")
+	public ResponseEntity<LatestPendingOrderRes> getLastPending(@RequestHeader("X-User-Id") UUID customerId) {
+		var order = orderService.findLatestPendingOrder(customerId)
+			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_IS_NOT_PENDING));
+
+		return ResponseEntity.ok(new LatestPendingOrderRes(order.getOrderId()));
 	}
 
 	@PatchMapping("/{orderId}/status")

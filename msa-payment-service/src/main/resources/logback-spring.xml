@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Spring Boot 색상/스택트레이스 컨버터 -->
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+
+    <property name="LOG_DIR" value="logs"/>
+
+    <!-- 콘솔: 컬러 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %clr([%thread]){faint} %clr(%-5level) %clr(%logger{36}){cyan}%replace(%X{paymentId:-}){'^(.+)$',' paymentId:$1'} %replace(%X{orderId:-}){'^(.+)$',' orderId:$1'} - %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 파일: 롤링 + 무채색 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/iluDev.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/paymentLog.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg %replace(%X{paymentId:-}){'^(.+)$',' paymentId=$1'} %replace(%X{orderId:-}){'^(.+)$',' [orderId=$1]'}%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <logger name="com.example" level="INFO"/>
+    <logger name="org.springframework" level="WARN"/>
+</configuration>

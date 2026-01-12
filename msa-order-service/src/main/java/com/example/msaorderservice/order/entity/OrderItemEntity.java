@@ -29,7 +29,7 @@ import lombok.Setter;
 public class OrderItemEntity {
 
 	@Id
-	@org.hibernate.annotations.Generated(org.hibernate.annotations.GenerationTime.INSERT)
+	@GeneratedValue
 	@Column(name = "order_item_id", columnDefinition = "uuid", nullable = false)
 	private UUID orderItemId;
 

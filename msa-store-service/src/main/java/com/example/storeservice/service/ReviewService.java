@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -44,6 +45,14 @@ public class ReviewService {
             throw new EntityNotFoundException("Review not found");
         }
         return reviewQueryRepository.save(reviewQuery);
+    }
+
+    @Transactional
+    public void updateAnswer(UUID questionId, String answer) {
+        int updated = reviewQueryRepository.updateAnswer(questionId, answer);
+        if (updated == 0) {
+            throw new EntityNotFoundException("No ReviewQuery with id " + questionId);
+        }
     }
 
 }

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -42,7 +43,7 @@ public class ReviewQueryJobConfiguration {
                 .<List<ReviewQueryFlatRow>, List<ReviewQueryEntity>>chunk(1, transactionManager)
                 .reader(QueryFlatRowsPageReader())
                 .processor(this::queryToDocuments)
-                .writer(docsChunk -> {                 // docsChunk = List<List<AiDocumentEntity>>
+                .writer(docsChunk -> {
                     if (docsChunk.isEmpty()) return;
                     reviewQueryRepository.saveAll(docsChunk.getItems().get(0));
                 })
@@ -51,6 +52,7 @@ public class ReviewQueryJobConfiguration {
 
 
     @Bean
+    @StepScope
     public ItemStreamReader<List<ReviewQueryFlatRow>> QueryFlatRowsPageReader() {
         return new QueryFlatRowsPageReader(storeRepository, 100);
     }

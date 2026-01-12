@@ -14,7 +14,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
 import java.nio.charset.StandardCharsets;
 import org.springframework.web.client.HttpStatusCodeException;
-
+import com.example.common.exception.CommonCode;
 import com.example.msapaymentservice.dto.TossConfirmReq;
 import com.example.msapaymentservice.dto.TossPaymentRes;
 
@@ -53,6 +53,8 @@ public class TossPaymentClient {
 		headers.set("Idempotency-Key", paymentKey);
 
 		HttpEntity<TossConfirmReq> entity = new HttpEntity<>(body, headers);
+
+		log.info(CommonCode.PAYMENT_SUCCESS.getMessage());
 
 		try {
 			ResponseEntity<TossPaymentRes> resp =

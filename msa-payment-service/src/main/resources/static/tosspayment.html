@@ -89,6 +89,7 @@
 </div>
 
 <script>
+  const PAYMENT_API_BASE = "http://localhost:8086";
   const ORIGIN = location.origin;
 
   // URL 파라미터
@@ -104,7 +105,7 @@
 
   // API 경로
   const CHECKOUT_API = (orderId, customerId) =>
-          `/payments/checkout?orderId=${encodeURIComponent(orderId)}&customerId=${encodeURIComponent(customerId)}`;
+          `${PAYMENT_API_BASE}/payments/checkout?orderId=${encodeURIComponent(orderId)}&customerId=${encodeURIComponent(customerId)}`;
   const ORDER_CANCEL_API = (orderId) =>
           `/orders/${encodeURIComponent(orderId)}/cancel`;
 

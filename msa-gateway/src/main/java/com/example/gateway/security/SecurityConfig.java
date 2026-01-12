@@ -37,14 +37,31 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> {}) // 아래 corsConfigurationSource() 사용
                 .authorizeExchange(ex -> ex
+                        .pathMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .pathMatchers(
                                 "/actuator/**",
                                 "/health/**",
                                 "/auth/**",
                                 "/users/**",
                                 "/internal/auth/**",
-                                "/stores/**"
+                                "/stores/**",
+                                "/carts/**",
+                                "/orders/**",
+                                "/payments/**",
+                                "/internal/**",
+                                "/tosspayment.html/**"
                         ).permitAll()
+                        .pathMatchers(
+                            "/swagger-ui.html",
+                            "/swagger-ui/**",
+                            "/webjars/**",
+                            "/v3/api-docs",
+                            "/v3/api-docs/**",
+                            "/v3/api-docs/swagger-config",
+                            "/*/v3/api-docs",           // /orders/v3/api-docs 등
+                            "/*/v3/api-docs/**"
+                        ).permitAll()
+                        .pathMatchers("/actuator/**", "/health/**").permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -65,7 +82,7 @@ public class SecurityConfig {
         conf.setAllowedOriginPatterns(List.of("*"));
         conf.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         conf.setAllowedHeaders(List.of(
-                "Authorization", "Content-Type",
+                "Authorization", "Content-Type", "Accept",
                 "X-Groups", "X-User-Id", "X-User-Name", "X-User-Roles", "X-Email"
         ));
         conf.setExposedHeaders(List.of(

@@ -58,7 +58,7 @@ public class MenuCategoryController {
             @PathVariable("storeId") UUID storeId,
             @Valid  @RequestBody MenuCategoryDto mCategoryDto) {
         // todo - 요청자 ownerId 파싱
-        String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";
+        String ownerId = "e4e80d9c-b0a1-7062-71ac-d95f6e6e1e06";
         UUID ownerUUID = UUID.fromString(ownerId);
 
 
@@ -81,7 +81,7 @@ public class MenuCategoryController {
             @PathVariable("menuCategoryId") UUID menuCategoryId,
             @PathVariable("storeId") UUID storeId) {
         // todo - 요청자 ownerId 파싱
-        String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";
+        String ownerId = "e4e80d9c-b0a1-7062-71ac-d95f6e6e1e06";
         UUID ownerUUID = UUID.fromString(ownerId);
 
         //스토어-메뉴카테고리 관계 확인

@@ -1,11 +1,14 @@
 package com.example.msaorderservice.order.service;
 
+import java.time.Duration;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.example.msaorderservice.order.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.example.msaorderservice.order.entity.OrderEntity;
 import com.example.msaorderservice.order.entity.OrderStatus;
 import org.springframework.hateoas.PagedModel;
 
@@ -26,4 +29,8 @@ public interface OrderService {
 	CustomerOrderDetailRes cancelMyOrder(UUID customerId, UUID orderId);
 
 	OwnerOrderDetailRes cancelStoreOrder(UUID ownerId, UUID storeId, UUID orderId);
+
+	Optional<OrderEntity> findLatestPendingOrder(UUID customerId);
+
+	void cancelDueToOutOfStock(UUID orderId);
 }

@@ -79,7 +79,7 @@ public class MenuController {
             @Valid @RequestPart("menuDto") CreateMenuDto menuDto){
 
         //TODO -- 시큐리티컨텍스트에서 파싱
-        UUID ownerId = UUID.fromString("ac1adfde-f740-4c27-8c9a-2f0acfc4a0f4");
+        UUID ownerId = UUID.fromString("e4e80d9c-b0a1-7062-71ac-d95f6e6e1e06");
 
         Menu menu = CreateMenuDto.toEntity(menuDto,storeId);
 
@@ -105,7 +105,7 @@ public class MenuController {
     ){
 
         // todo - 요청자 ownerId 파싱
-        String ownerId = "2ae528d0-1414-4cf3-ac1d-e8ff642c9056";
+        String ownerId = "e4e80d9c-b0a1-7062-71ac-d95f6e6e1e06";
         UUID ownerUUID = UUID.fromString(ownerId);
 
         // service에서 메뉴와 상점 일치 여부 확인함
@@ -124,7 +124,7 @@ public class MenuController {
             @Valid @RequestPart("menuDto") MenuDto menuDto,
             @RequestPart("file") MultipartFile file
             ){
-        String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";
+        String ownerId = "e4e80d9c-b0a1-7062-71ac-d95f6e6e1e06";
         UUID ownerUUID = UUID.fromString(ownerId);
 
         Menu menu = menuService.getMenu(menuDto.getMenuId(), storeId);

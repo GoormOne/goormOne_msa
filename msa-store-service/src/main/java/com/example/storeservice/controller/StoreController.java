@@ -68,7 +68,7 @@ public class StoreController {
             @PathVariable("storeId") UUID storeId){
 
         // TODO: JWT에서 ownerId 추출
-        String ownerId = "a23b2047-a11e-4ec4-a16b-e82a5ff70636";
+        String ownerId = "e4e80d9c-b0a1-7062-71ac-d95f6e6e1e06";
         UUID ownerUuid = UUID.fromString(ownerId);
 
         UUID deletedId = storeService.deleteStore(storeId, ownerUuid);

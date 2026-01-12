@@ -1,5 +1,8 @@
 package com.example.msaorderservice.order.service;
 
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -7,17 +10,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.example.common.exception.BusinessException;
+import com.example.common.exception.CommonCode;
 import com.example.msaorderservice.order.dto.*;
 import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.MDC;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.PagedModel;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.example.common.entity.PaymentStatus;
 import com.example.msaorderservice.cart.dto.MenuLookUp;
@@ -37,6 +47,7 @@ import com.example.msaorderservice.order.entity.OrderAuditEntity;
 import com.example.msaorderservice.order.entity.OrderEntity;
 import com.example.msaorderservice.order.entity.OrderItemEntity;
 import com.example.msaorderservice.order.entity.OrderStatus;
+import com.example.msaorderservice.order.kafka.producer.OrderCommandPublisher;
 import com.example.msaorderservice.order.repository.OrderAuditRepository;
 import com.example.msaorderservice.order.repository.OrderItemRepository;
 import com.example.msaorderservice.order.repository.OrderRepository;
@@ -60,17 +71,23 @@ public class OrderServiceImpl implements OrderService {
 	private final StoreClient storeClient;
 	private final MenuInventoryClient menuInventoryClient;
 	private final PaymentClient paymentClient;
+	private final OrderCommandPublisher publisher;
 
 	@Override
 	@Transactional
 	public OrderCreateRes createOrder(UUID customerId, OrderCreateReq req) {
+		if (orderRepository.existsByCustomerIdAndPaymentStatus(customerId, PaymentStatus.PENDING)) {
+			throw new BusinessException(CommonCode.ORDER_IS_NOT_PAID);
+		}
+
 		CartEntity cart = cartRepository.findFirstByCustomerId(customerId)
-			.orElseThrow(() -> new IllegalStateException("장바구니가 없습니다."));
+			.orElseThrow(() -> new BusinessException(CommonCode.CART_NOT_FOUND));
 		var cartItems = cartItemRepository.findByCartId(cart.getCartId(), Pageable.unpaged()).getContent();
 		if (cartItems.isEmpty())
-			throw new IllegalStateException("장바구니가 비어 있습니다.");
+			throw new BusinessException(CommonCode.CART_ITEM_NOT_FOUND);
 
 		UUID storeId = cart.getStoreId();
+
 
 		OrderEntity order = new OrderEntity();
 		order.setCustomerId(customerId);
@@ -86,6 +103,10 @@ public class OrderServiceImpl implements OrderService {
 		int total = 0;
 		for (CartItemEntity ci : cartItems) {
 			MenuLookUp menu = menuClient.getMenuDetail(storeId,ci.getMenuId());
+
+			if (menu == null) {
+				throw new BusinessException(CommonCode.MENU_NOT_FOUND);
+			}
 
 			int unitPrice = menu.getMenuPrice();
 			int qty = ci.getQuantity();
@@ -110,20 +131,20 @@ public class OrderServiceImpl implements OrderService {
 			));
 		}
 
-		List<OrderItemEntity> reserved = new ArrayList<>();
-		try{
-			for (OrderItemEntity item : toSave) {
-				menuInventoryClient.reserve(item.getMenuId(), item.getQuantity());
-				reserved.add(item);
-			}
-		} catch(Exception e){
-			for (OrderItemEntity item : reserved) {
-				try {
-					menuInventoryClient.release(item.getMenuId(), item.getQuantity());
-				} catch (Exception ignore) {}
-			}
-			throw new IllegalStateException("재고 예약에 실패했습니다. 다시 시도해주세요.");
-		}
+		// List<OrderItemEntity> reserved = new ArrayList<>();
+		// try{
+		// 	for (OrderItemEntity item : toSave) {
+		// 		menuInventoryClient.reserve(item.getMenuId(), item.getQuantity());
+		// 		reserved.add(item);
+		// 	}
+		// } catch(Exception e){
+		// 	for (OrderItemEntity item : reserved) {
+		// 		try {
+		// 			menuInventoryClient.release(item.getMenuId(), item.getQuantity());
+		// 		} catch (Exception ignore) {}
+		// 	}
+		// 	throw new BusinessException(CommonCode.RESERVED_FAIL_RETRY);
+		// }
 
 		order.setTotalPrice(total);
 
@@ -139,6 +160,46 @@ public class OrderServiceImpl implements OrderService {
 			.build();
 
 		orderAuditRepository.save(audit);
+
+		final UUID oid = order.getOrderId();
+		final int totalAmount = total;
+
+		final UUID eventId = UUID.nameUUIDFromBytes((oid.toString() + "|order.created")
+			.getBytes(StandardCharsets.UTF_8));
+
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override
+			public void afterCommit() {
+				try {
+
+					Map<String, Object> envelope = new HashMap<>();
+					envelope.put("eventId", eventId);
+					envelope.put("orderId", oid);
+					envelope.put("customerId", customerId);
+					envelope.put("totalAmount", totalAmount);
+					envelope.put("occurredAt", Instant.now());
+
+					List<Map<String, Object>> itemList = toSave.stream()
+							.map(oi -> Map.<String, Object>of(
+								"menuId", oi.getMenuId(),
+								"qty", oi.getQuantity()
+							))
+								.toList();
+					envelope.put("items", itemList);
+
+					publisher.orderCreated(
+						oid.toString(),
+						envelope
+					);
+
+					log.info("[Saga] order.created publish success. orderId={}", oid);
+				} catch (Exception e) {
+					log.error("[Saga] order.created publish failed. orderId={}", oid, e);
+				}
+			}
+		});
+
+		log.info(CommonCode.ORDER_CREATE.getMessage());
 
 		return new OrderCreateRes(
 			order.getOrderId(),
@@ -196,6 +257,8 @@ public class OrderServiceImpl implements OrderService {
 				preview = items.get(0).getMenuName() + " 외  " + (count - 1) + "개";
 			}
 
+			log.info(CommonCode.ORDER_SEARCH.getMessage());
+
 			return OrderSummaryRes.builder()
 					.orderId(o.getOrderId())
 					.storeId(o.getStoreId())
@@ -218,7 +281,7 @@ public class OrderServiceImpl implements OrderService {
 	@Transactional(readOnly = true)
 	public CustomerOrderDetailRes getMyOrderDetail(UUID customerId, UUID orderId) {
 		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)
-			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다., customerId: " + customerId + ", orderId: " + orderId));
+			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_NOT_FOUND));
 
 
 		List<OrderItemEntity> items = orderItemRepository.findByOrderId_OrderId(orderId);
@@ -227,6 +290,8 @@ public class OrderServiceImpl implements OrderService {
 		OffsetDateTime createdAt = orderAuditRepository.findById(orderId)
 			.map(OrderAuditEntity::getCreatedAt)
 			.orElse(null);
+
+		log.info(CommonCode.ORDER_SEARCH.getMessage());
 
 		return CustomerOrderDetailRes.builder()
 			.orderId(order.getOrderId())
@@ -267,7 +332,7 @@ public class OrderServiceImpl implements OrderService {
 
 		UUID ownerFromStore = store.getOwnerId();
 		if (ownerFromStore != null && !ownerFromStore.equals(ownerId)) {
-			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+			throw new BusinessException(CommonCode.STORE_AUTH_FAIL);
 		}
 
 
@@ -309,6 +374,7 @@ public class OrderServiceImpl implements OrderService {
 					.build();
 		});
 
+		log.info(CommonCode.ORDER_SEARCH.getMessage());
 
 		return PageCache.fromPage(mappedPage);
 	}
@@ -323,13 +389,13 @@ public class OrderServiceImpl implements OrderService {
 	public OwnerOrderDetailRes getOwnerOrderDetail(UUID orderId, UUID storeId, UUID ownerId) {
 
 		OrderEntity order = orderRepository.findById(orderId)
-			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_NOT_FOUND));
 
 		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
 
 		UUID ownerFromStore = store.getOwnerId();
 		if (ownerFromStore != null && !ownerFromStore.equals(ownerId)) {
-			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+			throw new BusinessException(CommonCode.STORE_AUTH_FAIL);
 		}
 
 		List<OrderItemEntity> items = orderItemRepository.findByOrderId_OrderId(orderId);
@@ -338,6 +404,8 @@ public class OrderServiceImpl implements OrderService {
 		OffsetDateTime createdAt = orderAuditRepository.findById(orderId)
 			.map(OrderAuditEntity::getCreatedAt)
 			.orElse(null);
+
+		log.info(CommonCode.ORDER_SEARCH.getMessage());
 
 		return OwnerOrderDetailRes.builder()
 			.orderId(order.getOrderId())
@@ -363,13 +431,13 @@ public class OrderServiceImpl implements OrderService {
 	@Transactional
 	public OwnerOrderDetailRes updateOrderStatusByOwner(UUID ownerId, UUID orderId, OrderStatus newStatus) {
 		OrderEntity order = orderRepository.findById(orderId)
-			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_NOT_FOUND));
 
 		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
 
 		UUID ownerFromStore = store.getOwnerId();
 		if (Objects.equals(ownerFromStore, ownerId)) {
-			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+			throw new BusinessException(CommonCode.STORE_AUTH_FAIL);
 		}
 
 		OrderStatus oldStatus = order.getOrderStatus();
@@ -400,6 +468,8 @@ public class OrderServiceImpl implements OrderService {
 			.map(OrderAuditEntity::getCreatedAt)
 			.orElse(null);
 
+		log.info(CommonCode.ORDER_UPDATE.getMessage());
+
 		return OwnerOrderDetailRes.builder()
 			.orderId(order.getOrderId())
 			.storeId(order.getStoreId())
@@ -421,7 +491,7 @@ public class OrderServiceImpl implements OrderService {
 
 	public CustomerOrderDetailRes cancelMyOrder(UUID customerId, UUID orderId) {
 		OrderEntity order = orderRepository.findByOrderIdAndCustomerId(orderId, customerId)
-			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_NOT_FOUND));
 
 		if (order.getOrderStatus() == OrderStatus.CANCELED) {
 			return getMyOrderDetail(customerId, orderId);
@@ -432,84 +502,160 @@ public class OrderServiceImpl implements OrderService {
 			|| order.getOrderStatus() == OrderStatus.DELIVERING
 			|| order.getOrderStatus() == OrderStatus.COMPLETED)
 			&& order.getPaymentStatus() == PaymentStatus.PAID) {
-			throw new IllegalStateException("현재 상태에서는 취소할 수 없습니다.");
-		}
-
-		if (order.getPaymentStatus() == PaymentStatus.PAID) {
-			paymentClient.cancelPayment(order.getOrderId(), customerId,"USER_CANCELED");
-			order.setPaymentStatus(PaymentStatus.REFUNDED);
-		}
-
-		var items = orderItemRepository.findByOrderId_OrderId(orderId);
-
-		for (OrderItemEntity item : items) {
-			menuInventoryClient.release(item.getMenuId(), item.getQuantity());
+			throw new BusinessException(CommonCode.ORDER_CANCEL_FAIL);
 		}
 
 		order.setOrderStatus(OrderStatus.CANCELED);
-		order.setPaymentStatus(PaymentStatus.REFUNDED);
 		orderRepository.save(order);
 
+		OffsetDateTime updatedAt = Instant.now().atOffset(ZoneOffset.UTC);
+
 		orderAuditRepository.findById(orderId).ifPresent(a -> {
-			a.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+			a.setUpdatedAt(updatedAt);
 			a.setUpdatedBy(order.getCustomerId());
 			orderAuditRepository.save(a);
 		});
 
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override public void afterCommit() {
+				try {
+
+					UUID eventId = UUID.randomUUID();
+
+					Map<String, Object> envelope = new HashMap<>();
+					envelope.put("eventId", eventId);
+					envelope.put("orderId", order.getOrderId());
+					envelope.put("status", OrderStatus.CANCELED);
+					envelope.put("paymentStatus", order.getPaymentStatus());
+					envelope.put("occurredAt", Instant.now());
+					envelope.put("changedAt", updatedAt.toInstant());
+
+					publisher.orderStatusChanged(orderId.toString(), envelope);
+
+					log.info("[Order] order.status.changed published (owner canceled). orderId={}, eventId={}", orderId, eventId);
+				} catch (Exception e) {
+					log.error("[Order] order.status.changed publish failed. orderId={}", orderId, e);
+				}
+			}
+		});
+
+		log.info(CommonCode.ORDER_CANCEL.getMessage());
+
 		return getMyOrderDetail(customerId, orderId);
 	}
 
+	@Transactional
 	public OwnerOrderDetailRes cancelStoreOrder(UUID ownerId, UUID storeId, UUID orderId) {
 		OrderEntity order = orderRepository.findById(orderId)
-			.orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_NOT_FOUND));
 
 		StoreLookUp store = storeClient.getStoreDetail(order.getStoreId());
-
 		UUID ownerFromStore = store.getOwnerId();
-		if (Objects.equals(ownerFromStore, ownerId)) {
-			throw new SecurityException("해당 매장의 소유자가 아닙니다.");
+		if (ownerFromStore == null || !ownerFromStore.equals(ownerId)) {
+			throw new BusinessException(CommonCode.STORE_AUTH_FAIL);
 		}
 
 		if (order.getOrderStatus() == OrderStatus.CANCELED) {
-			return getOwnerOrderDetail(ownerId, storeId, orderId);
+			return getOwnerOrderDetail(orderId, storeId, ownerId);
 		}
-
 		if (order.getOrderStatus() == OrderStatus.CONFIRMED) {
-			throw new IllegalStateException("현재 상태에서는 취소할 수 없습니다.");
-		}
-
-		if (order.getPaymentStatus() == PaymentStatus.PAID) {
-			paymentClient.cancelPayment(order.getOrderId(), ownerId,"USER_CANCELED");
-			order.setPaymentStatus(PaymentStatus.REFUNDED);
+			throw new BusinessException(CommonCode.ORDER_CANCEL_FAIL);
 		}
 
 		order.setOrderStatus(OrderStatus.CANCELED);
-		order.setPaymentStatus(PaymentStatus.REFUNDED);
-
 		orderRepository.save(order);
 
+		OffsetDateTime updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
+
 		orderAuditRepository.findById(orderId).ifPresent(a -> {
-			a.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+			a.setUpdatedAt(updatedAt);
 			a.setUpdatedBy(ownerId);
 			orderAuditRepository.save(a);
 		});
 
-		return getOwnerOrderDetail(ownerId, storeId, orderId);
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override public void afterCommit() {
+				try {
+
+					Map<String, Object> envelope = new HashMap<>();
+					envelope.put("orderId", order.getOrderId());
+					envelope.put("status", OrderStatus.CANCELED);
+					envelope.put("paymentStatus", order.getPaymentStatus());
+					envelope.put("occurredAt", Instant.now());
+					envelope.put("changedAt", updatedAt.toInstant());
+
+					publisher.orderStatusChanged(orderId.toString(), envelope);
+
+					log.info("[Order] order.status.changed published (owner canceled). orderId={}", orderId);
+				} catch (Exception e) {
+					log.error("[Order] order.status.changed publish failed. orderId={}", orderId, e);
+				}
+			}
+		});
+
+		log.info(CommonCode.ORDER_CANCEL.getMessage());
+
+		return getOwnerOrderDetail(orderId, storeId, ownerId);
 	}
 
-	private OrderSummaryRes toOrderSummary(OrderEntity o, List<OrderItemEntity> items, OffsetDateTime createdAt, String storeName) {
-		String firstMenu = items.isEmpty() ? null : items.get(0).getMenuName();
-		int extraCount = Math.max(0, items.size() - 1);
-		String menuSummary = (firstMenu == null) ? null : (extraCount > 0 ? firstMenu + " 외 " + extraCount + "개" : firstMenu);
+	@Override
+	@Transactional(readOnly = true)
+	public Optional<OrderEntity> findLatestPendingOrder(UUID customerId) {
+		if (customerId == null) {
+			throw new BusinessException(CommonCode.USER_REQUIRED);
+		}
+		return orderRepository.findTopByCustomerIdAndPaymentStatus(
+			customerId,
+			PaymentStatus.PENDING
+		);
+	}
 
-		return OrderSummaryRes.builder()
-			.orderId(o.getOrderId())
-			.storeId(o.getStoreId())
-			.storeName(storeName)
-			.orderStatus(o.getOrderStatus())
-			.totalPrice(o.getTotalPrice())
-			.createdAt(createdAt)
-			.summaryTitle(menuSummary)
-			.build();
+	@Override
+	@Transactional
+	public void cancelDueToOutOfStock(UUID orderId) {
+		OrderEntity order = orderRepository.findById(orderId)
+			.orElseThrow(() -> new BusinessException(CommonCode.ORDER_NOT_FOUND));
+
+		if (order.getOrderStatus() == OrderStatus.CANCELED) {
+			log.info("[Order] 이미 취소된 주문. orderId={}", orderId);
+			return;
+		}
+
+		order.setOrderStatus(OrderStatus.CANCELED);
+		orderRepository.save(order);
+
+		OffsetDateTime updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
+		orderAuditRepository.findById(orderId).ifPresent(a -> {
+			a.setUpdatedAt(updatedAt);
+			a.setUpdatedBy(order.getCustomerId());
+			orderAuditRepository.save(a);
+		});
+
+		if (order.getPaymentStatus() == PaymentStatus.PAID) {
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCommit() {
+					try {
+						Map<String, Object> refundReq = new HashMap<>();
+						refundReq.put("eventId", UUID.randomUUID());
+						refundReq.put("orderId", orderId);
+						refundReq.put("customerId", order.getCustomerId());
+						refundReq.put("reason", "OUT_OF_STOCK");
+						refundReq.put("occurredAt", Instant.now());
+
+						publisher.paymentCancelRequested(orderId.toString(), refundReq);
+						log.info("[Order] payment.cancel.requested 발행 완료. orderId={}, refundReq={}", orderId, refundReq);
+					} catch (Exception e) {
+						log.error("[Order] payment.cancel.requested 발행 실패. orderId={}", orderId, e);
+					}
+				}
+			});
+		} else {
+			log.info("[Order] 결제가 안 된 주문 shortage. orderId={}", orderId);
+		}
+
+		log.info("[Order] stock.shortage 수신 완료 — orderId={}", orderId);
 	}
 }
+
+

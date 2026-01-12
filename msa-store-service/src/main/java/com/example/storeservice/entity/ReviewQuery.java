@@ -36,11 +36,14 @@ public class ReviewQuery {
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted = false;
 
-    public  ReviewQuery(ReviewQueryDto reviewQueryDto,  UUID customerId) {
-        this.menu = new Menu(reviewQueryDto.getMenuId());
-        this.customerId = customerId;
-        this.questionText = reviewQueryDto.getQuery();
-        this.createdAt = LocalDateTime.now();
-        this.deleted = false;
-    }
+    @Column(name = "answer_text", columnDefinition = "text")
+    private String answerText;
+
+//    public  ReviewQuery(ReviewQueryDto reviewQueryDto,  UUID customerId) {
+//        this.menu = new Menu(reviewQueryDto.getMenuId());
+//        this.customerId = customerId;
+//        this.questionText = reviewQueryDto.getQuery();
+//        this.createdAt = LocalDateTime.now();
+//        this.deleted = false;
+//    }
 }

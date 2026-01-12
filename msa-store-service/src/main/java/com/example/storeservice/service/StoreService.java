@@ -78,8 +78,8 @@ public class StoreService {
         if (storeAudit.getDeletedAt() != null) {
             throw new StoreAlreadyDeletedException("이미 삭제된 상점입니다. ");
         }
-        storeAudit.setDeletedBy(dto.getOwnerId());
-        storeAudit.setDeletedAt(LocalDateTime.now());
+        storeAudit.setUpdatedBy(dto.getOwnerId());
+        storeAudit.setUpdatedAt(LocalDateTime.now());
 
         long version = System.currentTimeMillis();
         outboxService.insertOutbox(store, version, EventAction.UPDATED);

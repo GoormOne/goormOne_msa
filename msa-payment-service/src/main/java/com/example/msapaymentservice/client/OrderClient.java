@@ -10,12 +10,15 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.common.entity.PaymentStatus;
 import com.example.common.dto.OrderCheckoutView;
+import com.example.msapaymentservice.dto.LatestPendingOrderRes;
 import com.example.msapaymentservice.dto.PaymentStatusUpdateReq;
 
 @Component
@@ -41,6 +44,24 @@ public class OrderClient {
 			throw new IllegalStateException("checkout 조회 실패: " + resp.getStatusCode());
 		}
 
+		return resp.getBody();
+	}
+
+	public LatestPendingOrderRes getLatestPendingOrder(UUID customerId) {
+		String url = STORE_BASE + "/internal/orders/latest-pending";
+
+		if (customerId == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "customerId is required");
+		}
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("X-User-Id", customerId.toString());
+		HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+		var resp = restTemplate.exchange(url, HttpMethod.GET, entity, LatestPendingOrderRes.class);
+		if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
+			throw new IllegalStateException("최신 PENDING 주문 조회 실패: " + resp.getStatusCode());
+		}
 		return resp.getBody();
 	}
 

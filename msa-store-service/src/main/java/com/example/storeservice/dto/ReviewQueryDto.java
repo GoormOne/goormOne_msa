@@ -1,5 +1,6 @@
 package com.example.storeservice.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +13,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 public class ReviewQueryDto {
-    private UUID menuId;
+    @NotBlank
     private String query;
-
 }

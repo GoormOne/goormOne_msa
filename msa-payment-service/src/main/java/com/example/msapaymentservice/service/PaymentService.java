@@ -23,4 +23,6 @@ public interface PaymentService {
 	void handleSuccess(UUID customerId, UUID orderId, String paymentKey, int amount);
 
 	void handleFail(UUID customerId, UUID orderId, String errorCode, String errorMsg);
+
+	ResponseEntity<Void> redirectToCheckout(UUID customerId);
 }
